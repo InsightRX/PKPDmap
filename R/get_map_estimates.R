@@ -3,6 +3,7 @@ get_map_estimates <- function(
                       model = NULL, 
                       data = NULL, 
                       parameters = NULL,
+                      fixed = NULL,
                       omega = omega,
                       error = list(prop = 0.1, add = 0.1),
                       regimen = NULL,
@@ -58,6 +59,14 @@ get_map_estimates <- function(
   for(i in seq(names(parameters))) {
     eta[[paste0("eta", i)]] <- 0
   }
+  if (!is.null(fixed)) {
+    id_fix <- match(fixed, names(parameters))
+    fix <- list()
+    for(i in 1:length(id_fix)) {  
+      id <- names(eta)[id_fix[i]]
+      fix[[id]] <- 0
+    }
+  }
   fit <- mle2(ll_func,
               start = eta,
               method="L-BFGS-B",
@@ -67,7 +76,8 @@ get_map_estimates <- function(
                           ode = ode,
                           omega_full = triangle_to_full(omega), 
                           error = error,
-                          covs = NULL))
+                          covs = NULL),
+              fixed = fix)
   cf <- coef(fit)  
   par <- parameters
   for(i in seq(names(par))) {
