@@ -50,8 +50,9 @@ get_map_estimates <- function(
     ipred <- sim[!duplicated(sim$t),]$y    
     y <- data$y
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
-    ofv <-   c(dmvnorm(c(eta1, eta2, eta3), mean=c(0, 0, 0), sigma=omega_full, log=TRUE),
-               dnorm(y-ipred, 0, res_sd, log=TRUE))
+    ## need to adapt for different omega sizes!!
+    ofv <-   c(dmvnorm(c(eta1, eta2), mean=c(0, 0), sigma=omega_full, log=TRUE),
+               dnorm(y - ipred, 0, res_sd, log=TRUE))
     #print(ofv)
     return(-sum(ofv))
   }
@@ -66,6 +67,8 @@ get_map_estimates <- function(
       id <- names(eta)[id_fix[i]]
       fix[[id]] <- 0
     }
+  } else {
+    fix <- NULL
   }
   fit <- mle2(ll_func,
               start = eta,
