@@ -4,18 +4,20 @@ library(devtools)
 install_github("ronkeizer/PKPDsim")
 library(bbmle)
 library(mvtnorm)
+library(PKPDmap)
 
 ## define parameters
 pk1 <- new_ode_model(model = "pk_1cmt_oral")
 regimen  <- new_regimen (amt = 100, interval = 12, n = 2)
 parameters   <- list("CL" = 5, "V" = 50, "KA" = 0.5) 
-omega = cv_to_omega(list("CL" = 0.2, "V" = 0.2, "KA" = 0.1), p)
+omega = cv_to_omega(list("CL" = 0.2, "V" = 0.2, "KA" = 0.1), parameters)
 
 ## simulate single individual in population
-data <- sim_ode(ode = "pk1", parameters = list(CL = 6, V = 55, KA=0.1), t_obs = c(1, 4, 12, 18, 23))
+data <- sim_ode(ode = "pk_1cmt_iv", 
+                parameters = list(CL = 6, V = 55, KA=0.1), t_obs = c(1, 4, 12, 18, 23))
 
 ## Fit
-get_map_estimates(model = pk1, 
+get_map_estimates(model = pk_1cmt_oral, 
                   data = data, 
                   parameters = parameters,
                   fixed = c("KA"),

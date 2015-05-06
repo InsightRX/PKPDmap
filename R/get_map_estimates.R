@@ -73,7 +73,7 @@ get_map_estimates <- function(
               data = list(data = data, 
                           parameters = parameters, 
                           regimen = regimen,
-                          ode = ode,
+                          ode = model,
                           omega_full = triangle_to_full(omega), 
                           error = error,
                           covs = NULL),

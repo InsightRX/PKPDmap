@@ -6,4 +6,8 @@
 #' @name vpc-package
 #' @import mvtnorm dplyr
 #' @author Ron Keizer \email{ronkeizer@@gmail.com}
+#' @useDynLib PKPDmap
+#' @exportPattern("pk_1cmt_iv/^[[:alpha:]]+")
+#' @importFrom Rcpp sourceCpp
 NULL
+#> NULL
