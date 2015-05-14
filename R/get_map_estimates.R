@@ -5,10 +5,11 @@ get_map_estimates <- function(
                       parameters = NULL,
                       fixed = NULL,
                       omega = omega,
-                      error = list(prop = 0.1, add = 0.1),
+                      error = list(prop = 0.1, add = 0.1, exp = 0),
                       regimen = NULL,
                       method = "L-BFGS-B",
-                      cols = list(x="t", y="y")) {
+                      cols = list(x="t", y="y"),
+                      verbose = FALSE) {
   if(is.null(model) || is.null(data) || is.null(parameters)) {
     stop("The 'model', 'data', and 'parameters' arguments are required.")
   }
@@ -53,7 +54,7 @@ get_map_estimates <- function(
     ## need to adapt for different omega sizes!!
     ofv <-   c(dmvnorm(c(eta1, eta2), mean=c(0, 0), sigma=omega_full, log=TRUE),
                dnorm(y - ipred, 0, res_sd, log=TRUE))
-    #print(ofv)
+    if(verbose) { print(ofv) }
     return(-sum(ofv))
   }
   eta <- list()
@@ -72,7 +73,7 @@ get_map_estimates <- function(
   }
   fit <- mle2(ll_func,
               start = eta,
-              method="L-BFGS-B",
+              method = "L-BFGS-B",
               data = list(data = data, 
                           parameters = parameters, 
                           regimen = regimen,
@@ -81,7 +82,7 @@ get_map_estimates <- function(
                           error = error,
                           covs = NULL),
               fixed = fix)
-  cf <- coef(fit)  
+  cf <- coef(fit) 
   par <- parameters
   for(i in seq(names(par))) {
     par[[i]] <- as.numeric(as.numeric(par[[i]]) * exp(as.numeric(cf[i])))
