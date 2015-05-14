@@ -7,6 +7,7 @@ get_map_estimates <- function(
                       omega = omega,
                       error = list(prop = 0.1, add = 0.1, exp = 0),
                       regimen = NULL,
+                      int_step_size = 0.25,
                       method = "L-BFGS-B",
                       cols = list(x="t", y="y"),
                       verbose = FALSE) {
@@ -14,7 +15,7 @@ get_map_estimates <- function(
     stop("The 'model', 'data', and 'parameters' arguments are required.")
   }
   if(!("function" %in% class(model))) {
-    stop("The 'model' argument requires a model defined using the new_ode_model() function from the PKPDsim package.")
+    stop("The 'model' argument requires a function, e.g. a model defined using the new_ode_model() function from the PKPDsim package.")
   } 
   if(!all(unlist(cols) %in% names(data))) {
     stop("Expected column names were not found in data. Please use 'cols' argument to specify column names for independent and dependent variable.")
@@ -27,35 +28,64 @@ get_map_estimates <- function(
     }
   }  
   colnames(data) <- tolower(colnames(data))
-  ll_func <- function(data, 
-                      eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12, # unfortunately seems no other way to do this...
-                      parameters, 
-                      regimen = regimen, 
-                      omega_full = omega_full, 
-                      error = error, 
-                      ode, 
-                      covs) {
-    par <- parameters
-    p <- as.list(match.call())
-    for(i in seq(names(par))) {
-      par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
-    }
-    suppressMessages({
-      sim <- sim_ode(ode = ode, 
-                     parameters = par,
-                     n_ind = 1,
-                     # regimen = new_regimen(amt = dat[dat$evid == 1,]$amt, times = dat[dat$evid == 1,]$time, type = "infusion", t_inf = 2), 
-                     regimen = regimen,
-                     t_obs = data[data$evid == 0,]$t) %>% dplyr::filter(comp == "obs")      
-    })
-    ipred <- sim[!duplicated(sim$t),]$y    
-    y <- data$y
-    res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
-    ## need to adapt for different omega sizes!!
-    ofv <-   c(dmvnorm(c(eta1, eta2), mean=c(0, 0), sigma=omega_full, log=TRUE),
-               dnorm(y - ipred, 0, res_sd, log=TRUE))
-    if(verbose) { print(ofv) }
-    return(-sum(ofv))
+  if(!is.null(attr(model, "cpp")) && attr(model, "cpp")) {
+    ll_func <- function(
+      data, 
+      eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12, # unfortunately seems no other way to do this...
+      parameters, 
+      regimen = regimen, 
+      omega_full = omega_full, 
+      error = error, 
+      model, 
+      covs) {
+        par <- parameters
+        p <- as.list(match.call())
+        for(i in seq(names(par))) {
+          par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
+        }
+        suppressMessages({
+          sim <- sim_ode(ode = model, 
+                         parameters = par,
+                         n_ind = 1,
+                         int_step_size = int_step_size,
+                         # regimen = new_regimen(amt = dat[dat$evid == 1,]$amt, times = dat[dat$evid == 1,]$time, type = "infusion", t_inf = 2), 
+                         regimen = regimen,
+                         t_obs = data[data$evid == 0,]$t) %>% dplyr::filter(comp == "obs")      
+        })
+        ipred <- sim[!duplicated(sim$t),]$y    
+        y <- data$y
+        res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
+        ## need to adapt for different omega sizes!!
+        ofv <-   c(dmvnorm(c(eta1, eta2), mean=c(0, 0), sigma=omega_full, log=TRUE),
+                   dnorm(y - ipred, 0, res_sd, log=TRUE))
+        if(verbose) { print(ofv) }
+        return(-sum(ofv))
+      }    
+  } else {
+    ll_func <- function(
+      data, 
+      eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12, # unfortunately seems no other way to do this...
+      parameters, 
+      regimen = regimen, 
+      omega_full = omega_full, 
+      error = error, 
+      model, 
+      covs) {
+        par <- parameters
+        p <- as.list(match.call())
+        for(i in seq(names(par))) {
+          par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
+        }
+        ipred <- model(t = data[data$evid == 0,]$t, 
+                       parameters = par)
+        y <- data$y
+        res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
+        ## need to adapt for different omega sizes!!
+        ofv <-   c(dmvnorm(c(eta1, eta2), mean=c(0, 0), sigma=omega_full, log=TRUE),
+                   dnorm(y - ipred, 0, res_sd, log=TRUE))
+        if(verbose) { print(ofv) }
+        return(-sum(ofv))
+      }
   }
   eta <- list()
   for(i in seq(names(parameters))) {
@@ -73,11 +103,11 @@ get_map_estimates <- function(
   }
   fit <- mle2(ll_func,
               start = eta,
-              method = "L-BFGS-B",
+              method = method,
               data = list(data = data, 
                           parameters = parameters, 
                           regimen = regimen,
-                          ode = model,
+                          model = model,
                           omega_full = triangle_to_full(omega), 
                           error = error,
                           covs = NULL),
