@@ -25,26 +25,36 @@ get_map_estimates <- function(
     if("comp" %in% names(data)) {
       data <- data %>% dplyr::filter(comp == "obs")
       data <- data[!duplicated(data$t),]
-      data$evid <- 0
+      if(nrow(data)>0) {
+        data$evid <- 0
+      } else {
+        stop("No data available.")
+      }
     }
   }
   colnames(data) <- tolower(colnames(data))
   if(!is.null(attr(model, "cpp")) && attr(model, "cpp")) {
     ll_func <- function(
       data,
-      eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12, # unfortunately seems no other way to do this...
+      eta1 = 0, eta2 = 0, eta3 = 0, eta4 = 0, eta5 = 0, eta6 = 0, eta7 = 0, eta8 = 0, eta9 = 0, eta10 = 0, eta11 = 0, eta12 = 0, # unfortunately seems no other way to do this...
       parameters,
       covariates,
       regimen = regimen,
       omega_full = omega_full,
       error = error,
       model,
-      covs) {
+      covs,
+      min2LL = TRUE) {
         par <- parameters
         p <- as.list(match.call())
         for(i in seq(names(par))) {
           par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
         }
+#         if(nrow(omega_full) < 12)) {
+#           message("Omega matrix does not cover all parameters, will be expanded")
+#           add_length <- lower_triangle_vector_length(12) - nrow(omega_full)
+#           omega <- c(omega, rep(0, add_length))
+#         }
         suppressMessages({
           sim <- sim_ode(ode = model,
                          parameters = par,
@@ -60,15 +70,22 @@ get_map_estimates <- function(
         y <- data$y
         res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
         ## need to adapt for different omega sizes!!
-        ofv <-   c(dmvnorm(c(eta1, eta2), mean=c(0, 0), sigma=omega_full, log=TRUE),
+        ofv <-   c(dmvnorm(c(eta1, eta2, eta3), #, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12), 
+                           mean=rep(0, 3),
+                           sigma=omega_full, 
+                           log=TRUE),
                    dnorm(y - ipred, 0, res_sd, log=TRUE))
         if(verbose) { print(ofv) }
-        return(-sum(ofv))
+        if(min2LL) {
+          return(-sum(ofv))
+        } else {
+          return(ofv)          
+        }
       }
   } else {
     ll_func <- function(
       data,
-      eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12, # unfortunately seems no other way to do this...
+      eta1 = 0, eta2 = 0, eta3 = 0, eta4 = 0, eta5 = 0, eta6 = 0, eta7 = 0, eta8 = 0, eta9 = 0, eta10 = 0, eta11 = 0, eta12 = 0, # unfortunately seems no other way to do this...
       parameters,
       covariates,
       regimen = regimen,
@@ -106,6 +123,12 @@ get_map_estimates <- function(
   } else {
     fix <- NULL
   }
+  if(lower_triangle_size(omega) < length(parameters)) {
+    message("Omega matrix does not cover all parameters, will be expanded")
+    add_length <- lower_triangle_vector_length(length(parameters)) - lower_triangle_size(omega)
+    omega <- c(omega, rep(0, add_length))
+  }
+  print(omega)
   fit <- mle2(ll_func,
               start = eta,
               method = method,
@@ -123,7 +146,21 @@ get_map_estimates <- function(
   for(i in seq(names(par))) {
     par[[i]] <- as.numeric(as.numeric(par[[i]]) * exp(as.numeric(cf[i])))
   }
-  obj <- list(fit = fit, parameters = par)
+#   res <- ll_func(data = data,
+#                  eta1 = cf[1], 
+#                  eta2 = cf[2], 
+#                  parameters = parameters,
+#                  covariates = covariates,
+#                  regimen = regimen,
+#                  omega_full = triangle_to_full(omega),
+#                  error = error,
+#                  model = model,
+#                  covs = NULL,
+#                  min2LL = FALSE)
+  res <- NULL
+  obj <- list(fit = fit, 
+              parameters = par,
+              residuals = res)
   class(obj) <- c(class(obj), "map_estimates")
   return(obj)
 }
