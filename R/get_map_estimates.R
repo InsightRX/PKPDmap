@@ -8,7 +8,7 @@ get_map_estimates <- function(
                       omega = omega,
                       error = list(prop = 0.1, add = 0.1, exp = 0),
                       regimen = NULL,
-                      int_step_size = 0.25,
+                      int_step_size = 0.1,
                       method = "L-BFGS-B",
                       cols = list(x="t", y="y"),
                       verbose = FALSE) {
@@ -45,16 +45,17 @@ get_map_estimates <- function(
         for(i in seq(names(par))) {
           par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
         }
+        sig <- round(-log10(int_step_size))
+        t_obs <- round(data[data$evid == 0,]$t, sig)
         suppressMessages({
           sim <- sim_ode(ode = model,
                          parameters = par,
                          covariates = covariates,
                          n_ind = 1,
-                         int_step_size = int_step_size,
-                         # regimen = new_regimen(amt = dat[dat$evid == 1,]$amt, times = dat[dat$evid == 1,]$time, type = "infusion", t_inf = 2),
+                         int_step_size = 0.01,
                          regimen = regimen,
-                         t_obs = data[data$evid == 0,]$t) %>% dplyr::filter(comp == "obs")
-          
+                         t_obs = t_obs,
+                         only_obs = TRUE)
         })
         ipred <- sim[!duplicated(sim$t),]$y
         y <- data$y
