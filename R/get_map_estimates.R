@@ -52,7 +52,7 @@ get_map_estimates <- function(
                          parameters = par,
                          covariates = covariates,
                          n_ind = 1,
-                         int_step_size = 1,
+                         int_step_size = int_step_size,
                          regimen = regimen,
                          t_obs = t_obs,
                          only_obs = TRUE)
