@@ -1,3 +1,17 @@
+#' Get MAP estimates
+#' 
+#' @param model model
+#' @param data data
+#' @param parameters parameters
+#' @param covariates covariates
+#' @param fixed fix a specific parameters, supplied as vector of strings
+#' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
+#' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts 
+#' @param regimen regimen
+#' @param int_step_size integrator step size passed to PKPDsim
+#' @param method optimization method, default L-BFGS-B
+#' @param cols column names
+#' @param verbose show more output
 #' @export
 get_map_estimates <- function(
                       model = NULL,
@@ -5,15 +19,15 @@ get_map_estimates <- function(
                       parameters = NULL,
                       covariates = NULL,
                       fixed = NULL,
-                      omega = omega,
+                      omega = NULL,
                       error = list(prop = 0.1, add = 0.1, exp = 0),
                       regimen = NULL,
                       int_step_size = 0.1,
                       method = "L-BFGS-B",
                       cols = list(x="t", y="y"),
                       verbose = FALSE) {
-  if(is.null(model) || is.null(data) || is.null(parameters)) {
-    stop("The 'model', 'data', and 'parameters' arguments are required.")
+  if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
+    stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
   }
   if(!("function" %in% class(model))) {
     stop("The 'model' argument requires a function, e.g. a model defined using the new_ode_model() function from the PKPDsim package.")
@@ -23,12 +37,19 @@ get_map_estimates <- function(
   }
   if("PKPDsim" %in% class(data)) {
     if("comp" %in% names(data)) {
-      data <- data %>% dplyr::filter(comp == "obs")
+      data <- data[comp == "obs",]
       data <- data[!duplicated(data$t),]
       data$evid <- 0
     }
   }
   colnames(data) <- tolower(colnames(data))
+  sig <- round(-log10(int_step_size))
+  if(!("evid" %in% colnames(data))) {
+    message("No 'evid' column in input data, assuming all rows are observations.")
+  } else {
+    data <- data[data$evid == 0,]
+  }
+  t_obs <- data$t
   if(!is.null(attr(model, "cpp")) && attr(model, "cpp")) {
     ll_func <- function(
       data,
@@ -39,14 +60,14 @@ get_map_estimates <- function(
       omega_full = omega_full,
       error = error,
       model,
+      t_obs,
+      sig,
       covs) {
         par <- parameters
         p <- as.list(match.call())
         for(i in seq(names(par))) {
           par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
         }
-        sig <- round(-log10(int_step_size))
-        t_obs <- round(data[data$evid == 0,]$t, sig)
         suppressMessages({
           sim <- sim_ode(ode = model,
                          parameters = par,
@@ -61,8 +82,8 @@ get_map_estimates <- function(
         y <- data$y
         res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
         ## need to adapt for different omega sizes!!
-        ofv <-   c(dmvnorm(c(eta1, eta2), mean=c(0, 0), sigma=omega_full, log=TRUE),
-                   dnorm(y - ipred, 0, res_sd, log=TRUE))
+        ofv <-   c(mvtnorm::dmvnorm(c(eta1, eta2), mean=c(0, 0), sigma=omega_full, log=TRUE),
+                   dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE))
         if(verbose) { print(ofv) }
         return(-sum(ofv))
       }
@@ -76,6 +97,8 @@ get_map_estimates <- function(
       omega_full = omega_full,
       error = error,
       model,
+      t_obs,
+      sig,
       covs) {
         par <- parameters
         p <- as.list(match.call())
@@ -88,7 +111,7 @@ get_map_estimates <- function(
         res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
         ## need to adapt for different omega sizes!!
         ofv <-   c(dmvnorm(c(eta1, eta2), mean=c(0, 0), sigma=omega_full, log=TRUE),
-                   dnorm(y - ipred, 0, res_sd, log=TRUE))
+                   dnorm(y - ipred, 0, sd = res_sd, log=TRUE))
         if(verbose) { print(ofv) }
         return(-sum(ofv))
       }
@@ -107,7 +130,7 @@ get_map_estimates <- function(
   } else {
     fix <- NULL
   }
-  fit <- mle2(ll_func,
+  fit <- bbmle::mle2(ll_func,
               start = eta,
               method = method,
               data = list(data = data,
@@ -117,9 +140,11 @@ get_map_estimates <- function(
                           model = model,
                           omega_full = triangle_to_full(omega),
                           error = error,
+                          t_obs = t_obs,
+                          sig = sig,
                           covs = NULL),
               fixed = fix)
-  cf <- coef(fit)
+  cf <- bbmle::coef(fit)
   par <- parameters
   for(i in seq(names(par))) {
     par[[i]] <- as.numeric(as.numeric(par[[i]]) * exp(as.numeric(cf[i])))
