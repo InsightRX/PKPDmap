@@ -2,5 +2,9 @@ language: R
 sudo: required
 warnings_are_errors: false
 
-r_binary_packages:
+r_packages:
  - testit
+
+r_github_packages:
+  - ronkeizer/PKPDsim
+  
