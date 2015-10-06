@@ -30,3 +30,20 @@ assert("PK 1cmt iv MAP V estimate same as NONMEM (delta < 0.5%)",
   max(fits[,2] - ebe$V) / mean(ebe$V) < 0.005)
 
 
+## Test 2cmt model (just check if it runs, no asserts)
+model2 <- new_ode_model("pk_2cmt_iv")
+fits <- c()
+par2 <- list(CL = 7.67, V = 97.7, Q = 3, V2 = 50)
+for(i in seq(unique(dat$id))) {
+  tmp <- get_map_estimates(parameters = par2,
+                           model = model2,
+                           regimen = new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
+                           omega = c(0.0406,
+                                     0.0623, 0.117,
+                                     0.001, 0.01, 0.1,
+                                     0.001, 0.001, 0.01, 0.1),
+                           error = list(prop = 0, add = sqrt(1.73E+04)),
+                           int_step_size = 0.1,
+                           data = dat[dat$id == i,])
+  fits <- rbind(fits, cbind(tmp$parameters$CL, tmp$parameters$V))
+}

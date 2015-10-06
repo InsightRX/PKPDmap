@@ -81,8 +81,12 @@ get_map_estimates <- function(
         ipred <- sim[!duplicated(sim$t),]$y
         y <- data$y
         res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
-        ## need to adapt for different omega sizes!!
-        ofv <-   c(mvtnorm::dmvnorm(c(eta1, eta2), mean=c(0, 0), sigma=omega_full, log=TRUE),
+        et <- mget(objects()[grep("eta", objects())])
+        et <- as.numeric(as.character(et[et != ""]))
+        omega_full <- omega_full[1:length(et), 1:length(et)]
+        ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)), 
+                                    sigma=omega_full[1:length(et), 1:length(et)], 
+                                    log=TRUE),
                    dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE))
         if(verbose) { print(ofv) }
         return(-sum(ofv))
@@ -109,9 +113,13 @@ get_map_estimates <- function(
                        parameters = par)
         y <- data$y
         res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
-        ## need to adapt for different omega sizes!!
-        ofv <-   c(dmvnorm(c(eta1, eta2), mean=c(0, 0), sigma=omega_full, log=TRUE),
-                   dnorm(y - ipred, 0, sd = res_sd, log=TRUE))
+        et <- mget(objects()[grep("eta", objects())])
+        et <- as.numeric(as.character(et[et != ""]))
+        omega_full <- omega_full[1:length(et), 1:length(et)]
+        ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)), 
+                                    sigma=omega_full[1:length(et), 1:length(et)], 
+                                    log=TRUE),
+                   dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE))
         if(verbose) { print(ofv) }
         return(-sum(ofv))
       }
