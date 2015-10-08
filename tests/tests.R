@@ -17,7 +17,8 @@ for(i in seq(unique(dat$id))) {
   tmp <- get_map_estimates(parameters = par,
                            model = model,
                            regimen = new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
-                           omega = c(0.0406, 0.0623, 0.117),
+                           omega = c(0.0406, 
+                                     0.0623, 0.117),
                            error = list(prop = 0, add = sqrt(1.73E+04)),
                            data = dat[dat$id == i,])
   fits <- rbind(fits, cbind(tmp$parameters$CL, tmp$parameters$V))
@@ -47,3 +48,43 @@ for(i in seq(unique(dat$id))) {
                            data = dat[dat$id == i,])
   fits <- rbind(fits, cbind(tmp$parameters$CL, tmp$parameters$V))
 }
+
+## Test 2cmt model but fix V2
+par2 <- list(CL = 7.67, V = 97.7, Q = 3, V2 = 50)
+i <- 1
+tmp1 <- get_map_estimates(parameters = par2,
+                          model = model2,
+                          regimen = new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
+                          omega = c(0.0406,
+                                    0.0623, 0.117,
+                                    0.001, 0.01, 0.1,
+                                    0.001, 0.01, 0.01, 0.1),
+                          fixed = c("V2"),
+                          error = list(prop = 0, add = sqrt(1.73E+04)),
+                          int_step_size = 0.1,
+                          data = dat[dat$id == i,])
+tmp2 <- get_map_estimates(parameters = par2,
+                          model = model2,
+                          regimen = new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
+                          omega = c(0.0406,
+                                    0.0623, 0.117,
+                                    0.001, 0.01, 0.1),
+                          fixed = c("V2"),
+                          error = list(prop = 0, add = sqrt(1.73E+04)),
+                          int_step_size = 0.1,
+                          data = dat[dat$id == i,])
+tmp3 <- get_map_estimates(parameters = par2,
+                          model = model2,
+                          regimen = new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
+                          omega = c(0.0406,
+                                    0.0623, 0.117),
+                          fixed = c("Q", "V2"),
+                          error = list(prop = 0, add = sqrt(1.73E+04)),
+                          int_step_size = 0.1,
+                          data = dat[dat$id == i,])
+assert("check fixing parameters #1",
+       tmp1$parameters$V2 == 50)
+assert("check fixing parameters #2",
+       tmp2$parameters$V2 == 50 && tmp2$parameters$Q != 3)
+assert("check fixing parameters #2",
+       tmp3$parameters$V2 == 50 && tmp3$parameters$Q == 3)

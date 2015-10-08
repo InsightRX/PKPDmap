@@ -125,7 +125,7 @@ get_map_estimates <- function(
       }
   }
   eta <- list()
-  for(i in seq(names(parameters))) {
+  for(i in seq(parameters)) {
     eta[[paste0("eta", i)]] <- 0
   }
   if (!is.null(fixed)) {
@@ -138,6 +138,12 @@ get_map_estimates <- function(
   } else {
     fix <- NULL
   }
+  omega_full <- diag(length(names(parameters))) # dummy om matrix
+  om_nonfixed <- triangle_to_full(omega)
+  if(nrow(om_nonfixed) < (length(parameters) - length(fix))) {
+    stop("Provided omega matrix is smaller than expected based on the number of model parameters. Either fix some parameters or increase the size of the omega matrix.")
+  }
+  omega_full[1:nrow(om_nonfixed), 1:ncol(om_nonfixed)] <- om_nonfixed
   fit <- bbmle::mle2(ll_func,
               start = eta,
               method = method,
@@ -146,7 +152,7 @@ get_map_estimates <- function(
                           covariates = covariates,
                           regimen = regimen,
                           model = model,
-                          omega_full = triangle_to_full(omega),
+                          omega_full = omega_full,
                           error = error,
                           t_obs = t_obs,
                           sig = sig,
