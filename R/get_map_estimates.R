@@ -128,6 +128,12 @@ get_map_estimates <- function(
   for(i in seq(parameters)) {
     eta[[paste0("eta", i)]] <- 0
   }
+  ## check if fixed parameter actually in parameter list
+  fixed <- names(parameters)[names(parameters) %in% fixed]
+  if(length(fixed) == 0) {
+    fixed <- NULL
+  }
+  ## fix etas
   if (!is.null(fixed)) {
     id_fix <- match(fixed, names(parameters))
     fix <- list()
