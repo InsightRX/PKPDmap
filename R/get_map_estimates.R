@@ -5,6 +5,7 @@
 #' @param parameters parameters
 #' @param covariates covariates
 #' @param fixed fix a specific parameters, supplied as vector of strings
+#' @param weights vector of weights. Length of vector should be same as length of observation vector. If NULL, all weights are 1.
 #' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts 
 #' @param regimen regimen
@@ -19,6 +20,7 @@ get_map_estimates <- function(
                       parameters = NULL,
                       covariates = NULL,
                       fixed = NULL,
+                      weights = NULL,
                       omega = NULL,
                       error = list(prop = 0.1, add = 0.1, exp = 0),
                       regimen = NULL,
@@ -50,6 +52,13 @@ get_map_estimates <- function(
     data <- data[data$evid == 0,]
   }
   t_obs <- data$t
+  if(!is.null(weights)) {
+    if(length(weights) != length(t_obs)) {
+      stop("Vector of weights of different size than observation vector!")
+    }
+  } else {
+    weights <- rep(1, length(t_obs))
+  }
   if(!is.null(attr(model, "cpp")) && attr(model, "cpp")) {
     ll_func <- function(
       data,
@@ -86,8 +95,8 @@ get_map_estimates <- function(
         omega_full <- omega_full[1:length(et), 1:length(et)]
         ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)), 
                                     sigma=omega_full[1:length(et), 1:length(et)], 
-                                    log=TRUE),
-                   dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE))
+                                    log=TRUE) * weights,
+                   dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
         if(verbose) { print(ofv) }
         return(-sum(ofv))
       }
@@ -150,6 +159,27 @@ get_map_estimates <- function(
     stop("Provided omega matrix is smaller than expected based on the number of model parameters. Either fix some parameters or increase the size of the omega matrix.")
   }
   omega_full[1:nrow(om_nonfixed), 1:ncol(om_nonfixed)] <- om_nonfixed
+  outlier_test <- TRUE
+  if(outlier_test) {
+    suppressMessages({
+      sim <- sim_ode(ode = model,
+                     parameters = parameters,
+                     covariates = covariates,
+                     n_ind = 1,
+                     int_step_size = int_step_size,
+                     regimen = regimen,
+                     t_obs = t_obs,
+                     only_obs = TRUE)
+    })
+    ipred <- sim[!duplicated(sim$t),]$y
+    y <- data$y
+    res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
+    residuals <- (ipred-y) / res_sd
+#     if(any(abs(residuals) > 1)) {
+#       print(which(residuals > 1))
+#       stop()
+#     }
+  }
   fit <- bbmle::mle2(ll_func,
               start = eta,
               method = method,

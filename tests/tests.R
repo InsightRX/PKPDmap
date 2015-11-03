@@ -88,3 +88,38 @@ assert("check fixing parameters #2",
        tmp2$parameters$V2 == 50 && tmp2$parameters$Q != 3)
 assert("check fixing parameters #2",
        tmp3$parameters$V2 == 50 && tmp3$parameters$Q == 3)
+
+assert("check fixing parameters #2",
+       tmp3$parameters$V2 == 50 && tmp3$parameters$Q == 3)
+
+tmp4 <- get_map_estimates(parameters = par2,
+                          model = model2,
+                          regimen = new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
+                          omega = c(0.0406,
+                                    0.0623, 0.117),
+                          fixed = c("Q", "V2"),
+                          weights = gradient_weights(
+                            dat[dat$id == i & dat$EVID == 0,]$t,
+                            12),
+                          error = list(prop = 0, add = sqrt(1.73E+04)),
+                          int_step_size = 0.1,
+                          data = dat[dat$id == i,])
+
+assert("weighting gives different results",
+       tmp3$parameters$CL != tmp4$parameters
+       )
+tmp5 <- get_map_estimates(parameters = par2,
+                          model = model2,
+                          regimen = new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
+                          omega = c(0.0406,
+                                    0.0623, 0.117),
+                          fixed = c("Q", "V2"),
+                          weights = gradient_weights(
+                            dat[dat$id == i & dat$EVID == 0,]$t,
+                            0),
+                          error = list(prop = 0, add = sqrt(1.73E+04)),
+                          int_step_size = 0.1,
+                          data = dat[dat$id == i,])
+assert("weighting with all weight=1 gives same results",
+       tmp5$parameters$CL == tmp3$parameters$CL
+)

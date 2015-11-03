@@ -2,3 +2,4 @@
 
 S3method(print,map_estimates)
 export(get_map_estimates)
+export(gradient_weights)

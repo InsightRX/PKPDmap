@@ -5,9 +5,10 @@
 \title{Get MAP estimates}
 \usage{
 get_map_estimates(model = NULL, data = NULL, parameters = NULL,
-  covariates = NULL, fixed = NULL, omega = NULL, error = list(prop =
-  0.1, add = 0.1, exp = 0), regimen = NULL, int_step_size = 0.1,
-  method = "L-BFGS-B", cols = list(x = "t", y = "y"), verbose = FALSE)
+  covariates = NULL, fixed = NULL, weights = NULL, omega = NULL,
+  error = list(prop = 0.1, add = 0.1, exp = 0), regimen = NULL,
+  int_step_size = 0.1, method = "L-BFGS-B", cols = list(x = "t", y = "y"),
+  verbose = FALSE)
 }
 \arguments{
 \item{model}{model}
@@ -19,6 +20,8 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 \item{covariates}{covariates}
 
 \item{fixed}{fix a specific parameters, supplied as vector of strings}
+
+\item{weights}{vector of weights. Length of vector should be same as length of observation vector. If NULL, all weights are 1.}
 
 \item{omega}{between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects}
 
