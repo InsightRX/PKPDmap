@@ -27,7 +27,8 @@ get_map_estimates <- function(
                       int_step_size = 0.1,
                       method = "L-BFGS-B",
                       cols = list(x="t", y="y"),
-                      verbose = FALSE) {
+                      verbose = FALSE,
+                      ...) {
   if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
     stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
   }
@@ -85,7 +86,8 @@ get_map_estimates <- function(
                          int_step_size = int_step_size,
                          regimen = regimen,
                          t_obs = t_obs,
-                         only_obs = TRUE)
+                         only_obs = TRUE,
+                         ...)
         })
         ipred <- sim[!duplicated(sim$t),]$y
         y <- data$y
@@ -169,7 +171,8 @@ get_map_estimates <- function(
                      int_step_size = int_step_size,
                      regimen = regimen,
                      t_obs = t_obs,
-                     only_obs = TRUE)
+                     only_obs = TRUE,
+                     ...)
     })
     ipred <- sim[!duplicated(sim$t),]$y
     y <- data$y

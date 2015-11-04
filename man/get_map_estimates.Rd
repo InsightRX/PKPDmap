@@ -8,7 +8,7 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   covariates = NULL, fixed = NULL, weights = NULL, omega = NULL,
   error = list(prop = 0.1, add = 0.1, exp = 0), regimen = NULL,
   int_step_size = 0.1, method = "L-BFGS-B", cols = list(x = "t", y = "y"),
-  verbose = FALSE)
+  verbose = FALSE, ...)
 }
 \arguments{
 \item{model}{model}

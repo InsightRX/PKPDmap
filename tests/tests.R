@@ -98,9 +98,9 @@ tmp4 <- get_map_estimates(parameters = par2,
                           omega = c(0.0406,
                                     0.0623, 0.117),
                           fixed = c("Q", "V2"),
-                          weights = gradient_weights(
+                          weights = weight_by_time(
                             dat[dat$id == i & dat$EVID == 0,]$t,
-                            12),
+                            t_end_gradient = 12),
                           error = list(prop = 0, add = sqrt(1.73E+04)),
                           int_step_size = 0.1,
                           data = dat[dat$id == i,])
@@ -114,12 +114,19 @@ tmp5 <- get_map_estimates(parameters = par2,
                           omega = c(0.0406,
                                     0.0623, 0.117),
                           fixed = c("Q", "V2"),
-                          weights = gradient_weights(
+                          weights = weight_by_time(
                             dat[dat$id == i & dat$EVID == 0,]$t,
-                            0),
+                            t_end_gradient = 0),
                           error = list(prop = 0, add = sqrt(1.73E+04)),
                           int_step_size = 0.1,
                           data = dat[dat$id == i,])
 assert("weighting with all weight=1 gives same results",
        tmp5$parameters$CL == tmp3$parameters$CL
+)
+
+grad <- weight_by_time(time = c(0:24), 
+                       t_start_gradient = 5,
+                       t_end_gradient = 23)
+assert("gradient correct",
+  sum(grad[1:6]) == 0 && sum(tail(grad,2)) == 2
 )
