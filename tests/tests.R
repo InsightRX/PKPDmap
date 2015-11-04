@@ -19,6 +19,7 @@ for(i in seq(unique(dat$id))) {
                            regimen = new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
                            omega = c(0.0406, 
                                      0.0623, 0.117),
+                           weights = rep(1, length(dat[dat$id == i & dat$EVID == 0,1])),
                            error = list(prop = 0, add = sqrt(1.73E+04)),
                            data = dat[dat$id == i,])
   fits <- rbind(fits, cbind(tmp$parameters$CL, tmp$parameters$V))
@@ -29,7 +30,6 @@ assert("PK 1cmt iv MAP CL estimate same as NONMEM (delta < 0.5%)",
   max(fits[,1] - ebe$CL) / mean(ebe$CL) < 0.005)
 assert("PK 1cmt iv MAP V estimate same as NONMEM (delta < 0.5%)", 
   max(fits[,2] - ebe$V) / mean(ebe$V) < 0.005)
-
 
 ## Test 2cmt model (just check if it runs, no asserts)
 model2 <- new_ode_model("pk_2cmt_iv")

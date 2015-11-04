@@ -58,7 +58,7 @@ get_map_estimates <- function(
       stop("Vector of weights of different size than observation vector!")
     }
   } else {
-    weights <- rep(1, length(t_obs))
+    weights <- 1 
   }
   if(!is.null(attr(model, "cpp")) && attr(model, "cpp")) {
     ll_func <- function(
@@ -97,7 +97,7 @@ get_map_estimates <- function(
         omega_full <- omega_full[1:length(et), 1:length(et)]
         ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)), 
                                     sigma=omega_full[1:length(et), 1:length(et)], 
-                                    log=TRUE) * weights,
+                                    log=TRUE),
                    dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
         if(verbose) { print(ofv) }
         return(-sum(ofv))
