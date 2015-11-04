@@ -130,3 +130,6 @@ grad <- weight_by_time(time = c(0:24),
 assert("gradient correct",
   sum(grad[1:6]) == 0 && sum(tail(grad,2)) == 2
 )
+assert("gradient correct",
+       sum(weight_by_time(0:9)) == 5
+)

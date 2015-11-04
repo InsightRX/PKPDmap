@@ -4,8 +4,8 @@
 \alias{weight_by_time}
 \title{Gradient weighting by time}
 \usage{
-weight_by_time(time = NULL, min_weight = 0, t_end_gradient = 0,
-  t_start_gradient = 0)
+weight_by_time(time = NULL, min_weight = 0, t_end_gradient = NULL,
+  t_start_gradient = NULL)
 }
 \arguments{
 \item{time}{vector of time}
