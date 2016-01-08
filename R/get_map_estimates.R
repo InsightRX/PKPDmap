@@ -26,9 +26,14 @@ get_map_estimates <- function(
                       regimen = NULL,
                       int_step_size = 0.1,
                       method = "L-BFGS-B",
+                      type = "map",
                       cols = list(x="t", y="y"),
                       verbose = FALSE,
                       ...) {
+  w_omega <- 1
+  if(tolower(type) == "ls") {
+    w_omega <- 0
+  }
   if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
     stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
   }
@@ -72,6 +77,7 @@ get_map_estimates <- function(
       model,
       t_obs,
       sig,
+      w_omega,
       covs) {
         par <- parameters
         p <- as.list(match.call())
@@ -97,7 +103,7 @@ get_map_estimates <- function(
         omega_full <- omega_full[1:length(et), 1:length(et)]
         ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)), 
                                     sigma=omega_full[1:length(et), 1:length(et)], 
-                                    log=TRUE),
+                                    log=TRUE) * w_omega,
                    dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
         if(verbose) { print(ofv) }
         return(-sum(ofv))
@@ -113,6 +119,7 @@ get_map_estimates <- function(
       error = error,
       model,
       t_obs,
+      w_omega,
       sig,
       covs) {
         par <- parameters
@@ -129,7 +136,7 @@ get_map_estimates <- function(
         omega_full <- omega_full[1:length(et), 1:length(et)]
         ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)), 
                                     sigma=omega_full[1:length(et), 1:length(et)], 
-                                    log=TRUE),
+                                    log=TRUE) * w_omega,
                    dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE))
         if(verbose) { print(ofv) }
         return(-sum(ofv))
@@ -194,6 +201,7 @@ get_map_estimates <- function(
                           omega_full = omega_full,
                           error = error,
                           t_obs = t_obs,
+                          w_omega = w_omega,
                           sig = sig,
                           covs = NULL),
               fixed = fix)
