@@ -65,6 +65,9 @@ get_map_estimates <- function(
   } else {
     weights <- 1 
   }
+  if(sum(unlist(error)) == 0) {
+    stop("No residual error model specified, or residual error is 0.")
+  }
   if(!is.null(attr(model, "cpp")) && attr(model, "cpp")) {
     ll_func <- function(
       data,
