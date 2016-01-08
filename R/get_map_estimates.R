@@ -32,7 +32,7 @@ get_map_estimates <- function(
                       ...) {
   w_omega <- 1
   if(tolower(type) == "ls") {
-    w_omega <- 0
+    w_omega <- 0.001
   }
   if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
     stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
