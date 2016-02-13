@@ -12,6 +12,9 @@
 #' @param int_step_size integrator step size passed to PKPDsim
 #' @param method optimization method, default L-BFGS-B
 #' @param cols column names
+#' @param outlier_test perform outlier test? This requires an additional simulation so will be slightly slower.
+#' @param outlier_limit n standard deviations what is considered outlier
+#' @param residuals show residuals? This requires an additional simulation so will be slightly slower.
 #' @param verbose show more output
 #' @export
 get_map_estimates <- function(
@@ -28,12 +31,15 @@ get_map_estimates <- function(
                       method = "L-BFGS-B",
                       type = "map",
                       cols = list(x="t", y="y"),
+                      residuals = FALSE,
+                      outlier_test = FALSE,
+                      outlier_limit = 3,
                       verbose = FALSE,
                       ...) {
   w_omega <- 1
   if(tolower(type) == "ls") {
     w_omega <- 0.001
-  }
+  } # else either map or adaptive
   if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
     stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
   }
@@ -171,8 +177,7 @@ get_map_estimates <- function(
     stop("Provided omega matrix is smaller than expected based on the number of model parameters. Either fix some parameters or increase the size of the omega matrix.")
   }
   omega_full[1:nrow(om_nonfixed), 1:ncol(om_nonfixed)] <- om_nonfixed
-  outlier_test <- TRUE
-  if(outlier_test) {
+  if(outlier_test || residuals) {
     suppressMessages({
       sim <- sim_ode(ode = model,
                      parameters = parameters,
@@ -187,11 +192,14 @@ get_map_estimates <- function(
     ipred <- sim[!duplicated(sim$t),]$y
     y <- data$y
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
-    residuals <- (ipred-y) / res_sd
-#     if(any(abs(residuals) > 1)) {
-#       print(which(residuals > 1))
-#       stop()
-#     }
+    res <- (ipred-y)
+    wres <- res / res_sd
+    if(outlier_test) {
+      if(any(abs(wres) > outlier_limit)) {
+        print(which(wres > outlier_limit))
+        stop()
+      }
+    }
   }
   fit <- bbmle::mle2(ll_func,
               start = eta,
@@ -209,11 +217,36 @@ get_map_estimates <- function(
                           covs = NULL),
               fixed = fix)
   cf <- bbmle::coef(fit)
+  if(tolower(type) == "adaptive") {
+    fit_ls <- bbmle::mle2(ll_func,
+                          start = eta,
+                          method = method,
+                          data = list(data = data,
+                                      parameters = parameters,
+                                      covariates = covariates,
+                                      regimen = regimen,
+                                      model = model,
+                                      omega_full = omega_full,
+                                      error = error,
+                                      t_obs = t_obs,
+                                      w_omega = 0.001,
+                                      sig = sig,
+                                      covs = NULL),
+                          fixed = fix)
+    cf_ls <- bbmle::coef(fit_ls)
+    if((cf_ls[1] / cf[1]) > 1.25) {
+      cf <- cf_ls
+    }
+  }
   par <- parameters
   for(i in seq(names(par))) {
     par[[i]] <- as.numeric(as.numeric(par[[i]]) * exp(as.numeric(cf[i])))
   }
   obj <- list(fit = fit, parameters = par)
+  if(residuals) {
+    obj$residuals <- res
+    obj$weighted_residuals <- wres
+  }
   class(obj) <- c(class(obj), "map_estimates")
   return(obj)
 }

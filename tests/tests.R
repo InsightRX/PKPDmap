@@ -133,3 +133,16 @@ assert("gradient correct",
 assert("gradient correct",
        sum(weight_by_time(0:9)) == 5
 )
+
+## check residuals
+id <- 1
+tmp <- get_map_estimates(parameters = par,
+                         model = model,
+                         regimen = new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
+                         omega = c(0.0406, 
+                                   0.0623, 0.117),
+                         weights = rep(1, length(dat[dat$id == id & dat$EVID == 0,1])),
+                         error = list(prop = 0, add = sqrt(1.73E+04)),
+                         data = dat[dat$id == id,], 
+                         residuals = TRUE)
+assert("mean of residuals correct", round(mean(tmp$weighted_residuals),2) == -0.45)
