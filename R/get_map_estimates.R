@@ -216,7 +216,7 @@ get_map_estimates <- function(
   }
   if(residuals) {
     suppressMessages({
-      sim <- sim_ode(ode = model,
+      sim_ipred <- sim_ode(ode = model,
                      parameters = par,
                      covariates = covariates,
                      n_ind = 1,
@@ -226,18 +226,35 @@ get_map_estimates <- function(
                      only_obs = TRUE,
                      ...)
     })
-    ipred <- sim[!duplicated(sim$t),]$y
+    suppressMessages({
+      sim_pred <- sim_ode(ode = model,
+                     parameters = parameters,
+                     covariates = covariates,
+                     n_ind = 1,
+                     int_step_size = int_step_size,
+                     regimen = regimen,
+                     t_obs = t_obs,
+                     only_obs = TRUE,
+                     ...)
+    })
+    ipred <- sim_ipred[!duplicated(sim_ipred$t),]$y
+    pred <- sim_pred[!duplicated(sim_pred$t),]$y
+    w_ipred <- sqrt(error$prop^2 * ipred^2 + error$add^2)
+    w_pred <- sqrt(error$prop^2 * pred^2 + error$add^2)
     y <- data$y
-    w <- sqrt(error$prop^2 * ipred^2 + error$add^2)
-    res <- (y - ipred)
-    iwres <- res / w
+    res <- (y - pred)
+    wres <- res / w_pred # not same as wres in NONMEM!
+    ires <- (y - ipred)
+    iwres <- ires / w_ipred
   }
   obj <- list(fit = fit, parameters = par)
   if(residuals) {
-    obj$residuals <- res
-    obj$weighted_residuals <- iwres
-    obj$weights <- w
+    obj$res <- res
+    obj$wres <- wres
+    obj$ires <- ires
+    obj$iwres <- iwres
     obj$ipred <- ipred
+    obj$pred <- pred
     obj$dv <- y
   }
   class(obj) <- c(class(obj), "map_estimates")

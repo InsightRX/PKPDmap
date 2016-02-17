@@ -4,7 +4,7 @@ warnings_are_errors: false
 
 r_packages:
  - testit
+ - devtools
 
 r_github_packages:
   - ronkeizer/PKPDsim
-  
