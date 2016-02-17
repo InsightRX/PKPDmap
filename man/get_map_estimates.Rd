@@ -7,8 +7,8 @@
 get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   covariates = NULL, fixed = NULL, weights = NULL, omega = NULL,
   error = list(prop = 0.1, add = 0.1, exp = 0), regimen = NULL,
-  int_step_size = 0.1, method = "L-BFGS-B", cols = list(x = "t", y = "y"),
-  verbose = FALSE, ...)
+  int_step_size = 0.1, method = "L-BFGS-B", type = "map", cols = list(x
+  = "t", y = "y"), residuals = FALSE, verbose = FALSE, ...)
 }
 \arguments{
 \item{model}{model}
@@ -34,6 +34,8 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 \item{method}{optimization method, default L-BFGS-B}
 
 \item{cols}{column names}
+
+\item{residuals}{show residuals? This requires an additional simulation so will be slightly slower.}
 
 \item{verbose}{show more output}
 }

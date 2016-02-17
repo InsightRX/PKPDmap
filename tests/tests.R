@@ -6,6 +6,7 @@ Sys.setenv("R_TESTS" = "")
 ## Basic precision and accuracy of MAP estimation (compared to NONMEM)
 dat   <- read.table(file=paste0(system.file(package="PKPDmap"), "/pktab1"), skip=1, header=TRUE)
 ebe   <- read.csv(file=paste0(system.file(package="PKPDmap"), "/patab1.csv"))
+sdtab <- read.table(file=paste0(system.file(package="PKPDmap"), "/sdtab1"), skip=1, header=TRUE)
 colnames(dat)[1:3] <- c("id", "t", "y")
 dat   <- dat[dat$id <= 20,] # not necessary to do all 100 id's, if bug will be clear from 20 ids too.
 ebe   <- ebe[ebe$id <= 20,]  
@@ -134,7 +135,7 @@ assert("gradient correct",
        sum(weight_by_time(0:9)) == 5
 )
 
-## check residuals
+## check individual residuals
 id <- 1
 tmp <- get_map_estimates(parameters = par,
                          model = model,
@@ -142,7 +143,13 @@ tmp <- get_map_estimates(parameters = par,
                          omega = c(0.0406, 
                                    0.0623, 0.117),
                          weights = rep(1, length(dat[dat$id == id & dat$EVID == 0,1])),
-                         error = list(prop = 0, add = sqrt(1.73E+04)),
+                         error = list(prop = 0, add = sqrt(1.73e04)),
                          data = dat[dat$id == id,], 
                          residuals = TRUE)
-assert("mean of residuals correct", round(mean(tmp$weighted_residuals),2) == -0.45)
+ires1 <- sdtab[sdtab$ID == 1 & sdtab$EVID == 0,]$IRES
+iwres1 <- sdtab[sdtab$ID == 1 & sdtab$EVID == 0,]$IWRES
+assert("residuals <1% different from reference", 
+       all((tmp$residuals - ires1) / ires1 < 0.01))
+assert("weighted residuals 0.01 different from reference", 
+       all(abs(tmp$weighted_residuals - iwres1) < 0.01))
+

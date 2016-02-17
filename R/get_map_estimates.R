@@ -12,8 +12,6 @@
 #' @param int_step_size integrator step size passed to PKPDsim
 #' @param method optimization method, default L-BFGS-B
 #' @param cols column names
-#' @param outlier_test perform outlier test? This requires an additional simulation so will be slightly slower.
-#' @param outlier_limit n standard deviations what is considered outlier
 #' @param residuals show residuals? This requires an additional simulation so will be slightly slower.
 #' @param verbose show more output
 #' @export
@@ -32,8 +30,6 @@ get_map_estimates <- function(
                       type = "map",
                       cols = list(x="t", y="y"),
                       residuals = FALSE,
-                      outlier_test = FALSE,
-                      outlier_limit = 3,
                       verbose = FALSE,
                       ...) {
   w_omega <- 1
@@ -177,30 +173,6 @@ get_map_estimates <- function(
     stop("Provided omega matrix is smaller than expected based on the number of model parameters. Either fix some parameters or increase the size of the omega matrix.")
   }
   omega_full[1:nrow(om_nonfixed), 1:ncol(om_nonfixed)] <- om_nonfixed
-  if(outlier_test || residuals) {
-    suppressMessages({
-      sim <- sim_ode(ode = model,
-                     parameters = parameters,
-                     covariates = covariates,
-                     n_ind = 1,
-                     int_step_size = int_step_size,
-                     regimen = regimen,
-                     t_obs = t_obs,
-                     only_obs = TRUE,
-                     ...)
-    })
-    ipred <- sim[!duplicated(sim$t),]$y
-    y <- data$y
-    res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
-    res <- (ipred-y)
-    wres <- res / res_sd
-    if(outlier_test) {
-      if(any(abs(wres) > outlier_limit)) {
-        print(which(wres > outlier_limit))
-        stop()
-      }
-    }
-  }
   fit <- bbmle::mle2(ll_func,
               start = eta,
               method = method,
@@ -242,10 +214,31 @@ get_map_estimates <- function(
   for(i in seq(names(par))) {
     par[[i]] <- as.numeric(as.numeric(par[[i]]) * exp(as.numeric(cf[i])))
   }
+  if(residuals) {
+    suppressMessages({
+      sim <- sim_ode(ode = model,
+                     parameters = par,
+                     covariates = covariates,
+                     n_ind = 1,
+                     int_step_size = int_step_size,
+                     regimen = regimen,
+                     t_obs = t_obs,
+                     only_obs = TRUE,
+                     ...)
+    })
+    ipred <- sim[!duplicated(sim$t),]$y
+    y <- data$y
+    w <- sqrt(error$prop^2 * ipred^2 + error$add^2)
+    res <- (y - ipred)
+    iwres <- res / w
+  }
   obj <- list(fit = fit, parameters = par)
   if(residuals) {
     obj$residuals <- res
-    obj$weighted_residuals <- wres
+    obj$weighted_residuals <- iwres
+    obj$weights <- w
+    obj$ipred <- ipred
+    obj$dv <- y
   }
   class(obj) <- c(class(obj), "map_estimates")
   return(obj)
