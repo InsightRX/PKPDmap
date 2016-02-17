@@ -29,7 +29,7 @@ get_map_estimates <- function(
                       method = "L-BFGS-B",
                       type = "map",
                       cols = list(x="t", y="y"),
-                      residuals = FALSE,
+                      residuals = TRUE,
                       verbose = FALSE,
                       ...) {
   w_omega <- 1
