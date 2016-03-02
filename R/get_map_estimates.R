@@ -1,5 +1,5 @@
 #' Get MAP estimates
-#' 
+#'
 #' @param model model
 #' @param data data
 #' @param parameters parameters
@@ -7,7 +7,7 @@
 #' @param fixed fix a specific parameters, supplied as vector of strings
 #' @param weights vector of weights. Length of vector should be same as length of observation vector. If NULL, all weights are 1.
 #' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
-#' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts 
+#' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
 #' @param regimen regimen
 #' @param int_step_size integrator step size passed to PKPDsim
 #' @param method optimization method, default L-BFGS-B
@@ -59,13 +59,20 @@ get_map_estimates <- function(
   } else {
     data <- data[data$evid == 0,]
   }
+  if(any(data$t <= regimen$dose_times)) { # protection against solving ODE from t < 0
+    filt <- data$t > regimen$dose_times
+    if(!is.null(weights) && length(weights) == length(data$t) ) {
+      weights <- weights[filt]
+    }
+    data <- data[filt,]
+  }
   t_obs <- data$t
   if(!is.null(weights)) {
     if(length(weights) != length(t_obs)) {
       stop("Vector of weights of different size than observation vector!")
     }
   } else {
-    weights <- 1 
+    weights <- 1
   }
   if(sum(unlist(error)) == 0) {
     stop("No residual error model specified, or residual error is 0.")
@@ -106,8 +113,8 @@ get_map_estimates <- function(
         et <- mget(objects()[grep("eta", objects())])
         et <- as.numeric(as.character(et[et != ""]))
         omega_full <- omega_full[1:length(et), 1:length(et)]
-        ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)), 
-                                    sigma=omega_full[1:length(et), 1:length(et)], 
+        ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
+                                    sigma=omega_full[1:length(et), 1:length(et)],
                                     log=TRUE) * w_omega,
                    dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
         if(verbose) { print(ofv) }
@@ -139,8 +146,8 @@ get_map_estimates <- function(
         et <- mget(objects()[grep("eta", objects())])
         et <- as.numeric(as.character(et[et != ""]))
         omega_full <- omega_full[1:length(et), 1:length(et)]
-        ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)), 
-                                    sigma=omega_full[1:length(et), 1:length(et)], 
+        ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
+                                    sigma=omega_full[1:length(et), 1:length(et)],
                                     log=TRUE) * w_omega,
                    dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE))
         if(verbose) { print(ofv) }
@@ -189,7 +196,7 @@ get_map_estimates <- function(
                           covs = NULL),
               fixed = fix)
   cf <- bbmle::coef(fit)
-  if(tolower(type) == "adaptive") {
+  if(tolower(type) == "adaptive") { # not fully implemented yet.
     fit_ls <- bbmle::mle2(ll_func,
                           start = eta,
                           method = method,
