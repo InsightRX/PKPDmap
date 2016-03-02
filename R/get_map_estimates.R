@@ -61,9 +61,9 @@ get_map_estimates <- function(
   }
   zero_offset <- NULL
   y_orig <- data$y
-  if(any(data$t <= regimen$dose_times)) { # protection against solving ODE from t < 0
-    zero_offset <- rep(0, sum(data$t <= regimen$dose_times))
-    filt <- data$t > regimen$dose_times
+  if(any(data$t < min(regimen$dose_times))) { # protection against solving ODE from t < 0
+    zero_offset <- rep(0, sum(data$t < min(regimen$dose_times)))
+    filt <- data$t >= min(regimen$dose_times)
     if(!is.null(weights) && length(weights) == length(data$t) ) {
       weights <- weights[filt]
     }
