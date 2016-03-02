@@ -59,7 +59,10 @@ get_map_estimates <- function(
   } else {
     data <- data[data$evid == 0,]
   }
+  zero_offset <- NULL
+  y_orig <- data$y
   if(any(data$t <= regimen$dose_times)) { # protection against solving ODE from t < 0
+    zero_offset <- sum(data$t <= regimen$dose_times)
     filt <- data$t > regimen$dose_times
     if(!is.null(weights) && length(weights) == length(data$t) ) {
       weights <- weights[filt]
@@ -256,13 +259,13 @@ get_map_estimates <- function(
   }
   obj <- list(fit = fit, parameters = par)
   if(residuals) {
-    obj$res <- res
-    obj$wres <- wres
-    obj$ires <- ires
-    obj$iwres <- iwres
-    obj$ipred <- ipred
-    obj$pred <- pred
-    obj$dv <- y
+    obj$res <- c(zero_offset, res)
+    obj$wres <- c(zero_offset, wres)
+    obj$ires <- c(zero_offset, ires)
+    obj$iwres <- c(zero_offset, iwres)
+    obj$ipred <- c(zero_offset, ipred)
+    obj$pred <- c(zero_offset, pred)
+    obj$dv <- y_orig
   }
   class(obj) <- c(class(obj), "map_estimates")
   return(obj)
