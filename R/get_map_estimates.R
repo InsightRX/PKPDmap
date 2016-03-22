@@ -116,11 +116,13 @@ get_map_estimates <- function(
         et <- mget(objects()[grep("eta", objects())])
         et <- as.numeric(as.character(et[et != ""]))
         omega_full <- omega_full[1:length(et), 1:length(et)]
-        ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
+        ofv <-   c(log(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
                                     sigma=omega_full[1:length(et), 1:length(et)],
-                                    log=TRUE) * w_omega,
-                   dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
-        if(verbose) { print(ofv) }
+                                    log=FALSE) * w_omega),
+                   log(dnorm(y - ipred, mean = 0, sd = res_sd, log=FALSE) * weights))
+        if(verbose) { 
+          print(ofv) 
+        }
         return(-sum(ofv))
       }
   } else {
@@ -149,10 +151,10 @@ get_map_estimates <- function(
         et <- mget(objects()[grep("eta", objects())])
         et <- as.numeric(as.character(et[et != ""]))
         omega_full <- omega_full[1:length(et), 1:length(et)]
-        ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
+        ofv <-   c(log(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
                                     sigma=omega_full[1:length(et), 1:length(et)],
-                                    log=TRUE) * w_omega,
-                   dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE))
+                                    log=FALSE) * w_omega),
+                   log(dnorm(y - ipred, mean = 0, sd = res_sd, log=FALSE)*weights))
         if(verbose) { print(ofv) }
         return(-sum(ofv))
       }
@@ -224,41 +226,44 @@ get_map_estimates <- function(
   for(i in seq(names(par))) {
     par[[i]] <- as.numeric(as.numeric(par[[i]]) * exp(as.numeric(cf[i])))
   }
+  obj <- list(fit = fit, parameters = par)
   if(residuals) {
     suppressMessages({
       sim_ipred <- sim_ode(ode = model,
-                     parameters = par,
-                     covariates = covariates,
-                     n_ind = 1,
-                     int_step_size = int_step_size,
-                     regimen = regimen,
-                     t_obs = t_obs,
-                     only_obs = TRUE,
-                     ...)
+                           parameters = par,
+                           covariates = covariates,
+                           n_ind = 1,
+                           int_step_size = int_step_size,
+                           regimen = regimen,
+                           t_obs = t_obs,
+                           only_obs = TRUE,
+                           ...)
     })
     suppressMessages({
       sim_pred <- sim_ode(ode = model,
-                     parameters = parameters,
-                     covariates = covariates,
-                     n_ind = 1,
-                     int_step_size = int_step_size,
-                     regimen = regimen,
-                     t_obs = t_obs,
-                     only_obs = TRUE,
-                     ...)
+                          parameters = parameters,
+                          covariates = covariates,
+                          n_ind = 1,
+                          int_step_size = int_step_size,
+                          regimen = regimen,
+                          t_obs = t_obs,
+                          only_obs = TRUE,
+                          ...)
     })
     ipred <- sim_ipred[!duplicated(sim_ipred$t),]$y
     pred <- sim_pred[!duplicated(sim_pred$t),]$y
     w_ipred <- sqrt(error$prop^2 * ipred^2 + error$add^2)
     w_pred <- sqrt(error$prop^2 * pred^2 + error$add^2)
     y <- data$y
+    prob <- list(par = c(mvtnorm::pmvnorm(cf, mean=rep(0, length(cf)),
+                         sigma = omega_full[1:length(cf), 1:length(cf)])),
+                 data = pnorm(y - ipred, mean = 0, sd = w_ipred))
     res <- (y - pred)
     wres <- res / w_pred # not same as wres in NONMEM!
     ires <- (y - ipred)
     iwres <- ires / w_ipred
-  }
-  obj <- list(fit = fit, parameters = par)
-  if(residuals) {
+    obj$prob <- prob
+    obj$mahalanobis <- mahalanobis(y, ipred, cov = diag(w_ipred))
     obj$res <- c(zero_offset, res)
     obj$wres <- c(zero_offset, wres)
     obj$ires <- c(zero_offset, ires)
