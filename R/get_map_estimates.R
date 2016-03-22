@@ -263,7 +263,11 @@ get_map_estimates <- function(
     ires <- (y - ipred)
     iwres <- ires / w_ipred
     obj$prob <- prob
-    obj$mahalanobis <- mahalanobis(y, ipred, cov = diag(w_ipred))
+    if(length(w_ipred) > 1) {
+      obj$mahalanobis <- mahalanobis(y, ipred, cov = diag(w_ipred^2))
+    } else {
+      obj$mahalanobis <- mahalanobis(y, ipred, cov = w_ipred^2)
+    }
     obj$res <- c(zero_offset, res)
     obj$wres <- c(zero_offset, wres)
     obj$ires <- c(zero_offset, ires)
