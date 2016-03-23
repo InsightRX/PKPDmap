@@ -116,10 +116,10 @@ get_map_estimates <- function(
         et <- mget(objects()[grep("eta", objects())])
         et <- as.numeric(as.character(et[et != ""]))
         omega_full <- omega_full[1:length(et), 1:length(et)]
-        ofv <-   c(log(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
+        ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
                                     sigma=omega_full[1:length(et), 1:length(et)],
-                                    log=FALSE) * w_omega),
-                   log(dnorm(y - ipred, mean = 0, sd = res_sd, log=FALSE) * weights))
+                                    log=TRUE) * w_omega,
+                   dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
         if(verbose) { 
           print(ofv) 
         }
@@ -151,11 +151,13 @@ get_map_estimates <- function(
         et <- mget(objects()[grep("eta", objects())])
         et <- as.numeric(as.character(et[et != ""]))
         omega_full <- omega_full[1:length(et), 1:length(et)]
-        ofv <-   c(log(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
+        ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
                                     sigma=omega_full[1:length(et), 1:length(et)],
-                                    log=FALSE) * w_omega),
-                   log(dnorm(y - ipred, mean = 0, sd = res_sd, log=FALSE)*weights))
-        if(verbose) { print(ofv) }
+                                    log=TRUE) * w_omega,
+                   dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE)*weights)
+        if(verbose) { 
+          print(ofv) 
+        }
         return(-sum(ofv))
       }
   }
