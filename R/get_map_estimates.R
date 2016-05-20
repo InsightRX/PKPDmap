@@ -13,6 +13,7 @@
 #' @param method optimization method, default L-BFGS-B
 #' @param cols column names
 #' @param residuals show residuals? This requires an additional simulation so will be slightly slower.
+#' @param checks perform input checks
 #' @param verbose show more output
 #' @export
 get_map_estimates <- function(
@@ -31,6 +32,7 @@ get_map_estimates <- function(
                       cols = list(x="t", y="y"),
                       residuals = TRUE,
                       verbose = FALSE,
+                      checks = FALSE,
                       ...) {
   w_omega <- 1
   if(tolower(type) == "ls") {
@@ -107,6 +109,7 @@ get_map_estimates <- function(
                          int_step_size = int_step_size,
                          regimen = regimen,
                          t_obs = t_obs,
+                         checks = checks,
                          only_obs = TRUE,
                          ...)
         })
@@ -120,8 +123,8 @@ get_map_estimates <- function(
                                     sigma=omega_full[1:length(et), 1:length(et)],
                                     log=TRUE) * w_omega,
                    dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
-        if(verbose) { 
-          print(ofv) 
+        if(verbose) {
+          print(ofv)
         }
         return(-sum(ofv))
       }
@@ -155,8 +158,8 @@ get_map_estimates <- function(
                                     sigma=omega_full[1:length(et), 1:length(et)],
                                     log=TRUE) * w_omega,
                    dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE)*weights)
-        if(verbose) { 
-          print(ofv) 
+        if(verbose) {
+          print(ofv)
         }
         return(-sum(ofv))
       }
@@ -239,6 +242,7 @@ get_map_estimates <- function(
                            regimen = regimen,
                            t_obs = t_obs,
                            only_obs = TRUE,
+                           checks = checks,
                            ...)
     })
     suppressMessages({
@@ -250,6 +254,7 @@ get_map_estimates <- function(
                           regimen = regimen,
                           t_obs = t_obs,
                           only_obs = TRUE,
+                          checks = checks,
                           ...)
     })
     ipred <- sim_ipred[!duplicated(sim_ipred$t),]$y
