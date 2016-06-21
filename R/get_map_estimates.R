@@ -87,7 +87,8 @@ get_map_estimates <- function(
       data,
       eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12, # unfortunately seems no other way to do this...
       parameters,
-      covariates,
+      covariates = NULL,
+      covariate_names = NULL,
       regimen = regimen,
       omega_full = omega_full,
       error = error,
@@ -97,6 +98,11 @@ get_map_estimates <- function(
       w_omega,
       covs) {
         par <- parameters
+        if(!is.null(covariates)) { # not properly passed through bbmle it seems
+          for (i in seq(covariate_names)) {
+            names(covariates)[i] <- covariate_names[i]
+          }
+        }
         p <- as.list(match.call())
         for(i in seq(names(par))) {
           par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
@@ -196,6 +202,7 @@ get_map_estimates <- function(
               data = list(data = data,
                           parameters = parameters,
                           covariates = covariates,
+                          covariate_names = names(covariates),
                           regimen = regimen,
                           model = model,
                           omega_full = omega_full,
