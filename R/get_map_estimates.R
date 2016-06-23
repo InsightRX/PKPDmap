@@ -11,10 +11,12 @@
 #' @param regimen regimen
 #' @param int_step_size integrator step size passed to PKPDsim
 #' @param method optimization method, default L-BFGS-B
+#' @param type estimation type, currently only option is `map`
 #' @param cols column names
 #' @param residuals show residuals? This requires an additional simulation so will be slightly slower.
 #' @param checks perform input checks
 #' @param verbose show more output
+#' @param ... parameters passed on to `sim_ode()` function
 #' @export
 get_map_estimates <- function(
                       model = NULL,
@@ -49,7 +51,7 @@ get_map_estimates <- function(
   }
   if("PKPDsim" %in% class(data)) {
     if("comp" %in% names(data)) {
-      data <- data[comp == "obs",]
+      data <- data[data$comp == "obs",]
       data <- data[!duplicated(data$t),]
       data$evid <- 0
     }
@@ -82,94 +84,112 @@ get_map_estimates <- function(
   if(sum(unlist(error)) == 0) {
     stop("No residual error model specified, or residual error is 0.")
   }
-  if(!is.null(attr(model, "cpp")) && attr(model, "cpp")) {
-    ll_func <- function(
-      data,
-      eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12, # unfortunately seems no other way to do this...
-      parameters,
-      covariates = NULL,
-      covariate_names = NULL,
-      regimen = regimen,
-      omega_full = omega_full,
-      error = error,
-      model,
-      t_obs,
-      sig,
-      w_omega,
-      covs) {
-        par <- parameters
-        if(!is.null(covariates)) { # not properly passed through bbmle it seems
-          for (i in seq(covariate_names)) {
-            names(covariates)[i] <- covariate_names[i]
-          }
-        }
-        p <- as.list(match.call())
-        for(i in seq(names(par))) {
-          par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
-        }
-        suppressMessages({
-          sim <- sim_ode(ode = model,
-                         parameters = par,
-                         covariates = covariates,
-                         n_ind = 1,
-                         int_step_size = int_step_size,
-                         regimen = regimen,
-                         t_obs = t_obs,
-                         checks = checks,
-                         only_obs = TRUE,
-                         ...)
-        })
-        ipred <- sim[!duplicated(sim$t),]$y
-        y <- data$y
-        res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
-        et <- mget(objects()[grep("eta", objects())])
-        et <- as.numeric(as.character(et[et != ""]))
-        omega_full <- omega_full[1:length(et), 1:length(et)]
-        ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
-                                    sigma=omega_full[1:length(et), 1:length(et)],
-                                    log=TRUE) * w_omega,
-                   dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
-        if(verbose) {
-          print(ofv)
-        }
-        return(-sum(ofv))
+  
+  ## Likelihood function for PKPDsim
+  ll_func_PKPDsim <- function(
+    data,
+    eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12, # unfortunately seems no other way to do this...
+    parameters,
+    covariates = NULL,
+    covariate_names = NULL,
+    regimen = regimen,
+    omega_full = omega_full,
+    error = error,
+    model,
+    t_obs,
+    sig,
+    int_step_size = 0.1,
+    w_omega,
+    covs, 
+    checks, 
+    ...) {
+    par <- parameters
+    if(!is.null(covariates)) { # not properly passed through bbmle it seems
+      for (i in seq(covariate_names)) {
+        names(covariates)[i] <- covariate_names[i]
       }
-  } else {
-    ll_func <- function(
-      data,
-      eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12, # unfortunately seems no other way to do this...
-      parameters,
-      covariates,
-      regimen = regimen,
-      omega_full = omega_full,
-      error = error,
-      model,
-      t_obs,
-      w_omega,
-      sig,
-      covs) {
-        par <- parameters
-        p <- as.list(match.call())
-        for(i in seq(names(par))) {
-          par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
-        }
-        ipred <- model(t = data[data$evid == 0,]$t,
-                       parameters = par)
-        y <- data$y
-        res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
-        et <- mget(objects()[grep("eta", objects())])
-        et <- as.numeric(as.character(et[et != ""]))
-        omega_full <- omega_full[1:length(et), 1:length(et)]
-        ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
-                                    sigma=omega_full[1:length(et), 1:length(et)],
-                                    log=TRUE) * w_omega,
-                   dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE)*weights)
-        if(verbose) {
-          print(ofv)
-        }
-        return(-sum(ofv))
-      }
+    }
+    p <- as.list(match.call())
+    for(i in seq(names(par))) {
+      par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
+    }
+    suppressMessages({
+      sim <- PKPDsim::sim_ode(ode = model,
+                              parameters = par,
+                              covariates = covariates,
+                              n_ind = 1,
+                              int_step_size = int_step_size,
+                              regimen = regimen,
+                              t_obs = t_obs,
+                              checks = checks,
+                              only_obs = TRUE,
+                              ...)
+    })
+    ipred <- sim[!duplicated(sim$t),]$y
+    y <- data$y
+    res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
+    et <- mget(objects()[grep("eta", objects())])
+    et <- as.numeric(as.character(et[et != ""]))
+    omega_full <- omega_full[1:length(et), 1:length(et)]
+    ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
+                                sigma=omega_full[1:length(et), 1:length(et)],
+                                log=TRUE) * w_omega,
+               stats::dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
+    if(verbose) {
+      print(ofv)
+    }
+    return(-sum(ofv))
   }
+  
+  ## generic likelihood function
+  ll_func_generic <- function(
+    data,
+    eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12, # unfortunately seems no other way to do this...
+    parameters,
+    covariates = NULL,
+    covariate_names = NULL,
+    regimen = regimen,
+    omega_full = omega_full,
+    error = error,
+    model,
+    t_obs,
+    sig,
+    w_omega,
+    covs, 
+    checks,
+    ...) {
+    par <- parameters
+    p <- as.list(match.call())
+    if(!is.null(covariates)) { # not properly passed through bbmle it seems
+      for (i in seq(covariate_names)) {
+        names(covariates)[i] <- covariate_names[i]
+      }
+    }
+    for(i in seq(names(par))) {
+      par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
+    }
+    ipred <- model(t = data[data$evid == 0,]$t,
+                   parameters = par)
+    y <- data$y
+    res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
+    et <- mget(objects()[grep("eta", objects())])
+    et <- as.numeric(as.character(et[et != ""]))
+    omega_full <- omega_full[1:length(et), 1:length(et)]
+    ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
+                                sigma=omega_full[1:length(et), 1:length(et)],
+                                log=TRUE) * w_omega,
+               stats::dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE)*weights)
+    if(verbose) {
+      print(ofv)
+    }
+    return(-sum(ofv))
+  }
+  
+  ll_func <- ll_func_PKPDsim
+  if(is.null(attr(model, "cpp")) || !attr(model, "cpp")) {
+    ll_func <- ll_func_generic
+  }
+  
   eta <- list()
   for(i in seq(parameters)) {
     eta[[paste0("eta", i)]] <- 0
@@ -210,6 +230,8 @@ get_map_estimates <- function(
                           t_obs = t_obs,
                           w_omega = w_omega,
                           sig = sig,
+                          int_step_size = int_step_size,
+                          checks = checks,
                           covs = NULL),
               fixed = fix)
   cf <- bbmle::coef(fit)
@@ -241,7 +263,7 @@ get_map_estimates <- function(
   obj <- list(fit = fit, parameters = par)
   if(residuals) {
     suppressMessages({
-      sim_ipred <- sim_ode(ode = model,
+      sim_ipred <- PKPDsim::sim_ode(ode = model,
                            parameters = par,
                            covariates = covariates,
                            n_ind = 1,
@@ -253,7 +275,7 @@ get_map_estimates <- function(
                            ...)
     })
     suppressMessages({
-      sim_pred <- sim_ode(ode = model,
+      sim_pred <- PKPDsim::sim_ode(ode = model,
                           parameters = parameters,
                           covariates = covariates,
                           n_ind = 1,
@@ -271,16 +293,16 @@ get_map_estimates <- function(
     y <- data$y
     prob <- list(par = c(mvtnorm::pmvnorm(cf, mean=rep(0, length(cf)),
                          sigma = omega_full[1:length(cf), 1:length(cf)])),
-                 data = pnorm(y - ipred, mean = 0, sd = w_ipred))
+                 data = stats::pnorm(y - ipred, mean = 0, sd = w_ipred))
     res <- (y - pred)
     wres <- res / w_pred # not same as wres in NONMEM!
     ires <- (y - ipred)
     iwres <- ires / w_ipred
     obj$prob <- prob
     if(length(w_ipred) > 1) {
-      obj$mahalanobis <- mahalanobis(y, ipred, cov = diag(w_ipred^2))
+      obj$mahalanobis <- stats::mahalanobis(y, ipred, cov = diag(w_ipred^2))
     } else {
-      obj$mahalanobis <- mahalanobis(y, ipred, cov = w_ipred^2)
+      obj$mahalanobis <- stats::mahalanobis(y, ipred, cov = w_ipred^2)
     }
     obj$res <- c(zero_offset, res)
     obj$wres <- c(zero_offset, wres)

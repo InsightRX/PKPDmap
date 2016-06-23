@@ -1,12 +1,16 @@
 Package: PKPDmap
 Type: Package
-Title: MAP Bayesian estimates 
-Version: 1.0
-Date: 2015-04-28
+Title: MAP Bayesian estimates
+Version: 0.8
+Date: 2016-06-23
 Author: Ron Keizer
 Maintainer: Ron Keizer <ronkeizer@gmail.com>
-Description: Obtain MAP Bayesian estimates based on individual data and PK/PD model 
-License: MIT
-LinkingTo: Rcpp
-Imports: mvtnorm, PKPDsim, bbmle
-Suggests: testit
+Description: Obtain MAP Bayesian estimates based on individual data and PK/PD model.
+License: MIT + file LICENSE
+Imports:
+    mvtnorm,
+    PKPDsim,
+    bbmle
+Suggests:
+    testit
+RoxygenNote: 5.0.1
