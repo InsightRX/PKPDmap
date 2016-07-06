@@ -2,4 +2,5 @@
 
 S3method(print,map_estimates)
 export(get_map_estimates)
+export(run_its)
 export(weight_by_time)
