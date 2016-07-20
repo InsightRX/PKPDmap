@@ -23,43 +23,79 @@ run_its <- function(
   model = NULL, 
   max_iter = 5, 
   data = NULL,
+  min_crit = 0.01,
   ...) {
-  par_tmp <- parameters
+
+  ## initialize
+  par_tmp   <- parameters
   omega_tmp <- omega
-  err <- 100
+  err_tmp   <- err  # additive error
+  cvs       <- diag(triangle_to_full(omega))
+  ids       <- unique(data$id)
+  all_pars  <- c()  
+  
+  ## loop iterations, only break when max_iter reached or stopping criterion reached
   for(j in 1:max_iter) {
+    
+    ## init and console output
     pars <- c()
     etas <- c()
-    message(paste0("ITS iteration: ", j))
-    for(i in seq(unique(dat$id))) {
-      dv <- data[data$id == i & dat$EVID == 0,]
+    message(paste0("ITS iteration: ", j-1))
+    message(" - Population means: ", paste(round(par_mn, 3), collapse = "  "))
+    message(" - IIV %: ", paste(round(100 * sqrt(cvs), 1), collapse = "  "))
+    message(" - Error: ", err_tmp)
+    
+    ## loop over patients
+    pb <- txtProgressBar(min = 0, max = length(ids), initial = 0, style = 3)
+    for(i in seq(ids)) {
+      dv <- data[data$id == i & data$EVID == 0,]
       tmp <- get_map_estimates(parameters = par_tmp,
-                               model = model,
-                               regimen = regimen,
-                               omega = omega_tmp,
-                               weights = rep(1, length(dv[,1])),
-                               error = list("add" = err, prop=0),
-                               data = dv,
-                               residuals = TRUE,
-                               ...
-      )
+                          model = model,
+                          regimen = regimen,
+                          omega = omega_tmp,
+                          weights = rep(1, length(dv[,1])),
+                          error = list("add" = err_tmp, prop=0),
+                          int_step_size = 1,
+                          data = dv,
+                          residuals = TRUE,
+                          include_error = TRUE,
+                          ...
+        )
+
+      setTxtProgressBar(pb, i)
       pars <- rbind(pars, cbind(t(as.numeric(unlist(tmp$parameters)))))
-      etas <- rbind(etas, cbind(t(as.numeric(unlist(coef(tmp$fit))))))
+      etas <- rbind(etas, cbind(t(as.numeric(unlist(tmp$fit@coef)))))
     }
+    
+    ## update parameters to mean of estimates
     par_mn <- apply(pars, 2, mean)
     par_tmp <- parameters
     for(k in seq(names(parameters))) {
       par_tmp[[k]] <- par_mn[k]
     }
-    omega_tmp <- cov(etas)
-    cvs <- diag(omega_tmp)
-    omega_tmp <- omega_tmp[!lower.tri(omega_tmp)]
-    err <- sd(tmp$res)
-    message(" - Population means: ", paste(round(par_mn, 3), collapse = "  "))
-    message(" - IIV %: ", paste(round(100 * sqrt(cvs), 1), collapse = "  "))
-    message(" - Error: ", err)
-    if(any(round(100 * sqrt(cvs), 1) == 0)) {
-      stop("IIV zero for some parameter, stopping search.")
+    
+    ## update between-subject variability estimate
+    omega_tmp1 <- cov(etas)
+    if(!check_high_corr(omega_tmp1)) {
+      omega_tmp <- full_to_triangle(omega_tmp1)
+    } else {
+      message("High correlation in IIV matrix, resetting correlation to 0.")
+      omega_tmp <- full_to_triangle(omega_tmp1 * diag(ncol(omega_tmp1)))
     }
+    cvs <- diag(omega_tmp1)
+
+    ## update residual error estimate
+#    err_tmp <- sd(tmp$res)
+    
+    ## stopping criterion
+    all_pars <- rbind(all_pars, c(par_mn, cvs))
+    if(j > 1) {
+      crit <- mean(abs(all_pars[j,] - all_pars[j-1,]) / all_pars[j-1,])
+      message(paste0("Stopping parameter: ", crit, " (min value ", min_crit, ")"))
+      if(crit < min_crit) {
+        stop("Minimization criterion reached, stopping search.")
+      }
+    }
+    
   }
 } 

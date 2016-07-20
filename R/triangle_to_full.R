@@ -1,3 +1,8 @@
+#' Convert lower/upper triangle of a matrix to full matrix
+#' 
+#' @param vect vector describing the lower or upper triangle of a matrix
+#' 
+#' @export
 triangle_to_full <- function (vect) {
   lower_triangle_mat_size <- function (mat) {
     x <- length(mat)

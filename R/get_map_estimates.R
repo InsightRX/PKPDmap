@@ -8,6 +8,8 @@
 #' @param weights vector of weights. Length of vector should be same as length of observation vector. If NULL, all weights are 1.
 #' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
+#' @param include_omega TRUE
+#' @param include_error TRUE
 #' @param regimen regimen
 #' @param int_step_size integrator step size passed to PKPDsim
 #' @param method optimization method, default L-BFGS-B
@@ -27,11 +29,13 @@ get_map_estimates <- function(
                       weights = NULL,
                       omega = NULL,
                       error = list(prop = 0.1, add = 0.1, exp = 0),
+                      include_omega = TRUE,
+                      include_error = TRUE,
                       regimen = NULL,
                       int_step_size = 0.1,
                       method = "L-BFGS-B",
                       type = "map",
-                      cols = list(x="t", y="y"),
+                      cols = list(x = "t", y = "y"),
                       residuals = TRUE,
                       verbose = FALSE,
                       checks = FALSE,
@@ -84,7 +88,7 @@ get_map_estimates <- function(
   if(sum(unlist(error)) == 0) {
     stop("No residual error model specified, or residual error is 0.")
   }
-  
+
   ## Likelihood function for PKPDsim
   ll_func_PKPDsim <- function(
     data,
@@ -100,8 +104,8 @@ get_map_estimates <- function(
     sig,
     int_step_size = 0.1,
     w_omega,
-    covs, 
-    checks, 
+    covs,
+    checks,
     ...) {
     par <- parameters
     if(!is.null(covariates)) { # not properly passed through bbmle it seems
@@ -132,15 +136,15 @@ get_map_estimates <- function(
     et <- as.numeric(as.character(et[et != ""]))
     omega_full <- omega_full[1:length(et), 1:length(et)]
     ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
-                                sigma=omega_full[1:length(et), 1:length(et)],
-                                log=TRUE) * w_omega,
-               stats::dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
+                                sigma = omega_full[1:length(et), 1:length(et)],
+                                log=TRUE) * w_omega * include_omega,
+               stats::dnorm((y - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
     if(verbose) {
       print(ofv)
     }
     return(-sum(ofv))
   }
-  
+
   ## generic likelihood function
   ll_func_generic <- function(
     data,
@@ -155,7 +159,7 @@ get_map_estimates <- function(
     t_obs,
     sig,
     w_omega,
-    covs, 
+    covs,
     checks,
     ...) {
     par <- parameters
@@ -184,12 +188,12 @@ get_map_estimates <- function(
     }
     return(-sum(ofv))
   }
-  
+
   ll_func <- ll_func_PKPDsim
   if(is.null(attr(model, "cpp")) || !attr(model, "cpp")) {
     ll_func <- ll_func_generic
   }
-  
+
   eta <- list()
   for(i in seq(parameters)) {
     eta[[paste0("eta", i)]] <- 0
