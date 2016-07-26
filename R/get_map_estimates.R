@@ -316,7 +316,8 @@ get_map_estimates <- function(
     obj$pred <- c(zero_offset, pred)
     obj$dv <- y_orig
   }
-  obj$vcov <- fit@vcov[!upper.tri(fit@vcov)]
+  obj$vcov_full <- fit@vcov
+  obj$vcov <- fit@vcov[t(!upper.tri(fit@vcov))]
   class(obj) <- c(class(obj), "map_estimates")
   return(obj)
 }
