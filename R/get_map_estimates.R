@@ -5,6 +5,7 @@
 #' @param parameters parameters
 #' @param covariates covariates
 #' @param fixed fix a specific parameters, supplied as vector of strings
+#' @param as_eta vector of parameters that are estimates as eta (e.g. IOV)
 #' @param weights vector of weights. Length of vector should be same as length of observation vector. If NULL, all weights are 1.
 #' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
@@ -25,7 +26,8 @@ get_map_estimates <- function(
                       data = NULL,
                       parameters = NULL,
                       covariates = NULL,
-                      fixed = NULL,
+                      fixed = c(),
+                      as_eta = c(),
                       weights = NULL,
                       omega = NULL,
                       error = list(prop = 0.1, add = 0.1, exp = 0),
@@ -204,11 +206,16 @@ get_map_estimates <- function(
     fixed <- NULL
   }
   ## fix etas
+  nonfixed <- names(parameters)[is.na(match(names(parameters), fixed))]
+  n_nonfix <- length(nonfixed)
   if (!is.null(fixed)) {
+    if(n_nonfix == 0) {
+      stop("Nothing to estimate!")
+    }
     id_fix <- match(fixed, names(parameters))
     fix <- list()
-    for(i in 1:length(id_fix)) {
-      id <- names(eta)[id_fix[i]]
+    for(i in (n_nonfix+1):length(parameters)) {
+      id <- names(eta)[i]
       fix[[id]] <- 0
     }
   } else {
@@ -261,8 +268,13 @@ get_map_estimates <- function(
     }
   }
   par <- parameters
-  for(i in seq(names(par))) {
-    par[[i]] <- as.numeric(as.numeric(par[[i]]) * exp(as.numeric(cf[i])))
+  for(i in seq(nonfixed)) {
+    key <- nonfixed[i]
+    if(key %in% as_eta) {
+      par[[key]] <- as.numeric(cf[i])
+    } else {
+      par[[key]] <- as.numeric(as.numeric(par[[key]]) * exp(as.numeric(cf[i])))
+    }
   }
   obj <- list(fit = fit, parameters = par)
   if(residuals) {
