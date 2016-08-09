@@ -5,7 +5,7 @@
 \title{Iterative Two State (ITS) estimation method for PK data}
 \usage{
 run_its(parameters = NULL, omega = NULL, err = 100, regimen = NULL,
-  model = NULL, max_iter = 5, data = NULL, ...)
+  model = NULL, max_iter = 5, data = NULL, min_crit = 0.01, ...)
 }
 \arguments{
 \item{parameters}{list of intial parameter estimates}

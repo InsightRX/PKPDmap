@@ -5,8 +5,9 @@
 \title{Get MAP estimates}
 \usage{
 get_map_estimates(model = NULL, data = NULL, parameters = NULL,
-  covariates = NULL, fixed = NULL, weights = NULL, omega = NULL,
-  error = list(prop = 0.1, add = 0.1, exp = 0), regimen = NULL,
+  covariates = NULL, fixed = c(), as_eta = c(), weights = NULL,
+  omega = NULL, w_prior = 1, error = list(prop = 0.1, add = 0.1, exp = 0),
+  include_omega = TRUE, include_error = TRUE, regimen = NULL,
   int_step_size = 0.1, method = "L-BFGS-B", type = "map", cols = list(x
   = "t", y = "y"), residuals = TRUE, verbose = FALSE, checks = FALSE, ...)
 }
@@ -21,11 +22,19 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 
 \item{fixed}{fix a specific parameters, supplied as vector of strings}
 
+\item{as_eta}{vector of parameters that are estimates as eta (e.g. IOV)}
+
 \item{weights}{vector of weights. Length of vector should be same as length of observation vector. If NULL, all weights are 1.}
 
 \item{omega}{between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects}
 
+\item{w_prior}{weighting of priors in relationship to observed data, default = 1}
+
 \item{error}{residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts}
+
+\item{include_omega}{TRUE}
+
+\item{include_error}{TRUE}
 
 \item{regimen}{regimen}
 

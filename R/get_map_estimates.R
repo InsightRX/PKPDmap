@@ -8,6 +8,7 @@
 #' @param as_eta vector of parameters that are estimates as eta (e.g. IOV)
 #' @param weights vector of weights. Length of vector should be same as length of observation vector. If NULL, all weights are 1.
 #' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
+#' @param w_prior weighting of priors in relationship to observed data, default = 1
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
 #' @param include_omega TRUE
 #' @param include_error TRUE
@@ -30,6 +31,7 @@ get_map_estimates <- function(
                       as_eta = c(),
                       weights = NULL,
                       omega = NULL,
+                      w_prior = 1,
                       error = list(prop = 0.1, add = 0.1, exp = 0),
                       include_omega = TRUE,
                       include_error = TRUE,
@@ -42,10 +44,17 @@ get_map_estimates <- function(
                       verbose = FALSE,
                       checks = FALSE,
                       ...) {
-  w_omega <- 1
+
+  ## Handle weighting of priors, allow for some presets but can
+  ## also be set manually using `w_prior`
+  w_prior <- w_prior^2
   if(tolower(type) == "ls") {
-    w_omega <- 0.001
-  } # else either map or adaptive
+    w_prior <- 0.001
+  }
+  if(tolower(type) == "map_reduced_shrinkage") {
+    w_prior <- (1/3)^2 # 3x larger IIV on SD scale
+  }
+
   if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
     stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
   }
@@ -105,7 +114,7 @@ get_map_estimates <- function(
     t_obs,
     sig,
     int_step_size = 0.1,
-    w_omega,
+    w_prior,
     covs,
     checks,
     ...) {
@@ -138,8 +147,8 @@ get_map_estimates <- function(
     et <- as.numeric(as.character(et[et != ""]))
     omega_full <- omega_full[1:length(et), 1:length(et)]
     ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
-                                sigma = omega_full[1:length(et), 1:length(et)],
-                                log=TRUE) * w_omega * include_omega,
+                                sigma = omega_full[1:length(et), 1:length(et)] * 1/w_prior,
+                                log=TRUE) * include_omega,
                stats::dnorm((y - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
     if(verbose) {
       print(ofv)
@@ -160,7 +169,7 @@ get_map_estimates <- function(
     model,
     t_obs,
     sig,
-    w_omega,
+    w_prior,
     covs,
     checks,
     ...) {
@@ -183,7 +192,7 @@ get_map_estimates <- function(
     omega_full <- omega_full[1:length(et), 1:length(et)]
     ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
                                 sigma=omega_full[1:length(et), 1:length(et)],
-                                log=TRUE) * w_omega,
+                                log=TRUE) * w_prior,
                stats::dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE)*weights)
     if(verbose) {
       print(ofv)
@@ -239,7 +248,7 @@ get_map_estimates <- function(
                           omega_full = omega_full,
                           error = error,
                           t_obs = t_obs,
-                          w_omega = w_omega,
+                          w_prior = w_prior,
                           sig = sig,
                           int_step_size = int_step_size,
                           checks = checks,
@@ -258,7 +267,7 @@ get_map_estimates <- function(
                                       omega_full = omega_full,
                                       error = error,
                                       t_obs = t_obs,
-                                      w_omega = 0.001,
+                                      w_prior = 0.001,
                                       sig = sig,
                                       covs = NULL),
                           fixed = fix)
