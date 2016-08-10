@@ -45,12 +45,9 @@ get_map_estimates <- function(
 
   ## Handle weighting of priors, allow for some presets but can
   ## also be set manually using `weight_prior`
-  weight_prior <- weight_prior^2
+  weight_prior <- weight_prior^2 # 3x larger IIV on SD scale
   if(tolower(type) == "ls") {
     weight_prior <- 0.001
-  }
-  if(tolower(type) == "map_reduced_shrinkage") {
-    weight_prior <- (1/3)^2 # 3x larger IIV on SD scale
   }
 
   if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
