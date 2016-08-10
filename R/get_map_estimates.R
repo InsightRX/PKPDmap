@@ -8,7 +8,7 @@
 #' @param as_eta vector of parameters that are estimates as eta (e.g. IOV)
 #' @param weights vector of weights. Length of vector should be same as length of observation vector. If NULL, all weights are 1.
 #' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
-#' @param w_prior weighting of priors in relationship to observed data, default = 1
+#' @param weight_prior weighting of priors in relationship to observed data, default = 1
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
 #' @param include_omega TRUE
 #' @param include_error TRUE
@@ -18,7 +18,6 @@
 #' @param type estimation type, currently only option is `map`
 #' @param cols column names
 #' @param residuals show residuals? This requires an additional simulation so will be slightly slower.
-#' @param checks perform input checks
 #' @param verbose show more output
 #' @param ... parameters passed on to `sim_ode()` function
 #' @export
@@ -31,7 +30,7 @@ get_map_estimates <- function(
                       as_eta = c(),
                       weights = NULL,
                       omega = NULL,
-                      w_prior = 1,
+                      weight_prior = 1,
                       error = list(prop = 0.1, add = 0.1, exp = 0),
                       include_omega = TRUE,
                       include_error = TRUE,
@@ -42,17 +41,16 @@ get_map_estimates <- function(
                       cols = list(x = "t", y = "y"),
                       residuals = TRUE,
                       verbose = FALSE,
-                      checks = FALSE,
                       ...) {
 
   ## Handle weighting of priors, allow for some presets but can
-  ## also be set manually using `w_prior`
-  w_prior <- w_prior^2
+  ## also be set manually using `weight_prior`
+  weight_prior <- weight_prior^2
   if(tolower(type) == "ls") {
-    w_prior <- 0.001
+    weight_prior <- 0.001
   }
   if(tolower(type) == "map_reduced_shrinkage") {
-    w_prior <- (1/3)^2 # 3x larger IIV on SD scale
+    weight_prior <- (1/3)^2 # 3x larger IIV on SD scale
   }
 
   if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
@@ -114,9 +112,7 @@ get_map_estimates <- function(
     t_obs,
     sig,
     int_step_size = 0.1,
-    w_prior,
-    covs,
-    checks,
+    weight_prior,
     ...) {
     par <- parameters
     if(!is.null(covariates)) { # not properly passed through bbmle it seems
@@ -136,18 +132,18 @@ get_map_estimates <- function(
                               int_step_size = int_step_size,
                               regimen = regimen,
                               t_obs = t_obs,
-                              checks = checks,
+                              checks = FALSE,
                               only_obs = TRUE,
                               ...)
     })
     ipred <- sim[!duplicated(sim$t),]$y
     y <- data$y
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
-    et <- mget(objects()[grep("eta", objects())])
+    et <- mget(objects()[grep("^eta", objects())])
     et <- as.numeric(as.character(et[et != ""]))
     omega_full <- omega_full[1:length(et), 1:length(et)]
     ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
-                                sigma = omega_full[1:length(et), 1:length(et)] * 1/w_prior,
+                                sigma = omega_full[1:length(et), 1:length(et)] * 1/weight_prior,
                                 log=TRUE) * include_omega,
                stats::dnorm((y - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
     if(verbose) {
@@ -169,9 +165,7 @@ get_map_estimates <- function(
     model,
     t_obs,
     sig,
-    w_prior,
-    covs,
-    checks,
+    weight_prior,
     ...) {
     par <- parameters
     p <- as.list(match.call())
@@ -187,13 +181,13 @@ get_map_estimates <- function(
                    parameters = par)
     y <- data$y
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
-    et <- mget(objects()[grep("eta", objects())])
+    et <- mget(objects()[grep("^eta", objects())])
     et <- as.numeric(as.character(et[et != ""]))
     omega_full <- omega_full[1:length(et), 1:length(et)]
     ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
-                                sigma=omega_full[1:length(et), 1:length(et)],
-                                log=TRUE) * w_prior,
-               stats::dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE)*weights)
+                                sigma = omega_full[1:length(et), 1:length(et)],
+                                log=TRUE) * weight_prior,
+               stats::dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
     if(verbose) {
       print(ofv)
     }
@@ -248,34 +242,11 @@ get_map_estimates <- function(
                           omega_full = omega_full,
                           error = error,
                           t_obs = t_obs,
-                          w_prior = w_prior,
+                          weight_prior = weight_prior,
                           sig = sig,
-                          int_step_size = int_step_size,
-                          checks = checks,
-                          covs = NULL),
+                          int_step_size = int_step_size),
               fixed = fix)
   cf <- bbmle::coef(fit)
-  if(tolower(type) == "adaptive") { # not fully implemented yet.
-    fit_ls <- bbmle::mle2(ll_func,
-                          start = eta,
-                          method = method,
-                          data = list(data = data,
-                                      parameters = parameters,
-                                      covariates = covariates,
-                                      regimen = regimen,
-                                      model = model,
-                                      omega_full = omega_full,
-                                      error = error,
-                                      t_obs = t_obs,
-                                      w_prior = 0.001,
-                                      sig = sig,
-                                      covs = NULL),
-                          fixed = fix)
-    cf_ls <- bbmle::coef(fit_ls)
-    if((cf_ls[1] / cf[1]) > 1.25) {
-      cf <- cf_ls
-    }
-  }
   par <- parameters
   for(i in seq(nonfixed)) {
     key <- nonfixed[i]
@@ -296,7 +267,7 @@ get_map_estimates <- function(
                            regimen = regimen,
                            t_obs = t_obs,
                            only_obs = TRUE,
-                           checks = checks,
+                           checks = FALSE,
                            ...)
     })
     suppressMessages({
@@ -308,7 +279,7 @@ get_map_estimates <- function(
                           regimen = regimen,
                           t_obs = t_obs,
                           only_obs = TRUE,
-                          checks = checks,
+                          checks = FALSE,
                           ...)
     })
     ipred <- sim_ipred[!duplicated(sim_ipred$t),]$y
