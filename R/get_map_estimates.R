@@ -1,9 +1,9 @@
 #' Get MAP estimates
 #'
-#' @param model model
-#' @param data data
-#' @param parameters parameters
-#' @param covariates covariates
+#' @param model model, created using `PKPDsim::new_ode_model()`
+#' @param data data data.frame with columns `t` and `y` (and possibly evid)
+#' @param parameters list of parameters
+#' @param covariates list of covariates, each one created using `PKPDsim::new_coviarate()`
 #' @param fixed fix a specific parameters, supplied as vector of strings
 #' @param as_eta vector of parameters that are estimates as eta (e.g. IOV)
 #' @param weights vector of weights. Length of vector should be same as length of observation vector. If NULL, all weights are 1.
