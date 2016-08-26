@@ -110,6 +110,7 @@ get_map_estimates <- function(
     sig,
     int_step_size = 0.1,
     weight_prior,
+    as_eta,
     ...) {
     par <- parameters
     if(!is.null(covariates)) { # not properly passed through bbmle it seems
@@ -119,7 +120,12 @@ get_map_estimates <- function(
     }
     p <- as.list(match.call())
     for(i in seq(names(par))) {
-      par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
+      key <- names(par)[i]
+      if(key %in% as_eta) {
+        par[[key]] <- par[[key]] + p[[(paste0("eta", i))]]
+      } else {
+        par[[key]] <- par[[key]] * exp(p[[(paste0("eta", i))]])
+      }
     }
     suppressMessages({
       sim <- PKPDsim::sim_ode(ode = model,
@@ -134,15 +140,17 @@ get_map_estimates <- function(
                               ...)
     })
     ipred <- sim[!duplicated(sim$t),]$y
-    y <- data$y
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
     et <- mget(objects()[grep("^eta", objects())])
+#    print(c(et$eta1, et$eta2, et$eta3, et$eta4))
     et <- as.numeric(as.character(et[et != ""]))
     omega_full <- omega_full[1:length(et), 1:length(et)]
+#    et <- et[1:4]
     ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
-                                sigma = omega_full[1:length(et), 1:length(et)] * 1/weight_prior,
+                                sigma = omega_full[1:length(et), 
+                                                   1:length(et)] * 1/weight_prior,
                                 log=TRUE) * include_omega,
-               stats::dnorm((y - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
+               stats::dnorm((data$y - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
     if(verbose) {
       print(ofv)
     }
@@ -241,6 +249,7 @@ get_map_estimates <- function(
                           t_obs = t_obs,
                           weight_prior = weight_prior,
                           sig = sig,
+                          as_eta = as_eta,
                           int_step_size = int_step_size),
               fixed = fix)
   cf <- bbmle::coef(fit)
