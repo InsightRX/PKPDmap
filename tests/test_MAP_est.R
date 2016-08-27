@@ -157,7 +157,7 @@ assert("weighted residuals 0.01 different from reference",
 
 
 ## Test IOV
-pars_iov   <- list(CL = 20, V = 40, CL_occ1 = 0.1, CL_occ2 = 0.1, CL_occ3 = 0, CL_occ4 = 0) 
+pars_iov   <- list(CL = 25, V = 55, CL_occ1 = 0, CL_occ2 = 0, CL_occ3 = 0, CL_occ4 = 0) 
 model <- new_ode_model(code = "
   dAdt[1] = -(CL_I/V) * A[1];
 ", dose_code = "
@@ -168,21 +168,24 @@ model <- new_ode_model(code = "
   if(times[i]>=72) { CL_I = CL_I * exp(CL_occ4); }
 ",
 declare_variables = c("CL_I"), parameters = pars_iov, obs = list(cmt = 1, scale = "V/1000"))
+
 reg <- new_regimen(amt = c(10.7, 10.7,10.7, 10.7, 10.7, 6.6,6.6,6.6), n = 8, interval = 6, type = 'infusion', t_inf = 2)
 data <- data.frame(cbind(t = c(11.75, 14, 14.25, 14.5, 16, 18, 
                                35.75, 38.1, 38.25, 40, 42),
-                         y = c(463, 1460, 1230, 1140, 714, 
-                               382, 284, 796, 544, 337, 222)/10,
+                         y = c(463, 1460, 1230, 1140, 714, 382, 
+                               284, 796, 544, 337, 222)/10,
                          evid = 0))
 omega <- c(0.0531, 0.0268, 0.0261, 0.0000, 0.0000, 0.1000, 0.0000, 0.0000, 0.0000, 0.1000)
 fixed <- c("CL_occ3", "CL_occ4")
+ruv <- list(prop = 0.115, add = 21)
 ruv <- pkbusulfanucsf::ruv()
-sim(ode = model, parameters = pars_iov, regimen = reg)
+# sim(ode = model, parameters = pars_iov, regimen = reg)
 as_eta <- c("CL_occ1", "CL_occ2", "CL_occ3", "CL_occ4")
 
 fit <- get_map_estimates(
   model = model, 
   data = data,
+  method = 'BFGS',
   omega = omega,
   parameters = pars_iov, 
   regimen = reg, 
@@ -192,7 +195,9 @@ fit <- get_map_estimates(
 )
 
 ## check that IOV etas moved away from initial estimate
-testit::assert(round(fit$parameters$CL_occ1,2) == -0.14)
-testit::assert(round(fit$parameters$CL_occ2,2) == 0.02)
-# ipred <- sim(ode = model, parameters = fit$parameters, regimen = reg, covariates = covariates)
+testit::assert(round(fit$parameters$CL_occ1,3) == -0.148)
+testit::assert(round(fit$parameters$CL_occ2,3) == 0.008)
+
+# library(PKPDplot)
+# ipred <- sim(ode = model, parameters = fit$parameters, regimen = reg)
 # ipred %>% plot() + geom_point(data = data, aes(x=t, y=y))
