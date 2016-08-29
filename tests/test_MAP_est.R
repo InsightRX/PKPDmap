@@ -178,7 +178,6 @@ data <- data.frame(cbind(t = c(11.75, 14, 14.25, 14.5, 16, 18,
 omega <- c(0.0531, 0.0268, 0.0261, 0.0000, 0.0000, 0.1000, 0.0000, 0.0000, 0.0000, 0.1000)
 fixed <- c("CL_occ3", "CL_occ4")
 ruv <- list(prop = 0.115, add = 21)
-ruv <- pkbusulfanucsf::ruv()
 # sim(ode = model, parameters = pars_iov, regimen = reg)
 as_eta <- c("CL_occ1", "CL_occ2", "CL_occ3", "CL_occ4")
 
