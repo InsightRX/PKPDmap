@@ -14,7 +14,7 @@
 #' @param include_error TRUE
 #' @param regimen regimen
 #' @param int_step_size integrator step size passed to PKPDsim
-#' @param method optimization method, default L-BFGS-B
+#' @param method optimization method, default BFGS
 #' @param type estimation type, currently only option is `map`
 #' @param cols column names
 #' @param residuals show residuals? This requires an additional simulation so will be slightly slower.
@@ -36,7 +36,7 @@ get_map_estimates <- function(
                       include_error = TRUE,
                       regimen = NULL,
                       int_step_size = 0.1,
-                      method = "L-BFGS-B",
+                      method = "BFGS",
                       type = "map",
                       cols = list(x = "t", y = "y"),
                       residuals = TRUE,
