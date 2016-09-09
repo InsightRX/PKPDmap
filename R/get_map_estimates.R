@@ -142,10 +142,8 @@ get_map_estimates <- function(
     ipred <- sim[!duplicated(sim$t),]$y
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
     et <- mget(objects()[grep("^eta", objects())])
-#    print(c(et$eta1, et$eta2, et$eta3, et$eta4))
     et <- as.numeric(as.character(et[et != ""]))
     omega_full <- omega_full[1:length(et), 1:length(et)]
-#    et <- et[1:4]
     ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
                                 sigma = omega_full[1:length(et), 
                                                    1:length(et)] * 1/weight_prior,
@@ -234,7 +232,7 @@ get_map_estimates <- function(
   if(nrow(om_nonfixed) < (length(parameters) - length(fix))) {
     stop("Provided omega matrix is smaller than expected based on the number of model parameters. Either fix some parameters or increase the size of the omega matrix.")
   }
-  omega_full[1:nrow(om_nonfixed), 1:ncol(om_nonfixed)] <- om_nonfixed
+  omega_full[1:n_nonfix, 1:n_nonfix] <- om_nonfixed[1:n_nonfix, 1:n_nonfix]
   fit <- bbmle::mle2(ll_func,
               start = eta,
               method = method,
