@@ -4,12 +4,11 @@
 \alias{get_npar_estimates}
 \title{Get non-parametric estimates given a set of support points, model, and data}
 \usage{
-get_npar_estimates(parameters = NULL, error = list(prop = 0.05, add = 0.1),
-  model = NULL, regimen = NULL, t_obs = c(24), data = NULL)
+get_npar_estimates(parameter_grid = NULL, error = list(prop = 0.05, add =
+  0.1), model = NULL, covariates = NULL, regimen = NULL, t_obs = c(24),
+  data = NULL, ...)
 }
 \arguments{
-\item{parameters}{grid (data.frame) of support points}
-
 \item{error}{error model}
 
 \item{model}{`PKPDsim` model}
@@ -19,6 +18,8 @@ get_npar_estimates(parameters = NULL, error = list(prop = 0.05, add = 0.1),
 \item{t_obs}{vector of observations}
 
 \item{data}{vector of obsersved data}
+
+\item{parameters}{grid (data.frame) of support points}
 }
 \description{
 Get non-parametric estimates given a set of support points, model, and data

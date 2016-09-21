@@ -42,7 +42,7 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 
 \item{method}{optimization method, default BFGS}
 
-\item{type}{estimation type, currently only option is `map`}
+\item{type}{estimation type, options are `map`, `ls`, and `np_hybrid`}
 
 \item{cols}{column names}
 

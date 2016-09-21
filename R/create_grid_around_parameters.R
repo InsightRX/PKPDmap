@@ -9,10 +9,29 @@
 #' @export
 create_grid_around_parameters <- function(parameters = list(),
                                           grid_size = 4,
-                                          span = 0.2) {
+                                          exponential = FALSE,
+                                          span = 0.5,
+                                          fix = NULL) {
   lst <- list()
-  for(i in names(parameters)) {
-    lst[[i]] <- unlist(parameters)[i] * (1 + seq(from = -span, to = span, length.out = n))
+  if(!is.null(fix)) {
+    for(i in fix) {
+      parameters[[fix]] <- NULL
+    }
+  }
+  if(length(parameters) < 2) {
+    stop("At least 2 unfixed parameters are expected to be estimated.")
+  }
+  if(exponential) {
+    for(i in names(parameters)) {
+      lst[[i]] <- unlist(parameters)[i] * exp(seq(from = -span, to = span, length.out = grid_size))
+    }
+  } else {
+    if(span >= 1) {
+      stop("Span cannot be >1 with non-exponential grid.")
+    }
+    for(i in names(parameters)) {
+      lst[[i]] <- unlist(parameters)[i] * (1 + seq(from = -span, to = span, length.out = grid_size))
+    }
   }
   return(do.call("expand.grid", lst))
 }

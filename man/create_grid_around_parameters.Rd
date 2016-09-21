@@ -5,7 +5,7 @@
 \title{Create an expanded multivariate grid of parameters around a given set of parameters}
 \usage{
 create_grid_around_parameters(parameters = list(), grid_size = 4,
-  span = 0.2)
+  exponential = FALSE, span = 0.5, fix = NULL)
 }
 \arguments{
 \item{parameters}{list of parameters}

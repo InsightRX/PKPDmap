@@ -1,3 +1,4 @@
+library(PKPDmap)
 library(dplyr)
 library(PKPDsim)
 library(PKPDplot)
@@ -31,14 +32,27 @@ fit <- get_map_estimates(data = data.frame(t = res1$t, y = res1$y, evid = 0),
                          model = model, parameters = parameters, regimen = regimen, 
                          omega = omega, error = ruv)
 
+fit_flat <- get_map_estimates(data = data.frame(t = res1$t, y = res1$y, evid = 0), 
+                         model = model, parameters = parameters, regimen = regimen, 
+                         omega = omega, error = ruv, weight_prior = 0.01)
+
+fit_np <- get_map_estimates(data = data.frame(t = res1$t, y = res1$y, evid = 0), 
+                            model = model, parameters = parameters, regimen = regimen, 
+                            omega = omega, error = ruv,
+                            type = "np_hybrid")
+
 ###############################################################
 ## the fit will have some shrinkage (10-20%) as expected 
 ## now, we're going to put a grid around the MAP estimate
 ###############################################################
 
-pars <- create_grid_around_parameters(fit$parameters, span = 0.5) # get grid around MAP estimates
-np <- get_npar_estimates(parameters = pars,
-                         error = list(prop = 0.05, add = 0.1), 
+pars <- create_grid_around_parameters(fit$parameters, 
+                                      span = .6, 
+                                      exponential = TRUE,
+                                      grid_size = 8) # get grid around MAP estimates
+
+np <- get_npar_estimates(parameter_grid = pars,
+                         error = list(prop = ruv$prop/2, add=ruv$add/2), 
                          model = model,
                          regimen = regimen,
                          t_obs = t_obs,
