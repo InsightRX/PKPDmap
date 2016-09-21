@@ -7,14 +7,14 @@
 #' @param t_obs vector of observations
 #' @param data vector of obsersved data
 #' @export
-get_npar_estimates <- function(parameter_grid = NULL, 
-                               error = list(prop = 0.05, add = 0.1), 
-                               model = NULL,
-                               covariates = NULL,
-                               regimen = NULL, 
-                               t_obs = c(24),
-                               data = NULL,
-                               ...) {
+get_np_estimates <- function(parameter_grid = NULL, 
+                             error = list(prop = 0.1, add = 0.1), 
+                             model = NULL,
+                             covariates = NULL,
+                             regimen = NULL, 
+                             t_obs = c(24),
+                             data = NULL,
+                             ...) {
   all <- c()
   like <- c()
   for(i in 1:length(parameter_grid[,1])) {

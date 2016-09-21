@@ -16,4 +16,4 @@ This R library implements various methods for fitting of individual PK(PD) data.
 
 ## License 
 
-Proprietary, copyright InsightRX.
+MIT

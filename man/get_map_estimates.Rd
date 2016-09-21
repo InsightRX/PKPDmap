@@ -8,8 +8,9 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   covariates = NULL, fixed = c(), as_eta = c(), weights = NULL,
   omega = NULL, weight_prior = 1, error = list(prop = 0.1, add = 0.1, exp
   = 0), include_omega = TRUE, include_error = TRUE, regimen = NULL,
-  int_step_size = 0.1, method = "BFGS", type = "map", cols = list(x =
-  "t", y = "y"), residuals = TRUE, verbose = FALSE, ...)
+  int_step_size = 0.1, method = "BFGS", type = "map",
+  np_settings = list(), cols = list(x = "t", y = "y"), residuals = TRUE,
+  verbose = FALSE, ...)
 }
 \arguments{
 \item{model}{model, created using `PKPDsim::new_ode_model()`}
@@ -43,6 +44,8 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 \item{method}{optimization method, default BFGS}
 
 \item{type}{estimation type, options are `map`, `ls`, and `np_hybrid`}
+
+\item{np_settings}{list with settings for non-parametric estimation (if selected), containing any of the following: `error`, `grid_span`, grid_size`, `grid_exponential`}
 
 \item{cols}{column names}
 

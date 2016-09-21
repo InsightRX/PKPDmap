@@ -16,6 +16,7 @@
 #' @param int_step_size integrator step size passed to PKPDsim
 #' @param method optimization method, default BFGS
 #' @param type estimation type, options are `map`, `ls`, and `np_hybrid`
+#' @param np_settings list with settings for non-parametric estimation (if selected), containing any of the following: `error`, `grid_span`, grid_size`, `grid_exponential`
 #' @param cols column names
 #' @param residuals show residuals? This requires an additional simulation so will be slightly slower.
 #' @param verbose show more output
@@ -38,6 +39,7 @@ get_map_estimates <- function(
                       int_step_size = 0.1,
                       method = "BFGS",
                       type = "map",
+                      np_settings = list(),
                       cols = list(x = "t", y = "y"),
                       residuals = TRUE,
                       verbose = FALSE,
@@ -260,24 +262,48 @@ get_map_estimates <- function(
       par[[key]] <- as.numeric(as.numeric(par[[key]]) * exp(as.numeric(cf[i])))
     }
   }
+  obj <- list(fit = fit)
   if(type == "np_hybrid") {
-    ## creatae a grid around the MAP estimates
-    pars_grid <- create_grid_around_parameters(par, 
-                                          span = .6, 
-                                          exponential = TRUE,
-                                          grid_size = 8)
-    np <- get_npar_estimates(parameter_grid = pars_grid,
-                             error = list(prop = error$prop/2, add=error$add/2), 
+    obj$parameters_map <- par ## keep MAP estimates
+    np_settings <- replace_list_elements(np_settings_default, np_settings)
+    if(is.null(np_settings$error)) { # if no specific error magnitude is specified for NP, just use same as used for MAP
+      np_settings$error <- error
+    }
+    if(np_settings$grid_adaptive) { # do a first pass with a broad grid
+      pars_grid <- create_grid_around_parameters(
+        parameters = par, 
+        span = np_settings$grid_span_adaptive, 
+        exponential = np_settings$grid_exponential_adaptive,
+        grid_size = np_settings$grid_size_adaptive)
+      np <- get_np_estimates(parameter_grid = pars_grid,
+                             error = np_settings$error, 
                              model = model,
                              regimen = regimen,
                              data = data$y,
                              t_obs = data$t,
                              covariates = covariates)
+      # take the estimates with highest probability as starting point for next grid
+      tmp <- np$prob[order(-np$prob$like),][1,] 
+      par <- as.list(tmp[1:length(np$parameters)]) 
+    }
+    pars_grid <- create_grid_around_parameters(
+      parameters = par, 
+      span = np_settings$grid_span, 
+      exponential = np_settings$grid_exponential,
+      grid_size = np_settings$grid_size)
+    np <- get_np_estimates(parameter_grid = pars_grid,
+                           error = np_settings$error, 
+                           model = model,
+                           regimen = regimen,
+                           data = data$y,
+                           t_obs = data$t,
+                           covariates = covariates)
     for(i in 1:length(par)) {
       par[[i]] <- np$parameters[[i]]
     }
+    obj$np <- list(prob = np$prob)
   }
-  obj <- list(fit = fit, parameters = par)
+  obj$parameters <- par
   if(residuals) {
     suppressMessages({
       sim_ipred <- PKPDsim::sim_ode(ode = model,
