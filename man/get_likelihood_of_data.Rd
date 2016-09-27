@@ -4,7 +4,7 @@
 \alias{get_likelihood_of_data}
 \title{Get the likelihood of observed data given a specific error function}
 \usage{
-get_likelihood_of_data(data, ipred, error)
+get_likelihood_of_data(data, ipred, error, weights)
 }
 \arguments{
 \item{data}{vector of observed data points}

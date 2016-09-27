@@ -6,7 +6,7 @@
 \usage{
 get_np_estimates(parameter_grid = NULL, error = list(prop = 0.1, add = 0.1),
   model = NULL, covariates = NULL, regimen = NULL, t_obs = c(24),
-  data = NULL, ...)
+  data = NULL, weights = NULL, ...)
 }
 \arguments{
 \item{error}{error model}

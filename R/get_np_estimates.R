@@ -14,6 +14,7 @@ get_np_estimates <- function(parameter_grid = NULL,
                              regimen = NULL, 
                              t_obs = c(24),
                              data = NULL,
+                             weights = NULL,
                              ...) {
   all <- c()
   like <- c()
@@ -29,7 +30,7 @@ get_np_estimates <- function(parameter_grid = NULL,
       checks = FALSE,
       ...)$y
     all <- rbind(all, tmp)
-    like <- c(like, get_likelihood_of_data(data = data, ipred = tmp, error = error))
+    like <- c(like, get_likelihood_of_data(data = data, ipred = tmp, error = error, weights = weights))
   }
   tmp <- data.frame(cbind(parameter_grid, like))
   tmp$CL_tmp <- tmp[,1] * tmp$like

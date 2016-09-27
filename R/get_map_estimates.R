@@ -6,7 +6,7 @@
 #' @param covariates list of covariates, each one created using `PKPDsim::new_coviarate()`
 #' @param fixed fix a specific parameters, supplied as vector of strings
 #' @param as_eta vector of parameters that are estimates as eta (e.g. IOV)
-#' @param weights vector of weights. Length of vector should be same as length of observation vector. If NULL, all weights are 1.
+#' @param weights vector of weights for error. Length of vector should be same as length of observation vector. If NULL (default), all weights are equal. Used in both MAP and NP methods.
 #' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
 #' @param weight_prior weighting of priors in relationship to observed data, default = 1
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
@@ -29,10 +29,10 @@ get_map_estimates <- function(
                       covariates = NULL,
                       fixed = c(),
                       as_eta = c(),
-                      weights = NULL,
                       omega = NULL,
                       weight_prior = 1,
                       error = list(prop = 0.1, add = 0.1, exp = 0),
+                      weights = NULL,
                       include_omega = TRUE,
                       include_error = TRUE,
                       regimen = NULL,
@@ -43,6 +43,7 @@ get_map_estimates <- function(
                       cols = list(x = "t", y = "y"),
                       residuals = TRUE,
                       verbose = FALSE,
+                      A_init = NULL,
                       ...) {
 
   ## Handle weighting of priors, allow for some presets but can
@@ -139,6 +140,7 @@ get_map_estimates <- function(
                               t_obs = t_obs,
                               checks = FALSE,
                               only_obs = TRUE,
+                              A_init = A_init,
                               ...)
     })
     ipred <- sim[!duplicated(sim$t),]$y
@@ -147,7 +149,7 @@ get_map_estimates <- function(
     et <- as.numeric(as.character(et[et != ""]))
     omega_full <- omega_full[1:length(et), 1:length(et)]
     ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
-                                sigma = omega_full[1:length(et), 
+                                sigma = omega_full[1:length(et),
                                                    1:length(et)] * 1/weight_prior,
                                 log=TRUE) * include_omega,
                stats::dnorm((data$y - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
@@ -242,6 +244,7 @@ get_map_estimates <- function(
                           parameters = parameters,
                           covariates = covariates,
                           covariate_names = names(covariates),
+                          A_init = A_init,
                           regimen = regimen,
                           model = model,
                           omega_full = omega_full,
@@ -271,33 +274,35 @@ get_map_estimates <- function(
     }
     if(np_settings$grid_adaptive) { # do a first pass with a broad grid
       pars_grid <- create_grid_around_parameters(
-        parameters = par, 
-        span = np_settings$grid_span_adaptive, 
+        parameters = par,
+        span = np_settings$grid_span_adaptive,
         exponential = np_settings$grid_exponential_adaptive,
         grid_size = np_settings$grid_size_adaptive)
       np <- get_np_estimates(parameter_grid = pars_grid,
-                             error = np_settings$error, 
+                             error = np_settings$error,
                              model = model,
                              regimen = regimen,
                              data = data$y,
                              t_obs = data$t,
-                             covariates = covariates)
+                             covariates = covariates,
+                             weights = weights)
       # take the estimates with highest probability as starting point for next grid
-      tmp <- np$prob[order(-np$prob$like),][1,] 
-      par <- as.list(tmp[1:length(np$parameters)]) 
+      tmp <- np$prob[order(-np$prob$like),][1,]
+      par <- as.list(tmp[1:length(np$parameters)])
     }
     pars_grid <- create_grid_around_parameters(
-      parameters = par, 
-      span = np_settings$grid_span, 
+      parameters = par,
+      span = np_settings$grid_span,
       exponential = np_settings$grid_exponential,
       grid_size = np_settings$grid_size)
     np <- get_np_estimates(parameter_grid = pars_grid,
-                           error = np_settings$error, 
+                           error = np_settings$error,
                            model = model,
                            regimen = regimen,
                            data = data$y,
                            t_obs = data$t,
-                           covariates = covariates)
+                           covariates = covariates,
+                           weights = weights)
     for(i in 1:length(par)) {
       par[[i]] <- np$parameters[[i]]
     }
@@ -315,6 +320,7 @@ get_map_estimates <- function(
                            t_obs = t_obs,
                            only_obs = TRUE,
                            checks = FALSE,
+                           A_init = A_init,
                            ...)
     })
     suppressMessages({
@@ -327,6 +333,7 @@ get_map_estimates <- function(
                           t_obs = t_obs,
                           only_obs = TRUE,
                           checks = FALSE,
+                          A_init = A_init,
                           ...)
     })
     ipred <- sim_ipred[!duplicated(sim_ipred$t),]$y

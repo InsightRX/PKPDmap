@@ -5,10 +5,10 @@
 \title{Get MAP estimates}
 \usage{
 get_map_estimates(model = NULL, data = NULL, parameters = NULL,
-  covariates = NULL, fixed = c(), as_eta = c(), weights = NULL,
-  omega = NULL, weight_prior = 1, error = list(prop = 0.1, add = 0.1, exp
-  = 0), include_omega = TRUE, include_error = TRUE, regimen = NULL,
-  int_step_size = 0.1, method = "BFGS", type = "map",
+  covariates = NULL, fixed = c(), as_eta = c(), omega = NULL,
+  weight_prior = 1, error = list(prop = 0.1, add = 0.1, exp = 0),
+  weights = NULL, include_omega = TRUE, include_error = TRUE,
+  regimen = NULL, int_step_size = 0.1, method = "BFGS", type = "map",
   np_settings = list(), cols = list(x = "t", y = "y"), residuals = TRUE,
   verbose = FALSE, ...)
 }
@@ -25,13 +25,13 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 
 \item{as_eta}{vector of parameters that are estimates as eta (e.g. IOV)}
 
-\item{weights}{vector of weights. Length of vector should be same as length of observation vector. If NULL, all weights are 1.}
-
 \item{omega}{between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects}
 
 \item{weight_prior}{weighting of priors in relationship to observed data, default = 1}
 
 \item{error}{residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts}
+
+\item{weights}{vector of weights for error. Length of vector should be same as length of observation vector. If NULL (default), all weights are equal. Used in both MAP and NP methods.}
 
 \item{include_omega}{TRUE}
 
