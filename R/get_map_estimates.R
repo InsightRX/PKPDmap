@@ -48,6 +48,9 @@ get_map_estimates <- function(
 
   ## Handle weighting of priors, allow for some presets but can
   ## also be set manually using `weight_prior`
+  if(is.null(weight_prior) || is.na(weight_prior)) {
+    weight_prior <- 1
+  }
   weight_prior <- weight_prior^2 # 3x larger IIV on SD scale
   if(tolower(type) == "ls") {
     weight_prior <- 0.001
