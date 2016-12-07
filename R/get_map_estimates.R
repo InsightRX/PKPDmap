@@ -55,6 +55,11 @@ get_map_estimates <- function(
   if(tolower(type) == "ls") {
     weight_prior <- 0.001
   }
+  if(!is.null(error)) { ## safety checks
+    if(is.null(error$prop)) error$prop <- 0 
+    if(is.null(error$add)) error$add <- 0 
+    if(is.null(error$exp)) error$exp <- 0 
+  }
 
   if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
     stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
@@ -104,7 +109,10 @@ get_map_estimates <- function(
   ## Likelihood function for PKPDsim
   ll_func_PKPDsim <- function(
     data,
-    eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12, # unfortunately seems no other way to do this...
+    # unfortunately seems no other way to do this...
+    eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, 
+    eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20, 
+    eta21, eta22, eta23, eta24,
     parameters,
     covariates = NULL,
     covariate_names = NULL,
@@ -165,7 +173,10 @@ get_map_estimates <- function(
   ## generic likelihood function
   ll_func_generic <- function(
     data,
-    eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, eta11, eta12, # unfortunately seems no other way to do this...
+    # unfortunately seems no other way to do this...
+    eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, 
+    eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20, 
+    eta21, eta22, eta23, eta24,
     parameters,
     covariates = NULL,
     covariate_names = NULL,
