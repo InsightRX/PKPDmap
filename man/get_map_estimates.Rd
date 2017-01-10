@@ -10,7 +10,7 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   weights = NULL, include_omega = TRUE, include_error = TRUE,
   regimen = NULL, int_step_size = 0.1, method = "BFGS", type = "map",
   np_settings = list(), cols = list(x = "t", y = "y"), residuals = TRUE,
-  verbose = FALSE, ...)
+  verbose = FALSE, A_init = NULL, ...)
 }
 \arguments{
 \item{model}{model, created using `PKPDsim::new_ode_model()`}
