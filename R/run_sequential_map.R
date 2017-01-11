@@ -12,10 +12,12 @@
 #' @param break_interval when `breaks_by_time` is `TRUE`, the interval between breaks
 #' @param breaks vector of breaks for sections
 #' @param A_init vector of initial state
-#' @param weight_prior weight of population priors specified through `omega`
-#' @param weight_unfocus weight for the points in the sequential fit that are not in the focused section (but later).
-#' @param ... additional arguments passed to `get_map_estimates()` and `sim_ode()`.
+#' @param weight_prior defaults to 1. Weight of population priors specified through `omega`
+#' @param weight_focus defaults to 1. Weight for the points in the sequential fit that are in the section of focus.
+#' @param weight_nonfocus defaults to 0. Weight for the points in the sequential fit that are not in the focused section (but later).
 #' @param verbose verbose output?
+#' @param progress show progress bar, default is TRUE
+#' @param ... additional arguments passed to `get_map_estimates()` and `sim_ode()`.
 #' @export
 run_sequential_map <- function(
   model = NULL,
@@ -30,21 +32,20 @@ run_sequential_map <- function(
   weights_prior = NULL,
   A_init = NULL,
   weight_prior = 1,
-  weight_unfocus = .1,
+  weight_focus = 1,
+  weight_nonfocus = 0,
   verbose = FALSE,
+  progress = TRUE,
   ...
 ) {
-  weights_prior <- 0.5
-  fits <- list()
-  dats <- list()
+  
+  ## Checks
   if(is.null(data)) {
     stop("No data supplied to fit!")
   }
   if(is.null(A_init)) {
     A_init <- rep(0, attr(model, "size"))
   }
-  conc <- c()
-  par_table <- c()
   if(is.null(breaks)) {
     if(breaks_by_data) {
       breaks <- data$t
@@ -54,8 +55,15 @@ run_sequential_map <- function(
     }
   }
   breaks <- unique(c(0, breaks))
+  
+  ## Initialize variables for loop
+  fits <- list()
+  dats <- list()
+  conc <- c()
+  par_table <- c()
 
   ## test if all sections have observations, which is req'd for MAP
+  ## This needs to be implemented in a better way, merging can be done better
   tmp <- cut(data$t, breaks)
   if(!all(levels(tmp) %in% unique(tmp[!is.na(tmp)]))) {
     filt <- levels(tmp) %in% unique(tmp[!is.na(tmp)])
@@ -67,15 +75,20 @@ run_sequential_map <- function(
       last_break <- breaks[i+1]
     }
     breaks <- unique(breaks)
-    cat(paste0("Note: all sections need to contain at least one datapoint, merging empty sections to: ", paste(breaks, collapse=" "), ".\n\n"))
-    ## merge sections
+    if(verbose) {
+      cat(paste0("Note: all sections need to contain at least one datapoint, merging empty sections to: ", paste(breaks, collapse=" "), ".\n\n"))
+    }
   }
-  if(verbose) {
+  if(progress) {
     pb <- txtProgressBar(min = 1, max = length(breaks))
   }
   t_max_calc <- regimen$dose_times + regimen$interval
+  
+  ## Start loop over sections
   for(i in 2:length(breaks)) {
-    if(verbose) { setTxtProgressBar(pb, i) }
+
+    if(progress) { setTxtProgressBar(pb, i) }
+
     reg_tmp <- regimen
     obs_tmp <- data
     t_last <- 0
@@ -88,12 +101,14 @@ run_sequential_map <- function(
       reg_tmp$type <- tail(reg_tmp$type, length(reg_tmp$dose_times))
       obs_tmp <- data[data$t > t_last,]
       obs_tmp$t <- obs_tmp$t - t_last
-      # covariates too
+      # do covariates too!
     }
     t1 <- 0
     t2 <- breaks[i] - t_last
+    
+    ## Set weights for points
     weights <- rep(weight_unfocus, length(obs_tmp$t))
-    weights[obs_tmp$t < t2] <- 1
+    weights[obs_tmp$t < t2] <- weight_focus
 
     ## Fit to data from i to end
     fits[[i]] <- PKPDmap::get_map_estimates(
@@ -107,7 +122,8 @@ run_sequential_map <- function(
       weight_prior = weight_prior,
       parameters = parameters,
       ruv = ruv,
-      verbose = verbose)
+      verbose = FALSE)
+
     ## simulate out data from i-1 to i
     tmp <- PKPDsim::sim_ode(ode = model,
                    regimen = reg_tmp,
@@ -115,7 +131,9 @@ run_sequential_map <- function(
                    parameters = fits[[i]]$parameters,
                    A_init = A_init,
                    t_obs=c(seq(from = t1, to = floor(t2), by = 0.1), t2),
-                   verbose = verbose)
+                   verbose = FALSE)
+
+    ## Save data 
     conc <- rbind(conc,
                   tmp %>% filter(comp == "obs") %>% mutate(t = t + t_last))
     par_table <- rbind(par_table,
@@ -123,8 +141,13 @@ run_sequential_map <- function(
                              t2 = t2 + t_last, as.data.frame(fits[[i]]$parameters)))
     tmp_filt <- tmp %>%
       dplyr::filter(t == max(t) & !duplicated(t) & comp != "obs")
+    
+    ## Update state for next section
     A_init <- tmp_filt$y
+    
   }
+  
+  ## Return object
   class(conc) <- c("PKPDsim_data", "data.frame")
   return(list(
     fit = fits,
