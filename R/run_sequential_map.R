@@ -1,7 +1,7 @@
-#' Perform a sequential MAP Bayesian fit. 
-#' 
+#' Perform a sequential MAP Bayesian fit.
+#'
 #' This will allow "tracking" parameters over time, i.e. a form of between-occasion variability
-#' 
+#'
 #' @param model PKPDsim model
 #' @param regimen PKPDsim regimen
 #' @param parameters population values for parameters for `model``
@@ -15,6 +15,7 @@
 #' @param weight_prior weight of population priors specified through `omega`
 #' @param weight_unfocus weight for the points in the sequential fit that are not in the focused section (but later).
 #' @param ... additional arguments passed to `get_map_estimates()` and `sim_ode()`.
+#' @param verbose verbose output?
 #' @export
 run_sequential_map <- function(
   model = NULL,
@@ -30,11 +31,15 @@ run_sequential_map <- function(
   A_init = NULL,
   weight_prior = 1,
   weight_unfocus = .1,
+  verbose = FALSE,
   ...
 ) {
   weights_prior <- 0.5
   fits <- list()
   dats <- list()
+  if(is.null(data)) {
+    stop("No data supplied to fit!")
+  }
   if(is.null(A_init)) {
     A_init <- rep(0, attr(model, "size"))
   }
@@ -49,15 +54,15 @@ run_sequential_map <- function(
     }
   }
   breaks <- unique(c(0, breaks))
-  
+
   ## test if all sections have observations, which is req'd for MAP
   tmp <- cut(data$t, breaks)
   if(!all(levels(tmp) %in% unique(tmp[!is.na(tmp)]))) {
     filt <- levels(tmp) %in% unique(tmp[!is.na(tmp)])
     last_break <- breaks[1]
     for(i in 1:length(filt)) {
-      if(!filt[i]) { 
-        breaks[i+1] <- last_break 
+      if(!filt[i]) {
+        breaks[i+1] <- last_break
       }
       last_break <- breaks[i+1]
     }
@@ -65,10 +70,12 @@ run_sequential_map <- function(
     cat(paste0("Note: all sections need to contain at least one datapoint, merging empty sections to: ", paste(breaks, collapse=" "), ".\n\n"))
     ## merge sections
   }
-  pb <- txtProgressBar(min = 1, max = length(breaks))
+  if(verbose) {
+    pb <- txtProgressBar(min = 1, max = length(breaks))
+  }
   t_max_calc <- regimen$dose_times + regimen$interval
   for(i in 2:length(breaks)) {
-    setTxtProgressBar(pb, i)
+    if(verbose) { setTxtProgressBar(pb, i) }
     reg_tmp <- regimen
     obs_tmp <- data
     t_last <- 0
@@ -87,30 +94,32 @@ run_sequential_map <- function(
     t2 <- breaks[i] - t_last
     weights <- rep(weight_unfocus, length(obs_tmp$t))
     weights[obs_tmp$t < t2] <- 1
-    
+
     ## Fit to data from i to end
-    fits[[i]] <- get_map_estimates(
-      model = model, 
-      data = obs_tmp, 
+    fits[[i]] <- PKPDmap::get_map_estimates(
+      model = model,
+      data = obs_tmp,
       A_init = A_init,
-      regimen = reg_tmp, 
-      omega = omega, 
+      regimen = reg_tmp,
+      omega = omega,
       covariates = covariates,
       weights = weights,
-      weights_prior = weights_prior,
-      parameters = pars,
-      ruv = ruv)
+      weight_prior = weight_prior,
+      parameters = parameters,
+      ruv = ruv,
+      verbose = verbose)
     ## simulate out data from i-1 to i
-    tmp <- sim_ode(ode = model, 
-                   regimen = reg_tmp, 
-                   covariates = covariates, 
+    tmp <- PKPDsim::sim_ode(ode = model,
+                   regimen = reg_tmp,
+                   covariates = covariates,
                    parameters = fits[[i]]$parameters,
                    A_init = A_init,
-                   t_obs=c(seq(from = t1, to = floor(t2), by = 0.1), t2))
-    conc <- rbind(conc, 
+                   t_obs=c(seq(from = t1, to = floor(t2), by = 0.1), t2),
+                   verbose = verbose)
+    conc <- rbind(conc,
                   tmp %>% filter(comp == "obs") %>% mutate(t = t + t_last))
     par_table <- rbind(par_table,
-                       cbind(t1 = t1 + t_last, 
+                       cbind(t1 = t1 + t_last,
                              t2 = t2 + t_last, as.data.frame(fits[[i]]$parameters)))
     tmp_filt <- tmp %>%
       dplyr::filter(t == max(t) & !duplicated(t) & comp != "obs")
@@ -121,5 +130,5 @@ run_sequential_map <- function(
     fit = fits,
     obs = conc,
     parameters = par_table
-  ))  
+  ))
 }

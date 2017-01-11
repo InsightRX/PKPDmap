@@ -8,7 +8,7 @@ run_sequential_map(model = NULL, regimen = NULL, parameters = list(),
   covariates = NULL, data = NULL, breaks_by_data = TRUE,
   breaks_by_time = FALSE, break_interval = 24, breaks = NULL,
   weights_prior = NULL, A_init = NULL, weight_prior = 1,
-  weight_unfocus = 0.1, ...)
+  weight_unfocus = 0.1, verbose = TRUE, ...)
 }
 \arguments{
 \item{model}{PKPDsim model}
@@ -34,6 +34,8 @@ run_sequential_map(model = NULL, regimen = NULL, parameters = list(),
 \item{weight_prior}{weight of population priors specified through `omega`}
 
 \item{weight_unfocus}{weight for the points in the sequential fit that are not in the focused section (but later).}
+
+\item{verbose}{verbose output?}
 
 \item{...}{additional arguments passed to `get_map_estimates()` and `sim_ode()`.}
 }
