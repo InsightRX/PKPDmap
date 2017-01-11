@@ -5,9 +5,9 @@
 \title{Perform a sequential MAP Bayesian fit.}
 \usage{
 run_sequential_map(model = NULL, regimen = NULL, parameters = list(),
-  covariates = NULL, data = NULL, breaks_by_data = TRUE,
-  breaks_by_time = FALSE, break_interval = 24, breaks = NULL,
-  weights_prior = NULL, A_init = NULL, weight_prior = 1,
+  covariates = NULL, omega = NULL, ruv = NULL, data = NULL,
+  breaks_by_data = TRUE, breaks_by_time = FALSE, break_interval = 24,
+  breaks = NULL, weights_prior = NULL, A_init = NULL, weight_prior = 1,
   weight_focus = 1, weight_nonfocus = 0, verbose = FALSE,
   progress = TRUE, ...)
 }
@@ -19,6 +19,10 @@ run_sequential_map(model = NULL, regimen = NULL, parameters = list(),
 \item{parameters}{population values for parameters for `model``}
 
 \item{covariates}{covariates for `model`, if present}
+
+\item{omega}{vector or matrix specifying lower triangle or full variance-covariance matrix for between-individual variability}
+
+\item{ruv}{list specifying residual variability model (see `PKPDsim` for more details)}
 
 \item{data}{data.frame with `t` and `y` columns}
 

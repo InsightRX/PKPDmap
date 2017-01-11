@@ -5,6 +5,8 @@
 #' @param model PKPDsim model
 #' @param regimen PKPDsim regimen
 #' @param parameters population values for parameters for `model``
+#' @param omega vector or matrix specifying lower triangle or full variance-covariance matrix for between-individual variability
+#' @param ruv list specifying residual variability model (see `PKPDsim` for more details)
 #' @param covariates covariates for `model`, if present
 #' @param data data.frame with `t` and `y` columns
 #' @param breaks_by_data set breaks automatically (`T`/`F``), 1 data point per section (end of section).
@@ -22,8 +24,10 @@
 run_sequential_map <- function(
   model = NULL,
   regimen = NULL,
-  parameters = list(),
+  parameters = NULL,
   covariates = NULL,
+  omega = NULL,
+  ruv = NULL,
   data = NULL,
   breaks_by_data = TRUE,
   breaks_by_time = FALSE,
@@ -40,8 +44,26 @@ run_sequential_map <- function(
 ) {
   
   ## Checks
+  if(is.null(model)) {
+    stop("No model supplied!")
+  }
+  if(is.null(regimen)) {
+    stop("No regimen specified!")
+  }
+  if(is.null(parameters)) {
+    stop("No parameters specified!")
+  }
   if(is.null(data)) {
     stop("No data supplied to fit!")
+  }
+  if(is.null(omega)) {
+    stop("No omega matrix specified!")
+  }
+  if(is.null(ruv)) {
+    stop("No residual variability specified!")
+  }
+  if(weight_focus == 0) {
+    warning("Weight for points in focus section set to 0, you probably want to set this higher?")
   }
   if(is.null(A_init)) {
     A_init <- rep(0, attr(model, "size"))
@@ -107,7 +129,7 @@ run_sequential_map <- function(
     t2 <- breaks[i] - t_last
     
     ## Set weights for points
-    weights <- rep(weight_unfocus, length(obs_tmp$t))
+    weights <- rep(weight_nonfocus, length(obs_tmp$t))
     weights[obs_tmp$t < t2] <- weight_focus
 
     ## Fit to data from i to end
@@ -122,13 +144,15 @@ run_sequential_map <- function(
       weight_prior = weight_prior,
       parameters = parameters,
       ruv = ruv,
-      verbose = FALSE)
+      verbose = FALSE,
+      ...)
 
     ## simulate out data from i-1 to i
     tmp <- PKPDsim::sim_ode(ode = model,
                    regimen = reg_tmp,
                    covariates = covariates,
                    parameters = fits[[i]]$parameters,
+                   omega = NULL, ruv = NULL,
                    A_init = A_init,
                    t_obs=c(seq(from = t1, to = floor(t2), by = 0.1), t2),
                    verbose = FALSE)
