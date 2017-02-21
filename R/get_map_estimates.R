@@ -56,9 +56,9 @@ get_map_estimates <- function(
     weight_prior <- 0.001
   }
   if(!is.null(error)) { ## safety checks
-    if(is.null(error$prop)) error$prop <- 0 
-    if(is.null(error$add)) error$add <- 0 
-    if(is.null(error$exp)) error$exp <- 0 
+    if(is.null(error$prop)) error$prop <- 0
+    if(is.null(error$add)) error$add <- 0
+    if(is.null(error$exp)) error$exp <- 0
   }
 
   if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
@@ -110,8 +110,8 @@ get_map_estimates <- function(
   ll_func_PKPDsim <- function(
     data,
     # unfortunately seems no other way to do this...
-    eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, 
-    eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20, 
+    eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10,
+    eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20,
     eta21, eta22, eta23, eta24,
     parameters,
     covariates = NULL,
@@ -174,8 +174,8 @@ get_map_estimates <- function(
   ll_func_generic <- function(
     data,
     # unfortunately seems no other way to do this...
-    eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10, 
-    eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20, 
+    eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10,
+    eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20,
     eta21, eta22, eta23, eta24,
     parameters,
     covariates = NULL,
@@ -359,7 +359,7 @@ get_map_estimates <- function(
                          sigma = omega_full[1:length(cf), 1:length(cf)])),
                  data = stats::pnorm(y - ipred, mean = 0, sd = w_ipred))
     res <- (y - pred)
-    wres <- res / w_pred # not same as wres in NONMEM!
+    wres <- res / w_pred # CWRES in NONMEM!
     ires <- (y - ipred)
     iwres <- ires / w_ipred
     obj$prob <- prob

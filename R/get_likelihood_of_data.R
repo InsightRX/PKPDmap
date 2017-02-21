@@ -4,7 +4,10 @@
 #' @param ipred vector of predicted values,
 #' @param error list specifying error model (list of `prop` and `add`), assuming normal distribution
 #' @export
-get_likelihood_of_data <- function(data, ipred, error, weights) {
+get_likelihood_of_data <- function(data, ipred, error, weights = NULL) {
+  if(is.null(weights)) {
+    weights <- rep(1, length(ipred))
+  }
   res_sd <- sqrt(error$prop^2 * ipred^2 + error$add^2)
   if(!is.null(weights) && length(weights) == length(ipred)) {
     likelhd <- stats::dnorm((data - ipred) * weights, mean = 0, sd = res_sd, log = FALSE)

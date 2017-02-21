@@ -5,14 +5,13 @@
 #' @param model `PKPDsim` model
 #' @param regimen `PKPDsim` regimen
 #' @param t_obs vector of observations
-#' @param data vector of obsersved data
+#' @param data vector of observed data
 #' @export
 get_np_estimates <- function(parameter_grid = NULL, 
                              error = list(prop = 0.1, add = 0.1), 
                              model = NULL,
                              covariates = NULL,
                              regimen = NULL, 
-                             t_obs = c(24),
                              data = NULL,
                              weights = NULL,
                              ...) {
@@ -24,13 +23,13 @@ get_np_estimates <- function(parameter_grid = NULL,
       ode = model, 
       parameters = par_tmp, 
       regimen = regimen, 
-      t_obs = t_obs,
+      t_obs = data$t,
       only_obs = TRUE, 
       covariates = covariates,
       checks = FALSE,
       ...)$y
     all <- rbind(all, tmp)
-    like <- c(like, get_likelihood_of_data(data = data, ipred = tmp, error = error, weights = weights))
+    like <- c(like, get_likelihood_of_data(data = data$y, ipred = tmp, error = error, weights = weights))
   }
   tmp <- data.frame(cbind(parameter_grid, like))
   tmp$CL_tmp <- tmp[,1] * tmp$like
