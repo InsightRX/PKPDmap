@@ -359,7 +359,8 @@ get_map_estimates <- function(
                          sigma = omega_full[1:length(cf), 1:length(cf)])),
                  data = stats::pnorm(y - ipred, mean = 0, sd = w_ipred))
     res <- (y - pred)
-    wres <- res / w_pred # CWRES in NONMEM!
+    wres <- res / w_pred
+    cwres <- res / sqrt(cov(pred, y)) # Note: in NONMEM this is on the population level, so can't really compare
     ires <- (y - ipred)
     iwres <- ires / w_ipred
     obj$prob <- prob
@@ -370,6 +371,7 @@ get_map_estimates <- function(
     }
     obj$res <- c(zero_offset, res)
     obj$wres <- c(zero_offset, wres)
+    obj$wres <- c(zero_offset, cwres)
     obj$ires <- c(zero_offset, ires)
     obj$iwres <- c(zero_offset, iwres)
     obj$ipred <- c(zero_offset, ipred)
