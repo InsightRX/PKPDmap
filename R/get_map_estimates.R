@@ -360,7 +360,7 @@ get_map_estimates <- function(
                  data = stats::pnorm(y - ipred, mean = 0, sd = w_ipred))
     res <- (y - pred)
     wres <- res / w_pred
-    cwres <- res / sqrt(cov(pred, y)) # Note: in NONMEM this is on the population level, so can't really compare
+    cwres <- res / sqrt(cov(pred, y)) # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
     ires <- (y - ipred)
     iwres <- ires / w_ipred
     obj$prob <- prob
