@@ -10,7 +10,8 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   weights = NULL, include_omega = TRUE, include_error = TRUE,
   regimen = NULL, int_step_size = 0.1, method = "BFGS", type = "map",
   np_settings = list(), cols = list(x = "t", y = "y"), residuals = TRUE,
-  verbose = FALSE, A_init = NULL, ...)
+  verbose = FALSE, A_init = NULL, output_include = list(covariates =
+  FALSE, parameters = FALSE), ...)
 }
 \arguments{
 \item{model}{model, created using `PKPDsim::new_ode_model()`}
@@ -52,6 +53,8 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 \item{residuals}{show residuals? This requires an additional simulation so will be slightly slower.}
 
 \item{verbose}{show more output}
+
+\item{output_include}{passed to PKPDsim::sim_ode(), returns covariates and parmeter values over time in return object. Only invoked if `residuals` option is `TRUE`.}
 
 \item{...}{parameters passed on to `sim_ode()` function}
 }

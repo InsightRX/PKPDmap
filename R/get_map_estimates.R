@@ -19,6 +19,7 @@
 #' @param np_settings list with settings for non-parametric estimation (if selected), containing any of the following: `error`, `grid_span`, grid_size`, `grid_exponential`
 #' @param cols column names
 #' @param residuals show residuals? This requires an additional simulation so will be slightly slower.
+#' @param output_include passed to PKPDsim::sim_ode(), returns covariates and parmeter values over time in return object. Only invoked if `residuals` option is `TRUE`.
 #' @param verbose show more output
 #' @param ... parameters passed on to `sim_ode()` function
 #' @export
@@ -44,6 +45,7 @@ get_map_estimates <- function(
                       residuals = TRUE,
                       verbose = FALSE,
                       A_init = NULL,
+                      output_include = list(covariates = FALSE, parameters = FALSE),
                       ...) {
 
   ## Handle weighting of priors, allow for some presets but can
@@ -335,6 +337,7 @@ get_map_estimates <- function(
                            only_obs = TRUE,
                            checks = FALSE,
                            A_init = A_init,
+                           output_include = output_include,
                            ...)
     })
     suppressMessages({
@@ -360,7 +363,7 @@ get_map_estimates <- function(
                  data = stats::pnorm(y - ipred, mean = 0, sd = w_ipred))
     res <- (y - pred)
     wres <- (res / w_pred) * weights
-    cwres <- res / sqrt(cov(pred, y)) * weights 
+    cwres <- res / sqrt(cov(pred, y)) * weights
     # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
     ires <- (y - ipred)
     iwres <- (ires / w_ipred) * weights
@@ -372,12 +375,18 @@ get_map_estimates <- function(
     }
     obj$res <- c(zero_offset, res)
     obj$wres <- c(zero_offset, wres)
-    obj$cwres <- c(zero_offset, cwres) 
+    obj$cwres <- c(zero_offset, cwres)
     obj$ires <- c(zero_offset, ires)
     obj$iwres <- c(zero_offset, iwres)
     obj$ipred <- c(zero_offset, ipred)
     obj$pred <- c(zero_offset, pred)
     obj$dv <- y_orig
+    if(output_include$covariates && !is.null(covariates)) {
+      obj$covariates_time <- sim_ipred[!duplicated(sim_ipred$t), names(covariates)]
+    }
+    if(output_include$parameters) {
+      obj$parameters_time <- sim_ipred[!duplicated(sim_ipred$t), names(parameters)]
+    }
   }
   obj$vcov_full <- fit@vcov
   obj$vcov <- fit@vcov[t(!upper.tri(fit@vcov))]
