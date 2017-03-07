@@ -374,7 +374,7 @@ get_map_estimates <- function(
       obj$mahalanobis <- stats::mahalanobis(y, ipred, cov = w_ipred^2)
     }
     obj$res <- c(zero_offset, res)
-    obj$wres <- c(zero_offset, wres)
+    obj$wres <- c(zero_offset, cwres)
     obj$cwres <- c(zero_offset, cwres)
     obj$ires <- c(zero_offset, ires)
     obj$iwres <- c(zero_offset, iwres)
