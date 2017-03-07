@@ -5,8 +5,8 @@
 \title{Get non-parametric estimates given a set of support points, model, and data}
 \usage{
 get_np_estimates(parameter_grid = NULL, error = list(prop = 0.1, add = 0.1),
-  model = NULL, covariates = NULL, regimen = NULL, t_obs = c(24),
-  data = NULL, weights = NULL, ...)
+  model = NULL, covariates = NULL, regimen = NULL, data = NULL,
+  weights = NULL, ...)
 }
 \arguments{
 \item{error}{error model}
@@ -15,11 +15,11 @@ get_np_estimates(parameter_grid = NULL, error = list(prop = 0.1, add = 0.1),
 
 \item{regimen}{`PKPDsim` regimen}
 
-\item{t_obs}{vector of observations}
-
-\item{data}{vector of obsersved data}
+\item{data}{vector of observed data}
 
 \item{parameters}{grid (data.frame) of support points}
+
+\item{t_obs}{vector of observations}
 }
 \description{
 Get non-parametric estimates given a set of support points, model, and data

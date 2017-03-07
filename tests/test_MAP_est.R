@@ -200,3 +200,30 @@ testit::assert(round(fit$parameters$CL_occ2,3) == 0.008)
 # library(PKPDplot)
 # ipred <- sim(ode = model, parameters = fit$parameters, regimen = reg)
 # ipred %>% plot() + geom_point(data = data, aes(x=t, y=y))
+
+
+## Check that weighting works
+model <- new_ode_model(code = "
+  dAdt[1] = -(CL/V) * A[1];
+             ", obs = list(cmt = 1, scale = "V/1000"))
+par <- list(CL = 10, V = 100)
+reg <- new_regimen(amt = 100, n = 12, interval = 12, type="infusion", t_inf = 1)
+obs <- PKPDsim::sim(ode = model, parameters = par, regimen = reg, 
+                    only_obs = TRUE, t_obs = c(11.5, 143.5))
+
+obs$evid <- 0
+obs$y[1] <- 600
+fit1 <- get_map_estimates(model = model, data = obs, 
+                          parameters = list(CL = 11, V = 90),
+                          regimen = reg, omega = c(0.1, 0.05, 0.1),
+                          error = list(prop = 0.1, add = 10), weights = c(1, 1), 
+                          residuals = T)
+assert("CL estimate no weighting", round(fit1$parameters$CL,1) == 6.4)
+
+fit2 <- get_map_estimates(model = model, data = obs, 
+                          parameters = list(CL = 11, V = 90),
+                          regimen = reg, omega = c(0.1, 0.05, 0.1),
+                          error = list(prop = 0.1, add = 10), weights = c(0.25, 1), 
+                          residuals = T)
+assert("CL estimate changed appropriately", round(fit2$parameters$CL,1) == 7.7)
+assert("Scaling of residuals based on weighting", diff(abs(fit2$iwres)) < 0.1) # should be small difference. Scaling of residuals is not 100% correct, but seems close enough 

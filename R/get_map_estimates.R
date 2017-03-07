@@ -6,7 +6,7 @@
 #' @param covariates list of covariates, each one created using `PKPDsim::new_coviarate()`
 #' @param fixed fix a specific parameters, supplied as vector of strings
 #' @param as_eta vector of parameters that are estimates as eta (e.g. IOV)
-#' @param weights vector of weights for error. Length of vector should be same as length of observation vector. If NULL (default), all weights are equal. Used in both MAP and NP methods.
+#' @param weights vector of weights for error. Length of vector should be same as length of observation vector. If NULL (default), all weights are equal. Used in both MAP and NP methods. Note that `weights` argument will also affect residuals (residuals will be scaled too).
 #' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
 #' @param weight_prior weighting of priors in relationship to observed data, default = 1
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
@@ -359,10 +359,11 @@ get_map_estimates <- function(
                          sigma = omega_full[1:length(cf), 1:length(cf)])),
                  data = stats::pnorm(y - ipred, mean = 0, sd = w_ipred))
     res <- (y - pred)
-    wres <- res / w_pred
-    cwres <- res / sqrt(cov(pred, y)) # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
+    wres <- (res / w_pred) * weights
+    cwres <- res / sqrt(cov(pred, y)) * weights 
+    # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
     ires <- (y - ipred)
-    iwres <- ires / w_ipred
+    iwres <- (ires / w_ipred) * weights
     obj$prob <- prob
     if(length(w_ipred) > 1) {
       obj$mahalanobis <- stats::mahalanobis(y, ipred, cov = diag(w_ipred^2))
@@ -371,7 +372,7 @@ get_map_estimates <- function(
     }
     obj$res <- c(zero_offset, res)
     obj$wres <- c(zero_offset, wres)
-    obj$wres <- c(zero_offset, cwres)
+    obj$cwres <- c(zero_offset, cwres) 
     obj$ires <- c(zero_offset, ires)
     obj$iwres <- c(zero_offset, iwres)
     obj$ipred <- c(zero_offset, ipred)

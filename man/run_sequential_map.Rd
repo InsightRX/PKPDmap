@@ -4,7 +4,7 @@
 \alias{run_sequential_map}
 \title{Perform a sequential MAP Bayesian fit.}
 \usage{
-run_sequential_map(model = NULL, regimen = NULL, parameters = list(),
+run_sequential_map(model = NULL, regimen = NULL, parameters = NULL,
   covariates = NULL, omega = NULL, ruv = NULL, data = NULL,
   breaks_by_data = TRUE, breaks_by_time = FALSE, break_interval = 24,
   breaks = NULL, weights_prior = NULL, A_init = NULL, weight_prior = 1,
