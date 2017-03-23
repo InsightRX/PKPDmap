@@ -116,6 +116,7 @@ get_map_estimates <- function(
     eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20,
     eta21, eta22, eta23, eta24,
     parameters,
+    fixed = c(),
     covariates = NULL,
     covariate_names = NULL,
     regimen = regimen,
@@ -160,6 +161,7 @@ get_map_estimates <- function(
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
     et <- mget(objects()[grep("^eta", objects())])
     et <- as.numeric(as.character(et[et != ""]))
+    et <- et[!names(parameters) %in% fixed]
     omega_full <- omega_full[1:length(et), 1:length(et)]
     ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
                                 sigma = omega_full[1:length(et),
@@ -180,6 +182,7 @@ get_map_estimates <- function(
     eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20,
     eta21, eta22, eta23, eta24,
     parameters,
+    fixed = c(),
     covariates = NULL,
     covariate_names = NULL,
     regimen = regimen,
@@ -258,6 +261,7 @@ get_map_estimates <- function(
               method = method,
               data = list(data = data,
                           parameters = parameters,
+                          fixed = fixed,
                           covariates = covariates,
                           covariate_names = names(covariates),
                           A_init = A_init,
@@ -363,7 +367,7 @@ get_map_estimates <- function(
                  data = stats::pnorm(y - ipred, mean = 0, sd = w_ipred))
     res <- (y - pred)
     wres <- (res / w_pred) * weights
-    cwres <- res / sqrt(cov(pred, y)) * weights
+    cwres <- res / sqrt(abs(cov(pred, y))) * weights
     # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
     ires <- (y - ipred)
     iwres <- (ires / w_ipred) * weights
