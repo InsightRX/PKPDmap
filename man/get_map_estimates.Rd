@@ -8,10 +8,10 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   covariates = NULL, fixed = c(), as_eta = c(), omega = NULL,
   weight_prior = 1, error = list(prop = 0.1, add = 0.1, exp = 0),
   weights = NULL, include_omega = TRUE, include_error = TRUE,
-  regimen = NULL, int_step_size = 0.1, method = "BFGS", type = "map",
-  np_settings = list(), cols = list(x = "t", y = "y"), residuals = TRUE,
-  verbose = FALSE, A_init = NULL, output_include = list(covariates =
-  FALSE, parameters = FALSE), ...)
+  regimen = NULL, int_step_size = 0.1, method = "BFGS",
+  control = list(), type = "map", np_settings = list(), cols = list(x =
+  "t", y = "y"), residuals = TRUE, verbose = FALSE, A_init = NULL,
+  output_include = list(covariates = FALSE, parameters = FALSE), ...)
 }
 \arguments{
 \item{model}{model, created using `PKPDsim::new_ode_model()`}
@@ -43,6 +43,8 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 \item{int_step_size}{integrator step size passed to PKPDsim}
 
 \item{method}{optimization method, default BFGS}
+
+\item{control}{list of options passed to `optim()` function}
 
 \item{type}{estimation type, options are `map`, `ls`, and `np_hybrid`}
 

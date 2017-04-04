@@ -15,6 +15,7 @@
 #' @param regimen regimen
 #' @param int_step_size integrator step size passed to PKPDsim
 #' @param method optimization method, default BFGS
+#' @param control list of options passed to `optim()` function
 #' @param type estimation type, options are `map`, `ls`, and `np_hybrid`
 #' @param np_settings list with settings for non-parametric estimation (if selected), containing any of the following: `error`, `grid_span`, grid_size`, `grid_exponential`
 #' @param cols column names
@@ -39,6 +40,7 @@ get_map_estimates <- function(
                       regimen = NULL,
                       int_step_size = 0.1,
                       method = "BFGS",
+                      control = list(reltol = 1e-4),
                       type = "map",
                       np_settings = list(),
                       cols = list(x = "t", y = "y"),
@@ -155,6 +157,7 @@ get_map_estimates <- function(
                               checks = FALSE,
                               only_obs = TRUE,
                               A_init = A_init,
+                              t_max = tail(t_obs, 1),
                               ...)
     })
     ipred <- sim[!duplicated(sim$t),]$y
@@ -259,6 +262,7 @@ get_map_estimates <- function(
   fit <- bbmle::mle2(ll_func,
               start = eta,
               method = method,
+              control = control,
               data = list(data = data,
                           parameters = parameters,
                           fixed = fixed,
