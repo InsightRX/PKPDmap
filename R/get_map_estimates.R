@@ -14,7 +14,8 @@
 #' @param include_error TRUE
 #' @param regimen regimen
 #' @param int_step_size integrator step size passed to PKPDsim
-#' @param method optimization method, default BFGS
+#' @param optimizer optimization library to use, default is `optim`
+#' @param method optimization method, default `L-BFGS-B`
 #' @param control list of options passed to `optim()` function
 #' @param type estimation type, options are `map`, `ls`, and `np_hybrid`
 #' @param np_settings list with settings for non-parametric estimation (if selected), containing any of the following: `error`, `grid_span`, grid_size`, `grid_exponential`
@@ -39,7 +40,8 @@ get_map_estimates <- function(
                       include_error = TRUE,
                       regimen = NULL,
                       int_step_size = 0.1,
-                      method = "BFGS",
+                      optimizer = "optim",
+                      method = "L-BFGS-B",
                       control = list(reltol = 1e-4),
                       type = "map",
                       np_settings = list(),
@@ -50,6 +52,8 @@ get_map_estimates <- function(
                       output_include = list(covariates = FALSE, parameters = FALSE),
                       ...) {
 
+  if(optimizer == "optimx") require("optimx")
+  
   ## Handle weighting of priors, allow for some presets but can
   ## also be set manually using `weight_prior`
   if(is.null(weight_prior) || is.na(weight_prior)) {
@@ -262,6 +266,7 @@ get_map_estimates <- function(
   fit <- bbmle::mle2(ll_func,
               start = eta,
               method = method,
+              optimizer = optimizer,
               control = control,
               data = list(data = data,
                           parameters = parameters,
