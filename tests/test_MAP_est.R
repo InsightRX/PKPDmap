@@ -194,8 +194,8 @@ fit <- get_map_estimates(
 )
 
 ## check that IOV etas moved away from initial estimate
-testit::assert(round(fit$parameters$CL_occ1,3) == -0.148)
-testit::assert(round(fit$parameters$CL_occ2,3) == 0.008)
+testit::assert(round(fit$parameters$CL_occ1,2) == -0.15)
+testit::assert(round(fit$parameters$CL_occ2,2) == 0.01)
 
 # library(PKPDplot)
 # ipred <- sim(ode = model, parameters = fit$parameters, regimen = reg)
