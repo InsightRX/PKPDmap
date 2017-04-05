@@ -42,7 +42,7 @@ get_map_estimates <- function(
                       int_step_size = 0.1,
                       optimizer = "optim",
                       method = "BFGS",
-                      control = list(reltol = 1e-4),
+                      control = list(reltol = 1e-5),
                       type = "map",
                       np_settings = list(),
                       cols = list(x = "t", y = "y"),
@@ -53,7 +53,7 @@ get_map_estimates <- function(
                       ...) {
 
   if(optimizer == "optimx") require("optimx")
-  
+
   ## Handle weighting of priors, allow for some presets but can
   ## also be set manually using `weight_prior`
   if(is.null(weight_prior) || is.na(weight_prior)) {
