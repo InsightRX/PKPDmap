@@ -161,7 +161,7 @@ get_map_estimates <- function(
                               checks = FALSE,
                               only_obs = TRUE,
                               A_init = A_init,
-                              t_max = tail(t_obs, 1),
+                              t_max = tail(t_obs, 1) + 1,
                               ...)
     })
     ipred <- sim[!duplicated(sim$t),]$y
