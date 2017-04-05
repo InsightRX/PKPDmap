@@ -41,7 +41,7 @@ get_map_estimates <- function(
                       regimen = NULL,
                       int_step_size = 0.1,
                       optimizer = "optim",
-                      method = "L-BFGS-B",
+                      method = "BFGS",
                       control = list(reltol = 1e-4),
                       type = "map",
                       np_settings = list(),
