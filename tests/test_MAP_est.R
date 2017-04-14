@@ -22,7 +22,7 @@ for(i in seq(unique(dat$id))) {
                                      0.0623, 0.117),
                            weights = rep(1, length(dat[dat$id == i & dat$EVID == 0,1])),
                            error = list(prop = 0, add = sqrt(1.73E+04)),
-                           data = dat[dat$id == i & dat$EVID == 0,],
+                           data = dat[dat$id == i & dat$EVID == 0,]
                            #residuals = TRUE, verbose = TRUE
   )
   fits <- rbind(fits, cbind(tmp$parameters$CL, tmp$parameters$V))
