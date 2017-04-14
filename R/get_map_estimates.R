@@ -139,7 +139,7 @@ get_map_estimates <- function(
       }
     }
     sim_object$p <- par
-    ipred <- sim_core(sim_object, ode = model, t_obs = t_obs)
+    ipred <- PKPDsim::sim_core(sim_object, ode = model)$y
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
     et <- mget(objects()[grep("^eta", objects())])
     et <- as.numeric(as.character(et[et != ""]))
