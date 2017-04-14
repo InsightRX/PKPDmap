@@ -87,9 +87,7 @@ get_map_estimates <- function(
   }
   colnames(data) <- tolower(colnames(data))
   sig <- round(-log10(int_step_size))
-  if(!("evid" %in% colnames(data))) {
-    message("No 'evid' column in input data, assuming all rows are observations.")
-  } else {
+  if("evid" %in% colnames(data)) {
     data <- data[data$evid == 0,]
   }
   zero_offset <- NULL
@@ -118,6 +116,7 @@ get_map_estimates <- function(
   ll_func_PKPDsim <- function(
     data,
     sim_object,
+    parameters,
     # unfortunately seems no other way to do this...
     eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10,
     eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20,
@@ -128,34 +127,18 @@ get_map_estimates <- function(
     weight_prior,
     as_eta,
     ...) {
-    par <- parameters
+    par <- sim_object$p
     p <- as.list(match.call())
-    for(i in seq(names(par))) {
-      key <- names(par)[i]
+    for(i in seq(names(parameters))) {
+      key <- names(parameters)[i]
       if(key %in% as_eta) {
         par[[key]] <- par[[key]] + p[[(paste0("eta", i))]]
       } else {
         par[[key]] <- par[[key]] * exp(p[[(paste0("eta", i))]])
       }
     }
-    suppressMessages({
-      # sim <- PKPDsim::sim_ode(ode = model,
-      #                         parameters = par,
-      #                         covariates = covariates,
-      #                         n_ind = 1,
-      #                         int_step_size = int_step_size,
-      #                         regimen = regimen,
-      #                         t_obs = t_obs,
-      #                         checks = FALSE,
-      #                         only_obs = TRUE,
-      #                         A_init = A_init,
-      #                         t_max = tail(t_obs, 1) + 1,
-      #                         return_design = TRUE,
-      #                         ...)
-      # ipred <- sim[!duplicated(sim$t),]$y
-      sim_object$p <- par
-      ipred <- sim_core(sim_object, ode = model)
-    })
+    sim_object$p <- par
+    ipred <- sim_core(sim_object, ode = model)
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
     et <- mget(objects()[grep("^eta", objects())])
     et <- as.numeric(as.character(et[et != ""]))
@@ -249,22 +232,23 @@ get_map_estimates <- function(
     stop("Provided omega matrix is smaller than expected based on the number of model parameters. Either fix some parameters or increase the size of the omega matrix.")
   }
   omega_full[1:n_nonfix, 1:n_nonfix] <- om_nonfixed[1:n_nonfix, 1:n_nonfix]
-  
+
   ## create simulation design up-front:
-  sim_object <- PKPDsim::sim_ode(ode = model,
-                          parameters = par,
-                          covariates = covariates,
-                          n_ind = 1,
-                          int_step_size = int_step_size,
-                          regimen = regimen,
-                          t_obs = t_obs,
-                          checks = FALSE,
-                          only_obs = TRUE,
-                          A_init = A_init,
-                          t_max = tail(t_obs, 1) + 1,
-                          return_design = TRUE,
-                           ...)
-  
+  suppressMessages({
+    sim_object <- PKPDsim::sim_ode(ode = model,
+                                   parameters = par,
+                                   covariates = covariates,
+                                   n_ind = 1,
+                                   int_step_size = int_step_size,
+                                   regimen = regimen,
+                                   t_obs = t_obs,
+                                   checks = FALSE,
+                                   only_obs = TRUE,
+                                   A_init = A_init,
+                                   t_max = tail(t_obs, 1) + 1,
+                                   return_design = TRUE,
+                                   ...)
+  })
   fit <- bbmle::mle2(ll_func,
               start = eta,
               method = method,
@@ -272,6 +256,7 @@ get_map_estimates <- function(
               control = control,
               data = list(data = data,
                           sim_object = sim_object,
+                          parameters = parameters,
                           model = model,
                           error = error,
                           weight_prior = weight_prior,

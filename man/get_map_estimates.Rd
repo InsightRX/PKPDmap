@@ -9,7 +9,7 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   weight_prior = 1, error = list(prop = 0.1, add = 0.1, exp = 0),
   weights = NULL, include_omega = TRUE, include_error = TRUE,
   regimen = NULL, int_step_size = 0.1, optimizer = "optim",
-  method = "L-BFGS-B", control = list(reltol = 1e-04), type = "map",
+  method = "BFGS", control = list(reltol = 1e-05), type = "map",
   np_settings = list(), cols = list(x = "t", y = "y"), residuals = TRUE,
   verbose = FALSE, A_init = NULL, output_include = list(covariates =
   FALSE, parameters = FALSE), ...)
