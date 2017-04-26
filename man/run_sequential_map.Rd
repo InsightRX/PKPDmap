@@ -51,4 +51,3 @@ run_sequential_map(model = NULL, regimen = NULL, parameters = NULL,
 \description{
 This will allow "tracking" parameters over time, i.e. a form of between-occasion variability
 }
-

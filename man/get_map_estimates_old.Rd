@@ -66,4 +66,3 @@ get_map_estimates_old(model = NULL, data = NULL, parameters = NULL,
 \description{
 Get MAP estimates
 }
-

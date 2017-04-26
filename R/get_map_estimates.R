@@ -49,6 +49,7 @@ get_map_estimates <- function(
                       residuals = TRUE,
                       verbose = FALSE,
                       A_init = NULL,
+                      skip.hessian = FALSE,
                       output_include = list(covariates = FALSE, parameters = FALSE),
                       ...) {
 
@@ -256,6 +257,7 @@ get_map_estimates <- function(
               method = method,
               optimizer = optimizer,
               control = control,
+              skip.hessian = skip.hessian,
               data = list(data = data,
                           sim_object = sim_object,
                           parameters = parameters,
@@ -361,7 +363,8 @@ get_map_estimates <- function(
     cwres <- res / sqrt(abs(cov(pred, y))) * weights
     # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
     ires <- (y - ipred)
-    iwres <- (ires / w_ipred) * weights
+    iwres_raw <- (ires / w_ipred)
+    iwres <- iwres_raw * weights
     obj$prob <- prob
     if(length(w_ipred) > 1) {
       obj$mahalanobis <- stats::mahalanobis(y, ipred, cov = diag(w_ipred^2))
@@ -373,8 +376,10 @@ get_map_estimates <- function(
     obj$cwres <- c(zero_offset, cwres)
     obj$ires <- c(zero_offset, ires)
     obj$iwres <- c(zero_offset, iwres)
+    obj$iwres_raw <- c(zero_offset, iwres_raw)
     obj$ipred <- c(zero_offset, ipred)
     obj$pred <- c(zero_offset, pred)
+    obj$weights <- c(zero_offset, weights)
     obj$dv <- y_orig
     if(output_include$covariates && !is.null(covariates)) {
       obj$covariates_time <- sim_ipred[!duplicated(sim_ipred$t), names(covariates)]

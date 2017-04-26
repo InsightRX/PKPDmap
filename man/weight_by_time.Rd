@@ -19,4 +19,3 @@ weight_by_time(time = NULL, min_weight = 0, t_end_gradient = NULL,
 \description{
 Weighting increases from 0 to 1 by a linear gradient. At `t_end_gradient` the weighting is 1.
 }
-

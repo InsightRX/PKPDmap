@@ -18,4 +18,3 @@ create_grid_around_parameters(parameters = list(), grid_size = 4,
 The expanded grid outputted from this function can be used for performing 
 extended grid non-parametric estimation
 }
-

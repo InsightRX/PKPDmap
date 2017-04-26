@@ -11,8 +11,8 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   regimen = NULL, int_step_size = 0.1, optimizer = "optim",
   method = "BFGS", control = list(reltol = 1e-05), type = "map",
   np_settings = list(), cols = list(x = "t", y = "y"), residuals = TRUE,
-  verbose = FALSE, A_init = NULL, output_include = list(covariates =
-  FALSE, parameters = FALSE), ...)
+  verbose = FALSE, A_init = NULL, skip.hessian = FALSE,
+  output_include = list(covariates = FALSE, parameters = FALSE), ...)
 }
 \arguments{
 \item{model}{model, created using `PKPDsim::new_ode_model()`}
@@ -66,4 +66,3 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 \description{
 Get MAP estimates
 }
-

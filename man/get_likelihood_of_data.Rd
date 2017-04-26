@@ -16,4 +16,3 @@ get_likelihood_of_data(data, ipred, error, weights = NULL)
 \description{
 Get the likelihood of observed data given a specific error function
 }
-

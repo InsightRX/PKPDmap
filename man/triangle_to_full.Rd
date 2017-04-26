@@ -12,4 +12,3 @@ triangle_to_full(vect)
 \description{
 Convert lower/upper triangle of a matrix to full matrix
 }
-

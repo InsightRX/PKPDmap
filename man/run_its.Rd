@@ -31,4 +31,3 @@ in this package is also pretty slow. It is however
 a great example estimation method e.g. for teaching the concept
 of estimation methods in pharmacokinetics.
 }
-
