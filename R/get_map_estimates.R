@@ -208,6 +208,9 @@ get_map_estimates <- function(
     eta[[paste0("eta", i)]] <- 0
   }
   ## check if fixed parameter actually in parameter list
+  if(length(intersect(fixed, names(parameters))) != length(fixed)) {
+    warning("Warning: not all fixed parameters were found in parameter set!\n")
+  }
   fixed <- names(parameters)[names(parameters) %in% fixed]
   if(length(fixed) == 0) {
     fixed <- NULL
@@ -231,7 +234,12 @@ get_map_estimates <- function(
   omega_full <- diag(length(names(parameters))) # dummy om matrix
   om_nonfixed <- triangle_to_full(omega)
   if(nrow(om_nonfixed) < (length(parameters) - length(fix))) {
-    stop("Provided omega matrix is smaller than expected based on the number of model parameters. Either fix some parameters or increase the size of the omega matrix.")
+    msg <- "Provided omega matrix is smaller than expected based on the number of model parameters. Either fix some parameters or increase the size of the omega matrix.\n"
+    msg <- c(msg,
+      paste0("Non-fixed omegas: ", paste(om_nonfixed, collapse=", "), "\n"),
+      paste0("Parameters: ", paste(parameters, collapse=", "), "\n"),
+      paste0("Fixed: ", paste(fix, collapse=","), "\n"))
+    stop(msg)
   }
   omega_full[1:n_nonfix, 1:n_nonfix] <- om_nonfixed[1:n_nonfix, 1:n_nonfix]
 
