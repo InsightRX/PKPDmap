@@ -145,10 +145,9 @@ get_map_estimates <- function(
     et <- mget(objects()[grep("^eta", objects())])
     et <- as.numeric(as.character(et[et != ""]))
     et <- et[!names(parameters) %in% fixed]
-    omega_full <- omega_full[1:length(et), 1:length(et)]
+    omega_full <- as.matrix(omega_full)[1:length(et), 1:length(et)]
     ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
-                                sigma = omega_full[1:length(et),
-                                                   1:length(et)] * 1/weight_prior,
+                                sigma = as.matrix(omega_full) * 1/weight_prior,
                                 log=TRUE) * include_omega,
                stats::dnorm((data$y - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
     if(verbose) {
