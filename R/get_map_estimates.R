@@ -61,17 +61,28 @@ get_map_estimates <- function(
     weight_prior <- 1
   }
   weight_prior <- weight_prior^2 # 3x larger IIV on SD scale
-  if(tolower(type) == "ls") {
-    weight_prior <- 0.001
+  calc_ofv <- calc_ofv_map
+  if(weight_prior == 0) {
+    calc_ofv <- calc_ofv_ls
   }
+  if(tolower(type) == "map") {
+    if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
+      stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
+    }
+  }
+  if(tolower(type) == "ls") {
+    if(is.null(model) || is.null(data) || is.null(regimen)) {
+      stop("The 'model', 'data', and 'parameters' arguments are required.")
+    }
+    calc_ofv <- calc_ofv_ls
+    error <- list(prop = 0, add = 1)
+  }
+  ## Note: we still make a distinction between MAP with zero prior weight
+  ## and "true" LS. In the latter, we don't allow for a proportional error.
   if(!is.null(error)) { ## safety checks
     if(is.null(error$prop)) error$prop <- 0
     if(is.null(error$add)) error$add <- 0
     if(is.null(error$exp)) error$exp <- 0
-  }
-
-  if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
-    stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
   }
   if(!("function" %in% class(model))) {
     stop("The 'model' argument requires a function, e.g. a model defined using the new_ode_model() function from the PKPDsim package.")
@@ -146,10 +157,10 @@ get_map_estimates <- function(
     et <- as.numeric(as.character(et[et != ""]))
     et <- et[!names(parameters) %in% fixed]
     omega_full <- as.matrix(omega_full)[1:length(et), 1:length(et)]
-    ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
-                                sigma = as.matrix(omega_full) * 1/weight_prior,
-                                log=TRUE) * include_omega,
-               stats::dnorm((data$y - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
+    ofv <- calc_ofv(
+      eta = et, omega = omega_full, dv = data$y, ipred = ipred,
+      res_sd = res_sd, weights = weights,
+      weight_prior = weight_prior, include_omega = include_omega, include_error = include_error)
     if(verbose) {
       print(ofv)
     }
