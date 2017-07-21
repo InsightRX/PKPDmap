@@ -65,20 +65,23 @@ get_map_estimates <- function(
   if(weight_prior == 0) {
     calc_ofv <- calc_ofv_ls
   }
-  if(tolower(type) == "map") {
+  if(tolower(type) == c("map", "pls")) {
     if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
       stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
     }
   }
-  if(tolower(type) == "ls") {
+  if(tolower(type) == "pls") {
+    weight_prior <- 0.001
+    ## RK: Empirically determined to be a good penalty.
+    ##     In principle, PLS is just MAP with very flat priors
+  }
+  if(tolower(type) %in% c("ls")) {
     if(is.null(model) || is.null(data) || is.null(regimen)) {
       stop("The 'model', 'data', and 'parameters' arguments are required.")
     }
     calc_ofv <- calc_ofv_ls
     error <- list(prop = 0, add = 1)
   }
-  ## Note: we still make a distinction between MAP with zero prior weight
-  ## and "true" LS. In the latter, we don't allow for a proportional error.
   if(!is.null(error)) { ## safety checks
     if(is.null(error$prop)) error$prop <- 0
     if(is.null(error$add)) error$add <- 0
