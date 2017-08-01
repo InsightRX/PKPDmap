@@ -65,7 +65,7 @@ get_map_estimates <- function(
   if(weight_prior == 0) {
     calc_ofv <- calc_ofv_ls
   }
-  if(tolower(type) == c("map", "pls")) {
+  if(tolower(type) %in% c("map", "pls")) {
     if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
       stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
     }
