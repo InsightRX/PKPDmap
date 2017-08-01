@@ -7,6 +7,10 @@ Author: Ron Keizer
 Maintainer: Ron Keizer <ronkeizer@gmail.com>
 Description: Obtain MAP Bayesian estimates based on individual data and PK/PD model.
 License: MIT + file LICENSE
+Depends: 
+    dplyr,
+    utils,
+    stats
 Imports:
     mvtnorm,
     PKPDsim,
