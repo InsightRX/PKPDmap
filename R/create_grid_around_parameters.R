@@ -5,7 +5,9 @@
 #' 
 #' @param parameters list of parameters
 #' @param grid_size number of points per parameters
+#' @param exponential use exponential grid?
 #' @param span width of the grid in either side
+#' @param fix vector of fixed parameter names
 #' @export
 create_grid_around_parameters <- function(parameters = list(),
                                           grid_size = 4,

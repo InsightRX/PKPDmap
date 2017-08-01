@@ -22,6 +22,8 @@ run_its(parameters = NULL, omega = NULL, err = 100, regimen = NULL,
 
 \item{data}{observed data}
 
+\item{min_crit}{minimization criterion (default = 0.01)}
+
 \item{...}{additional arguments passed to `get_map_estimates` function}
 }
 \description{

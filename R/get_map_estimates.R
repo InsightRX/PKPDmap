@@ -13,6 +13,7 @@
 #' @param include_omega TRUE
 #' @param include_error TRUE
 #' @param regimen regimen
+#' @param A_init initial state vector
 #' @param int_step_size integrator step size passed to PKPDsim
 #' @param optimizer optimization library to use, default is `optim`
 #' @param method optimization method, default `L-BFGS-B`
@@ -22,6 +23,7 @@
 #' @param cols column names
 #' @param residuals show residuals? This requires an additional simulation so will be slightly slower.
 #' @param output_include passed to PKPDsim::sim_ode(), returns covariates and parmeter values over time in return object. Only invoked if `residuals` option is `TRUE`.
+#' @param skip_hessian skip calculation of Hessian (in `bbmle::mle2()`)
 #' @param verbose show more output
 #' @param ... parameters passed on to `sim_ode()` function
 #' @export
@@ -49,7 +51,7 @@ get_map_estimates <- function(
                       residuals = TRUE,
                       verbose = FALSE,
                       A_init = NULL,
-                      skip.hessian = FALSE,
+                      skip_hessian = FALSE,
                       output_include = list(covariates = FALSE, parameters = FALSE),
                       ...) {
 
@@ -278,7 +280,7 @@ get_map_estimates <- function(
               method = method,
               optimizer = optimizer,
               control = control,
-              skip.hessian = skip.hessian,
+              skip.hessian = skip_hessian,
               data = list(data = data,
                           sim_object = sim_object,
                           parameters = parameters,

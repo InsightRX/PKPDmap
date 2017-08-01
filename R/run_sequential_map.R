@@ -33,7 +33,6 @@ run_sequential_map <- function(
   breaks_by_time = FALSE,
   break_interval = 24,
   breaks = NULL,
-  weights_prior = NULL,
   A_init = NULL,
   weight_prior = 1,
   weight_focus = 1,

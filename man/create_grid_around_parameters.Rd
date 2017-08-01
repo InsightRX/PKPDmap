@@ -12,7 +12,11 @@ create_grid_around_parameters(parameters = list(), grid_size = 4,
 
 \item{grid_size}{number of points per parameters}
 
+\item{exponential}{use exponential grid?}
+
 \item{span}{width of the grid in either side}
+
+\item{fix}{vector of fixed parameter names}
 }
 \description{
 The expanded grid outputted from this function can be used for performing 

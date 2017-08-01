@@ -1,11 +1,13 @@
 #' Get non-parametric estimates given a set of support points, model, and data
 #' 
-#' @param parameters grid (data.frame) of support points
+#' @param parameter_grid grid (data.frame) of support points
 #' @param error error model
 #' @param model `PKPDsim` model
+#' @param covariates `PKPDsim` covariates object
 #' @param regimen `PKPDsim` regimen
-#' @param t_obs vector of observations
 #' @param data vector of observed data
+#' @param weights vector of weights passed to `get_map_estimates()`
+#' @param ... passed to `get_map_estimates()`
 #' @export
 get_np_estimates <- function(parameter_grid = NULL, 
                              error = list(prop = 0.1, add = 0.1), 

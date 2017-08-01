@@ -12,6 +12,8 @@ get_likelihood_of_data(data, ipred, error, weights = NULL)
 \item{ipred}{vector of predicted values,}
 
 \item{error}{list specifying error model (list of `prop` and `add`), assuming normal distribution}
+
+\item{weights}{vector of weights for observations (not used by default, `NULL`)}
 }
 \description{
 Get the likelihood of observed data given a specific error function

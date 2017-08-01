@@ -13,6 +13,7 @@
 #' @param model `PKPDsim` model
 #' @param max_iter maximum number of iterations
 #' @param data observed data
+#' @param min_crit minimization criterion (default = 0.01)
 #' @param ... additional arguments passed to `get_map_estimates` function
 #' @export
 run_its <- function(

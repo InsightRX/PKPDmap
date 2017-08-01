@@ -11,7 +11,7 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   regimen = NULL, int_step_size = 0.1, optimizer = "optim",
   method = "BFGS", control = list(reltol = 1e-05), type = "map",
   np_settings = list(), cols = list(x = "t", y = "y"), residuals = TRUE,
-  verbose = FALSE, A_init = NULL, skip.hessian = FALSE,
+  verbose = FALSE, A_init = NULL, skip_hessian = FALSE,
   output_include = list(covariates = FALSE, parameters = FALSE), ...)
 }
 \arguments{
@@ -58,6 +58,10 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 \item{residuals}{show residuals? This requires an additional simulation so will be slightly slower.}
 
 \item{verbose}{show more output}
+
+\item{A_init}{initial state vector}
+
+\item{skip_hessian}{skip calculation of Hessian (in `bbmle::mle2()`)}
 
 \item{output_include}{passed to PKPDsim::sim_ode(), returns covariates and parmeter values over time in return object. Only invoked if `residuals` option is `TRUE`.}
 

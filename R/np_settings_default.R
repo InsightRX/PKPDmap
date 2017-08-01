@@ -1,3 +1,5 @@
+#' Default settings for non-parametric fit
+#' 
 #' @export
 np_settings_default <- list(
   error = NULL, 

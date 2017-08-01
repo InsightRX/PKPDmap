@@ -9,17 +9,21 @@ get_np_estimates(parameter_grid = NULL, error = list(prop = 0.1, add = 0.1),
   weights = NULL, ...)
 }
 \arguments{
+\item{parameter_grid}{grid (data.frame) of support points}
+
 \item{error}{error model}
 
 \item{model}{`PKPDsim` model}
+
+\item{covariates}{`PKPDsim` covariates object}
 
 \item{regimen}{`PKPDsim` regimen}
 
 \item{data}{vector of observed data}
 
-\item{parameters}{grid (data.frame) of support points}
+\item{weights}{vector of weights passed to `get_map_estimates()`}
 
-\item{t_obs}{vector of observations}
+\item{...}{passed to `get_map_estimates()`}
 }
 \description{
 Get non-parametric estimates given a set of support points, model, and data
