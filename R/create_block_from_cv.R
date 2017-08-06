@@ -5,5 +5,5 @@
 #' @param n number of occassions to allow
 #' @export
 create_block_from_cv <- function(cv = 0.1, n = 4) {
-  return(diag(n)[upper.tri(diag(n), diag = TRUE)] * rep(sqrt(cv)) )
+  return(diag(n)[upper.tri(diag(n), diag = TRUE)] * rep(cv^2) )
 }
