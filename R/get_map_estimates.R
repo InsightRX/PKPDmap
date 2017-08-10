@@ -136,7 +136,7 @@ get_map_estimates <- function(
     parameters,
     t_obs,
     # unfortunately seems no other way to do this...
-    eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10,
+    eta01, eta02, eta03, eta04, eta05, eta06, eta07, eta08, eta09, eta10,
     eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20,
     eta21, eta22, eta23, eta24,
     error = error,
@@ -150,9 +150,9 @@ get_map_estimates <- function(
     for(i in seq(names(parameters))) {
       key <- names(parameters)[i]
       if(key %in% as_eta) {
-        par[[key]] <- par[[key]] + p[[(paste0("eta", i))]]
+        par[[key]] <- par[[key]] + p[[(paste0("eta", sprintf("%02d", i)))]]
       } else {
-        par[[key]] <- par[[key]] * exp(p[[(paste0("eta", i))]])
+        par[[key]] <- par[[key]] * exp(p[[(paste0("eta", sprintf("%02d", i)))]])
       }
     }
     sim_object$p <- par
@@ -163,11 +163,15 @@ get_map_estimates <- function(
     et <- et[!names(parameters) %in% fixed]
     omega_full <- as.matrix(omega_full)[1:length(et), 1:length(et)]
     ofv <- calc_ofv(
-      eta = et, omega = omega_full, dv = data$y, ipred = ipred,
+      eta = et, omega = omega_full, 
+      dv = data$y, ipred = ipred,
       res_sd = res_sd, weights = weights,
       weight_prior = weight_prior, include_omega = include_omega, include_error = include_error)
     if(verbose) {
-      print(ofv)
+      cat("-------------------------------------------------------------\n")
+      cat(paste0("Eta\t: [", paste(signif(et,5), collapse=", "),"]\n"))
+      cat(paste0("P(y)\t: [", paste(signif(exp(ofv[-1]),5), collapse=", "),"]\n"))
+      cat(paste0("OFV\t: [", paste(signif(-sum(ofv),5), collapse=", "), "]\n"))
     }
     return(-sum(ofv))
   }
@@ -176,7 +180,7 @@ get_map_estimates <- function(
   ll_func_generic <- function(
     data,
     # unfortunately seems no other way to do this...
-    eta1, eta2, eta3, eta4, eta5, eta6, eta7, eta8, eta9, eta10,
+    eta01, eta02, eta03, eta04, eta05, eta06, eta07, eta08, eta09, eta10,
     eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20,
     eta21, eta22, eta23, eta24,
     parameters,
@@ -194,7 +198,7 @@ get_map_estimates <- function(
     par <- parameters
     p <- as.list(match.call())
     for(i in seq(names(par))) {
-      par[[i]] <- par[[i]] * exp(p[[(paste0("eta", i))]])
+      par[[i]] <- par[[i]] * exp(p[[(paste0("eta", sprintf("%02d", i)))]])
     }
     ipred <- model(t = data[data$evid == 0,]$t,
                    parameters = par)
@@ -220,7 +224,7 @@ get_map_estimates <- function(
 
   eta <- list()
   for(i in seq(parameters)) {
-    eta[[paste0("eta", i)]] <- 0
+    eta[[paste0("eta", sprintf("%02d", i))]] <- 0
   }
   ## check if fixed parameter actually in parameter list
   if(length(intersect(fixed, names(parameters))) != length(fixed)) {
