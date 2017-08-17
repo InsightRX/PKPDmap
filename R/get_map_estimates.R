@@ -10,13 +10,14 @@
 #' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
 #' @param weight_prior weighting of priors in relationship to observed data, default = 1
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
+#' @param censoring censoring specification. Needs to be a list containing: `flag` (column in `data` indicating censoring: 1 or 0), `limit` (numeric value of censoring limit), and `type` (`lower` or `upper`), e.g. `list(flag="lloq", limit=10, type = 'lower')`.
 #' @param include_omega TRUE
 #' @param include_error TRUE
 #' @param regimen regimen
 #' @param A_init initial state vector
 #' @param int_step_size integrator step size passed to PKPDsim
 #' @param optimizer optimization library to use, default is `optim`
-#' @param method optimization method, default `L-BFGS-B`
+#' @param method optimization method, default `BFGS`
 #' @param control list of options passed to `optim()` function
 #' @param type estimation type, options are `map`, `ls`, and `np_hybrid`
 #' @param np_settings list with settings for non-parametric estimation (if selected), containing any of the following: `error`, `grid_span`, grid_size`, `grid_exponential`
@@ -36,7 +37,8 @@ get_map_estimates <- function(
                       as_eta = c(),
                       omega = NULL,
                       weight_prior = 1,
-                      error = list(prop = 0.1, add = 0.1, exp = 0),
+                      error = NULL,
+                      censoring = NULL,
                       weights = NULL,
                       include_omega = TRUE,
                       include_error = TRUE,
@@ -88,6 +90,14 @@ get_map_estimates <- function(
     if(is.null(error$prop)) error$prop <- 0
     if(is.null(error$add)) error$add <- 0
     if(is.null(error$exp)) error$exp <- 0
+  } else {
+    warning("No residual error specified, using: 10% proportional + 0.1 additive error.")
+    list(prop = 0.1, add = 0.1, exp = 0)
+  }
+  if(!is.null(censoring)) {
+    if(is.null(censoring$limit) || is.null(censoring$type) || is.null(censoring$flag)) {
+      stop("Censoring argument requires list containing `limit`, `type`, and `flag` elements.")
+    }
   }
   if(!("function" %in% class(model))) {
     stop("The 'model' argument requires a function, e.g. a model defined using the new_ode_model() function from the PKPDsim package.")
@@ -144,6 +154,8 @@ get_map_estimates <- function(
     sig,
     weight_prior,
     as_eta,
+    censoring_idx,
+    censoring_limit,
     ...) {
     par <- sim_object$p
     p <- as.list(match.call())
@@ -157,14 +169,21 @@ get_map_estimates <- function(
     }
     sim_object$p <- par
     ipred <- PKPDsim::sim_core(sim_object, ode = model)$y
+    dv <- data$y
+    if(!is.null(censoring_idx)) {
+      ipred <- ipred[!censoring_idx]
+      dv <- dv[!censoring_idx]
+      weights <- weights[!censoring_idx]
+      ipred_cens <- ipred[censoring_idx]
+    }
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
     et <- mget(objects()[grep("^eta", objects())])
     et <- as.numeric(as.character(et[et != ""]))
     et <- et[!names(parameters) %in% fixed]
     omega_full <- as.matrix(omega_full)[1:length(et), 1:length(et)]
     ofv <- calc_ofv(
-      eta = et, omega = omega_full, 
-      dv = data$y, ipred = ipred,
+      eta = et, omega = omega_full,
+      dv = dv, ipred = ipred,
       res_sd = res_sd, weights = weights,
       weight_prior = weight_prior, include_omega = include_omega, include_error = include_error)
     if(verbose) {
@@ -262,6 +281,17 @@ get_map_estimates <- function(
   }
   omega_full[1:n_nonfix, 1:n_nonfix] <- om_nonfixed[1:n_nonfix, 1:n_nonfix]
 
+  ## check if censoring code needs to be used
+  censoring_idx <- NULL
+  if(!is.null(censoring)) {
+    if(any(data[[censoring$flag]] == 1)) {
+      censoring_idx <- data[[censoring$flag]] == 1
+      if(verbose) message("One or more values in data are censored, including censoring in likelihood.")
+    } else {
+      if(verbose) message("Warning: censoring specified, but no censored values in data.")
+    }
+  }
+  
   ## create simulation design up-front:
   suppressMessages({
     sim_object <- PKPDsim::sim_ode(ode = model,
@@ -293,7 +323,9 @@ get_map_estimates <- function(
                           error = error,
                           weight_prior = weight_prior,
                           sig = sig,
-                          as_eta = as_eta),
+                          as_eta = as_eta,
+                          censoring_idx = censoring_idx,
+                          censoring_limit = censoring$limit),
               fixed = fix)
   cf <- bbmle::coef(fit)
   par <- parameters
