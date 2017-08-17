@@ -133,7 +133,7 @@ get_map_estimates <- function(
       stop("Vector of weights of different size than observation vector!")
     }
   } else {
-    weights <- 1
+    weights <- rep(1, length(data$y))
   }
   if(sum(unlist(error)) == 0) {
     stop("No residual error model specified, or residual error is 0.")
@@ -170,11 +170,15 @@ get_map_estimates <- function(
     sim_object$p <- par
     ipred <- PKPDsim::sim_core(sim_object, ode = model)$y
     dv <- data$y
+    ofv_cens <- 0
     if(!is.null(censoring_idx)) {
+      ipred_cens <- ipred[censoring_idx]
       ipred <- ipred[!censoring_idx]
       dv <- dv[!censoring_idx]
+      weights_cens <- weights[censoring_idx]
       weights <- weights[!censoring_idx]
-      ipred_cens <- ipred[censoring_idx]
+      res_sd_cens <- sqrt(error$prop^2*ipred_cens^2 + error$add^2)
+      ofv_cens <- (1 - pnorm(ipred_cens, censoring_limit, res_sd_cens, log=TRUE)) * weights_cens
     }
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
     et <- mget(objects()[grep("^eta", objects())])
@@ -182,10 +186,15 @@ get_map_estimates <- function(
     et <- et[!names(parameters) %in% fixed]
     omega_full <- as.matrix(omega_full)[1:length(et), 1:length(et)]
     ofv <- calc_ofv(
-      eta = et, omega = omega_full,
-      dv = dv, ipred = ipred,
-      res_sd = res_sd, weights = weights,
-      weight_prior = weight_prior, include_omega = include_omega, include_error = include_error)
+      eta = et, 
+      omega = omega_full,
+      dv = dv, 
+      ipred = ipred,
+      res_sd = res_sd, 
+      weights = weights,
+      weight_prior = weight_prior, 
+      include_omega = include_omega, include_error = include_error)
+    ofv <- c(ofv, ofv_cens)
     if(verbose) {
       cat("-------------------------------------------------------------\n")
       cat(paste0("Eta\t: [", paste(signif(et,5), collapse=", "),"]\n"))
