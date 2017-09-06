@@ -108,7 +108,7 @@ get_map_estimates <- function(
   if("PKPDsim" %in% class(data)) {
     if("comp" %in% names(data)) {
       data <- data[data$comp == "obs",]
-      data <- data[!duplicated(data$t),]
+      # data <- data[!duplicated(data$t),]
       data$evid <- 0
     }
   }
@@ -128,6 +128,7 @@ get_map_estimates <- function(
     data <- data[filt,]
   }
   t_obs <- data$t
+  if(any(duplicated(t_obs))) message("Duplicate times were detected in data. Estimation will proceed but please check that data is correct. For putting more weight on certain measurements, please use the `weights` argument.")
   if(!is.null(weights)) {
     if(length(weights) != length(t_obs)) {
       stop("Vector of weights of different size than observation vector!")
@@ -168,7 +169,7 @@ get_map_estimates <- function(
       }
     }
     sim_object$p <- par
-    ipred <- PKPDsim::sim_core(sim_object, ode = model)$y
+    ipred <- PKPDsim::sim_core(sim_object, ode = model, duplicate_t_obs = TRUE)$y
     dv <- data$y
     ofv_cens <- 0
     if(!is.null(censoring_idx)) {
@@ -186,13 +187,13 @@ get_map_estimates <- function(
     et <- et[!names(parameters) %in% fixed]
     omega_full <- as.matrix(omega_full)[1:length(et), 1:length(et)]
     ofv <- calc_ofv(
-      eta = et, 
+      eta = et,
       omega = omega_full,
-      dv = dv, 
+      dv = dv,
       ipred = ipred,
-      res_sd = res_sd, 
+      res_sd = res_sd,
       weights = weights,
-      weight_prior = weight_prior, 
+      weight_prior = weight_prior,
       include_omega = include_omega, include_error = include_error)
     ofv <- c(ofv, ofv_cens)
     if(verbose) {
@@ -300,7 +301,7 @@ get_map_estimates <- function(
       if(verbose) message("Warning: censoring specified, but no censored values in data.")
     }
   }
-  
+
   ## create simulation design up-front:
   suppressMessages({
     sim_object <- PKPDsim::sim_ode(ode = model,
@@ -418,8 +419,8 @@ get_map_estimates <- function(
                           A_init = A_init,
                           ...)
     })
-    ipred <- sim_ipred[!duplicated(sim_ipred$t),]$y
-    pred <- sim_pred[!duplicated(sim_pred$t),]$y
+    ipred <- sim_ipred$y
+    pred <- sim_pred$y
     w_ipred <- sqrt(error$prop^2 * ipred^2 + error$add^2)
     w_pred <- sqrt(error$prop^2 * pred^2 + error$add^2)
     y <- data$y
