@@ -179,7 +179,7 @@ get_map_estimates <- function(
       weights_cens <- weights[censoring_idx]
       weights <- weights[!censoring_idx]
       res_sd_cens <- sqrt(error$prop^2*ipred_cens^2 + error$add^2)
-      ofv_cens <- (1 - pnorm(ipred_cens, censoring_limit, res_sd_cens, log=TRUE)) * weights_cens
+      ofv_cens <- stats::pnorm(censoring_limit - ipred_cens, 0, res_sd_cens, log=TRUE) * weights_cens
     }
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
     et <- mget(objects()[grep("^eta", objects())])
@@ -200,9 +200,9 @@ get_map_estimates <- function(
       cat("-------------------------------------------------------------\n")
       cat(paste0("Eta\t: [", paste(signif(et,5), collapse=", "),"]\n"))
       cat(paste0("P(y)\t: [", paste(signif(exp(ofv[-1]),5), collapse=", "),"]\n"))
-      cat(paste0("OFV\t: [", paste(signif(-sum(ofv),5), collapse=", "), "]\n"))
+      cat(paste0("OFV\t: [", paste(signif(-2*sum(ofv),5), collapse=", "), "]\n"))
     }
-    return(-sum(ofv))
+    return(-2 * sum(ofv))
   }
 
   ## generic likelihood function
@@ -294,8 +294,8 @@ get_map_estimates <- function(
   ## check if censoring code needs to be used
   censoring_idx <- NULL
   if(!is.null(censoring)) {
-    if(any(data[[censoring$flag]] == 1)) {
-      censoring_idx <- data[[censoring$flag]] == 1
+    if(any(data[[tolower(censoring$flag)]] != 0)) {
+      censoring_idx <- data[[tolower(censoring$flag)]] != 0
       if(verbose) message("One or more values in data are censored, including censoring in likelihood.")
     } else {
       if(verbose) message("Warning: censoring specified, but no censored values in data.")
