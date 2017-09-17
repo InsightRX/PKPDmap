@@ -23,8 +23,7 @@ fit <- get_map_estimates(parameters = par,
                          omega = omega,
                          error = list(prop = 0, add = sqrt(1.73E+04)),
                          data = data1,
-                         censoring = list(flag = "lloq", limit = lloq, type = "lower") 
-                         #residuals = TRUE, verbose = TRUE
+                        censoring = list(flag = "lloq", limit = lloq, type = "lower")
 )
-assert("correct CL", round(fit$parameters$CL,3) == 8.258)
-assert("correct V", round(fit$parameters$V,3) == 90.868)
+assert("correct CL", round(fit$parameters$CL,3) == 7.469)
+assert("correct V", round(fit$parameters$V,3) == 92.382)
