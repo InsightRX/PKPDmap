@@ -10,7 +10,7 @@
 #' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
 #' @param weight_prior weighting of priors in relationship to observed data, default = 1
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
-#' @param ltbs log-transform both sides? (`FALSE` by default). Note: `error` should commonly only have additive part.
+#' @param ltbs log-transform both sides? (`NULL` by default, meaning that it will be picked up from the PKPDsim model. Can be overridden with `TRUE`). Note: `error` should commonly only have additive part.
 #' @param censoring censoring specification. Needs to be a list containing: `flag` (column in `data` indicating censoring: 1 or 0), `limit` (numeric value of censoring limit), and `type` (`lower` or `upper`), e.g. `list(flag="lloq", limit=10, type = 'lower')`.
 #' @param include_omega TRUE
 #' @param include_error TRUE
@@ -39,7 +39,7 @@ get_map_estimates <- function(
                       omega = NULL,
                       weight_prior = 1,
                       error = NULL,
-                      ltbs = FALSE,
+                      ltbs = NULL,
                       censoring = NULL,
                       weights = NULL,
                       include_omega = TRUE,
@@ -142,12 +142,18 @@ get_map_estimates <- function(
     stop("No residual error model specified, or residual error is 0.")
   }
 
-  ## Likelihood function for PKPDsim
+  ## Log-transform both sides?
+  if(is.null(ltbs)) {
+    ltbs <- FALSE
+    if(!is.null(attr(model, "ltbs")) && attr(model, "ltbs")) ltbs <- TRUE
+  }
   if(ltbs) {
     transf <- function(x) log(x)
   } else {
     transf <- function(x) x
   }
+
+  ## Likelihood function for PKPDsim
   ll_func_PKPDsim <- function(
     data,
     sim_object,
@@ -201,7 +207,7 @@ get_map_estimates <- function(
       res_sd = res_sd,
       weights = weights,
       weight_prior = weight_prior,
-      include_omega = include_omega, 
+      include_omega = include_omega,
       include_error = include_error)
     ofv <- c(ofv, ofv_cens)
     if(verbose) {
@@ -429,24 +435,24 @@ get_map_estimates <- function(
     })
     ipred <- sim_ipred$y
     pred <- sim_pred$y
-    w_ipred <- sqrt(error$prop^2 * ipred^2 + error$add^2)
-    w_pred <- sqrt(error$prop^2 * pred^2 + error$add^2)
+    w_ipred <- sqrt(error$prop^2 * transf(ipred)^2 + error$add^2)
+    w_pred <- sqrt(error$prop^2 * transf(pred)^2 + error$add^2)
     y <- data$y
     prob <- list(par = c(mvtnorm::pmvnorm(cf, mean=rep(0, length(cf)),
                          sigma = omega_full[1:length(cf), 1:length(cf)])),
-                 data = stats::pnorm(y - ipred, mean = 0, sd = w_ipred))
-    res <- (y - pred)
+                 data = stats::pnorm(transf(y) - transf(ipred), mean = 0, sd = w_ipred))
+    res <- (transf(y) - transf(pred))
     wres <- (res / w_pred) * weights
-    cwres <- res / sqrt(abs(cov(pred, y))) * weights
+    cwres <- res / sqrt(abs(cov(transf(pred), transf(y)))) * weights
     # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
-    ires <- (y - ipred)
+    ires <- (transf(y) - transf(ipred))
     iwres <- (ires / w_ipred)
     iwres_weighted <- iwres * weights
     obj$prob <- prob
     if(length(w_ipred) > 1) {
-      obj$mahalanobis <- stats::mahalanobis(y, ipred, cov = diag(w_ipred^2))
+      obj$mahalanobis <- stats::mahalanobis(transf(y), transf(ipred), cov = diag(w_ipred^2))
     } else {
-      obj$mahalanobis <- stats::mahalanobis(y, ipred, cov = w_ipred^2)
+      obj$mahalanobis <- stats::mahalanobis(transf(y), transf(ipred), cov = w_ipred^2)
     }
     obj$res <- c(zero_offset, res)
     obj$wres <- c(zero_offset, cwres)
