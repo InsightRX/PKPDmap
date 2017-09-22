@@ -6,7 +6,7 @@
 \usage{
 get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   covariates = NULL, fixed = c(), as_eta = c(), omega = NULL,
-  weight_prior = 1, error = list(prop = 0.1, add = 0.1, exp = 0),
+  weight_prior = 1, error = NULL, ltbs = FALSE, censoring = NULL,
   weights = NULL, include_omega = TRUE, include_error = TRUE,
   regimen = NULL, int_step_size = 0.1, optimizer = "optim",
   method = "BFGS", control = list(reltol = 1e-05), type = "map",
@@ -33,6 +33,10 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 
 \item{error}{residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts}
 
+\item{ltbs}{log-transform both sides? (`FALSE` by default). Note: `error` should commonly only have additive part.}
+
+\item{censoring}{censoring specification. Needs to be a list containing: `flag` (column in `data` indicating censoring: 1 or 0), `limit` (numeric value of censoring limit), and `type` (`lower` or `upper`), e.g. `list(flag="lloq", limit=10, type = 'lower')`.}
+
 \item{weights}{vector of weights for error. Length of vector should be same as length of observation vector. If NULL (default), all weights are equal. Used in both MAP and NP methods. Note that `weights` argument will also affect residuals (residuals will be scaled too).}
 
 \item{include_omega}{TRUE}
@@ -45,7 +49,7 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 
 \item{optimizer}{optimization library to use, default is `optim`}
 
-\item{method}{optimization method, default `L-BFGS-B`}
+\item{method}{optimization method, default `BFGS`}
 
 \item{control}{list of options passed to `optim()` function}
 

@@ -10,6 +10,7 @@
 #' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
 #' @param weight_prior weighting of priors in relationship to observed data, default = 1
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
+#' @param ltbs log-transform both sides? (`FALSE` by default). Note: `error` should commonly only have additive part.
 #' @param censoring censoring specification. Needs to be a list containing: `flag` (column in `data` indicating censoring: 1 or 0), `limit` (numeric value of censoring limit), and `type` (`lower` or `upper`), e.g. `list(flag="lloq", limit=10, type = 'lower')`.
 #' @param include_omega TRUE
 #' @param include_error TRUE
@@ -38,6 +39,7 @@ get_map_estimates <- function(
                       omega = NULL,
                       weight_prior = 1,
                       error = NULL,
+                      ltbs = FALSE,
                       censoring = NULL,
                       weights = NULL,
                       include_omega = TRUE,
@@ -141,6 +143,11 @@ get_map_estimates <- function(
   }
 
   ## Likelihood function for PKPDsim
+  if(ltbs) {
+    transf <- function(x) log(x)
+  } else {
+    transf <- function(x) x
+  }
   ll_func_PKPDsim <- function(
     data,
     sim_object,
@@ -169,8 +176,8 @@ get_map_estimates <- function(
       }
     }
     sim_object$p <- par
-    ipred <- PKPDsim::sim_core(sim_object, ode = model, duplicate_t_obs = TRUE)$y
-    dv <- data$y
+    ipred <- transf(PKPDsim::sim_core(sim_object, ode = model, duplicate_t_obs = TRUE)$y)
+    dv <- transf(data$y)
     ofv_cens <- 0
     if(!is.null(censoring_idx)) {
       ipred_cens <- ipred[censoring_idx]
@@ -194,7 +201,8 @@ get_map_estimates <- function(
       res_sd = res_sd,
       weights = weights,
       weight_prior = weight_prior,
-      include_omega = include_omega, include_error = include_error)
+      include_omega = include_omega, 
+      include_error = include_error)
     ofv <- c(ofv, ofv_cens)
     if(verbose) {
       cat("-------------------------------------------------------------\n")
