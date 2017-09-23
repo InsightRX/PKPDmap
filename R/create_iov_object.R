@@ -28,7 +28,7 @@ create_iov_object <- function(cv = list(CL = 0.1),
   if(is.null(data) || is.null(cv)) {
     if(verbose) message("No IOV specified for model.")
     # make sure all kappa parameters (if present) are included in fixed vector
-    iov_par <- !is.na(c(stringr::str_match(names(parameters), "_kappa")))
+    iov_par <- !is.na(c(stringr::str_match("kappa_", names(parameters))))
     fixed <- unique(c(fixed, names(parameters)[iov_par]))
     return(list(
       parameters = parameters,
@@ -46,14 +46,14 @@ create_iov_object <- function(cv = list(CL = 0.1),
   kappa <- c()
   om_new <- omega
   for(i in seq(names(cv))) {
-    kappa <- c(kappa, paste0(names(cv)[i], "_kappa", 1:n))
+    kappa <- c(kappa, paste0("kappa_", names(cv)[i], "_", 1:n))
     om2 <- create_block_from_cv(cv = cv[[i]], n)
     om_new <- join_blocks(om_new, om2)
   }
   n_om <- lower_triangle_mat_size(omega)
 
   ## reshuffle parameters
-  iov_par <- !is.na(c(stringr::str_match(names(parameters), "_kappa")))
+  iov_par <- !is.na(c(stringr::str_match(names(parameters), "kappa_")))
   if(! any(iov_par)) {
     stop("No `kappa` parameters seem to be defined for this model.")
   }
