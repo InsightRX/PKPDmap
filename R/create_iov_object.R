@@ -28,7 +28,7 @@ create_iov_object <- function(cv = list(CL = 0.1),
   if(is.null(data) || is.null(cv)) {
     if(verbose) message("No IOV specified for model.")
     # make sure all kappa parameters (if present) are included in fixed vector
-    iov_par <- !is.na(c(stringr::str_match("kappa_", names(parameters))))
+    iov_par <- grep("kappa_", names(parameters))
     fixed <- unique(c(fixed, names(parameters)[iov_par]))
     return(list(
       parameters = parameters,

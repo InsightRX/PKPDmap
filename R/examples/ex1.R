@@ -1,6 +1,6 @@
 library(PKPDsim)
 library(devtools)
-#install_github("ronkeizer/PKPDsim")
+#install_github("")
 library(bbmle)
 library(mvtnorm)
 library(PKPDmap)
