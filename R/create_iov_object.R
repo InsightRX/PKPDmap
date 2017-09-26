@@ -9,6 +9,7 @@
 #' @param parameters named list of parameter values
 #' @param fixed vector of fixed parameters
 #' @param n number of IOV elements, will be determined automatically from data, `n` will override if not NULL.
+#' @param reverse_time reverse the timing of the bins to mean "t before last observation". `FALSE` by default.
 #' @param verbose verbosity (`TRUE` or `FALSE`)
 #' @export
 create_iov_object <- function(cv = list(CL = 0.1),
@@ -34,7 +35,8 @@ create_iov_object <- function(cv = list(CL = 0.1),
       parameters = parameters,
       kappa = c(),
       omega = omega,
-      fixed = fixed
+      fixed = fixed,
+      bins = bins
     ))
   }
 
@@ -66,6 +68,7 @@ create_iov_object <- function(cv = list(CL = 0.1),
     parameters = new_par,
     kappa = kappa,
     omega = om_new,
-    fixed = fixed
+    fixed = fixed,
+    bins = bins
   ))
 }
