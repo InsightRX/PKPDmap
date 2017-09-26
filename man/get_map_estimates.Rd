@@ -6,13 +6,14 @@
 \usage{
 get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   covariates = NULL, fixed = c(), as_eta = c(), omega = NULL,
-  weight_prior = 1, error = NULL, ltbs = NULL, censoring = NULL,
-  weights = NULL, include_omega = TRUE, include_error = TRUE,
-  regimen = NULL, int_step_size = 0.1, optimizer = "optim",
-  method = "BFGS", control = list(reltol = 1e-05), type = "map",
-  np_settings = list(), cols = list(x = "t", y = "y"), residuals = TRUE,
-  verbose = FALSE, A_init = NULL, skip_hessian = FALSE,
-  output_include = list(covariates = FALSE, parameters = FALSE), ...)
+  weight_prior = 1, iov_bins = NULL, error = NULL, ltbs = NULL,
+  censoring = NULL, weights = NULL, include_omega = TRUE,
+  include_error = TRUE, regimen = NULL, int_step_size = 0.1,
+  optimizer = "optim", method = "BFGS", control = list(reltol = 1e-05),
+  type = "map", np_settings = list(), cols = list(x = "t", y = "y"),
+  residuals = TRUE, verbose = FALSE, A_init = NULL,
+  skip_hessian = FALSE, output_include = list(covariates = FALSE, parameters
+  = FALSE), ...)
 }
 \arguments{
 \item{model}{model, created using `PKPDsim::new_ode_model()`}
@@ -30,6 +31,8 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 \item{omega}{between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects}
 
 \item{weight_prior}{weighting of priors in relationship to observed data, default = 1}
+
+\item{iov_bins}{bins for inter-occasion variability. Passed unchanged to PKPDsim.}
 
 \item{error}{residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts}
 

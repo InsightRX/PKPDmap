@@ -4,7 +4,6 @@
 #'
 #' @param cv list of CVs of parameters
 #' @param omega omega matrix (lower triangle)
-#' @param data dataset
 #' @param bins vector of bins for IOV
 #' @param parameters named list of parameter values
 #' @param fixed vector of fixed parameters
@@ -14,7 +13,6 @@
 #' @export
 create_iov_object <- function(cv = list(CL = 0.1),
                               omega = c(0.1),
-                              data = NULL,
                               bins = c(0, 24, 48, 9999),
                               parameters = list(CL = 5),
                               fixed = NULL,
@@ -26,7 +24,7 @@ create_iov_object <- function(cv = list(CL = 0.1),
   if(is.null(omega)) {
     stop("No omega block specified.")
   }
-  if(is.null(data) || is.null(cv)) {
+  if(is.null(cv)) {
     if(verbose) message("No IOV specified for model.")
     # make sure all kappa parameters (if present) are included in fixed vector
     iov_par <- grep("kappa_", names(parameters))

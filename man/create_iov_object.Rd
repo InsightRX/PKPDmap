@@ -6,16 +6,14 @@
 and the right size of the new omega matrix.
 Currently only working for a single parameter!}
 \usage{
-create_iov_object(cv = list(CL = 0.1), omega = c(0.1), data = NULL,
-  bins = c(0, 24, 48, 9999), parameters = list(CL = 5), fixed = NULL,
-  n = NULL, verbose = TRUE)
+create_iov_object(cv = list(CL = 0.1), omega = c(0.1), bins = c(0, 24, 48,
+  9999), parameters = list(CL = 5), fixed = NULL, n = NULL,
+  verbose = TRUE)
 }
 \arguments{
 \item{cv}{list of CVs of parameters}
 
 \item{omega}{omega matrix (lower triangle)}
-
-\item{data}{dataset}
 
 \item{bins}{vector of bins for IOV}
 

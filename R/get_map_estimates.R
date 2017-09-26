@@ -9,6 +9,7 @@
 #' @param weights vector of weights for error. Length of vector should be same as length of observation vector. If NULL (default), all weights are equal. Used in both MAP and NP methods. Note that `weights` argument will also affect residuals (residuals will be scaled too).
 #' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
 #' @param weight_prior weighting of priors in relationship to observed data, default = 1
+#' @param iov_bins bins for inter-occasion variability. Passed unchanged to PKPDsim.
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
 #' @param ltbs log-transform both sides? (`NULL` by default, meaning that it will be picked up from the PKPDsim model. Can be overridden with `TRUE`). Note: `error` should commonly only have additive part.
 #' @param censoring censoring specification. Needs to be a list containing: `flag` (column in `data` indicating censoring: 1 or 0), `limit` (numeric value of censoring limit), and `type` (`lower` or `upper`), e.g. `list(flag="lloq", limit=10, type = 'lower')`.
@@ -38,6 +39,7 @@ get_map_estimates <- function(
                       as_eta = c(),
                       omega = NULL,
                       weight_prior = 1,
+                      iov_bins = NULL,
                       error = NULL,
                       ltbs = NULL,
                       censoring = NULL,
@@ -170,6 +172,7 @@ get_map_estimates <- function(
     as_eta,
     censoring_idx,
     censoring_limit,
+    iov_bins,
     ...) {
     par <- sim_object$p
     p <- as.list(match.call())
@@ -318,20 +321,21 @@ get_map_estimates <- function(
 
   ## create simulation design up-front:
   suppressMessages({
-    sim_object <- PKPDsim::sim_ode(ode = model,
-                                   parameters = parameters,
-                                   covariates = covariates,
-                                   n_ind = 1,
-                                   int_step_size = int_step_size,
-                                   regimen = regimen,
-                                   t_obs = t_obs,
-                                   checks = FALSE,
-                                   only_obs = TRUE,
-                                   A_init = A_init,
-                                   fixed = fixed,
-                                   t_max = tail(t_obs, 1) + 1,
-                                   return_design = TRUE,
-                                   ...)
+    sim_object <- PKPDsim::sim(ode = model,
+                               parameters = parameters,
+                               covariates = covariates,
+                               n_ind = 1,
+                               int_step_size = int_step_size,
+                               regimen = regimen,
+                               t_obs = t_obs,
+                               checks = FALSE,
+                               only_obs = TRUE,
+                               A_init = A_init,
+                               fixed = fixed,
+                               t_max = tail(t_obs, 1) + 1,
+                               iov_bins = iov_bins,
+                               return_design = TRUE,
+                               ...)
   })
   fit <- bbmle::mle2(ll_func,
               start = eta,
@@ -349,7 +353,8 @@ get_map_estimates <- function(
                           sig = sig,
                           as_eta = as_eta,
                           censoring_idx = censoring_idx,
-                          censoring_limit = censoring$limit),
+                          censoring_limit = censoring$limit,
+                          iov_bins = iov_bins),
               fixed = fix)
   cf <- bbmle::coef(fit)
   par <- parameters
