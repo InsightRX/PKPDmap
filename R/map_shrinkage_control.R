@@ -37,10 +37,9 @@ map_shrinkage_control <- function(
   shr_cols <- grep("_shr", names(fits))
   closest <- order(abs(apply((fits[,shr_cols]) - shrinkage_control, 1, mean)))[1]
   fit <- fit_list[[closest]]
-  msg <- paste0("Prior parameter information was downweighted automatically since patient is suspected pharmacokinetic outlier.  It is suggested to obtain more TDM samples as soon as possible to confirm pharmacokinetic characteristics.")
   fit$shrinkage_control <- list(
-    message = msg,
-    weight_prior = weights[closest]
+    weight_prior = weights[closest],
+    fit_list = fit_list
   )
   return(fit)
 }
