@@ -216,6 +216,7 @@ get_map_estimates <- function(
     if(verbose) {
       cat("-------------------------------------------------------------\n")
       cat(paste0("Eta\t: [", paste(signif(et,5), collapse=", "),"]\n"))
+      cat(paste0("y_hat\t: [", paste(ipred, collapse=", "),"]\n"))
       cat(paste0("P(y)\t: [", paste(signif(exp(ofv[-1]),5), collapse=", "),"]\n"))
       cat(paste0("OFV\t: [", paste(signif(-2*sum(ofv),5), collapse=", "), "]\n"))
     }
