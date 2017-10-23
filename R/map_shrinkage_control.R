@@ -1,8 +1,7 @@
 #' MAP fitting with shrinkage control
-#'
 #' Limits the amount of individual shrinkage to a certain specified number
 #'
-#' @param shrinkage_control automatically control individual shrinkage. Suggested value e.g. `0.05`` for allowing 5% shrinkage (averaged over all parameters).
+#' @param shrinkage_control automatically control individual shrinkage. Suggested value e.g. `0.05` for allowing 5 percent shrinkage (averaged over all parameters).
 #' @param ... passed to PKPDmap
 #' @export
 map_shrinkage_control <- function(

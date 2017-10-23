@@ -2,16 +2,18 @@
 % Please edit documentation in R/map_shrinkage_control.R
 \name{map_shrinkage_control}
 \alias{map_shrinkage_control}
-\title{MAP fitting with shrinkage control}
+\title{MAP fitting with shrinkage control
+Limits the amount of individual shrinkage to a certain specified number}
 \usage{
 map_shrinkage_control(shrinkage_control = 0.05, parameters = NULL,
   fixed = NULL, data = NULL, ...)
 }
 \arguments{
-\item{shrinkage_control}{automatically control individual shrinkage. Suggested value e.g. `0.05`` for allowing 5% shrinkage (averaged over all parameters).}
+\item{shrinkage_control}{automatically control individual shrinkage. Suggested value e.g. `0.05` for allowing 5 percent shrinkage (averaged over all parameters).}
 
 \item{...}{passed to PKPDmap}
 }
 \description{
+MAP fitting with shrinkage control
 Limits the amount of individual shrinkage to a certain specified number
 }
