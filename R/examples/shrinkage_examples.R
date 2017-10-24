@@ -109,8 +109,9 @@ fit4 <- map_shrinkage_control(shrinkage_control = 0.05,
                       parameters = parameters, 
                       omega = omega,
                       regimen = regimen, 
-                      data = res1,
+                      data = res1 %>% mutate(y= 25),
                       error = ruv) 
+fit4$shrinkage_control
 
 fit4sim <- sim(ode = model, 
                parameters = fit4$parameters, 

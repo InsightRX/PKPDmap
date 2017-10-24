@@ -155,13 +155,15 @@ get_map_estimates <- function(
     transf <- function(x) x
   }
 
-  ## Likelihood function for PKPDsim
+  #################################################  
+  ## Likelihood function using PKPDsim
+  #################################################  
   ll_func_PKPDsim <- function(
     data,
     sim_object,
     parameters,
     t_obs,
-    # unfortunately seems no other way to do this...
+    # unfortunately seems no other way to do this using the optim package...
     eta01, eta02, eta03, eta04, eta05, eta06, eta07, eta08, eta09, eta10,
     eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20,
     eta21, eta22, eta23, eta24,
@@ -176,10 +178,10 @@ get_map_estimates <- function(
     ...) {
     par <- sim_object$p
     p <- as.list(match.call())
-    for(i in seq(names(parameters))) {
-      key <- names(parameters)[i]
-      if(key %in% as_eta) {
-        par[[key]] <- par[[key]] + p[[(paste0("eta", sprintf("%02d", i)))]]
+    for(i in seq(nonfixed)) {
+      key <- nonfixed[i]
+      if(key %in% p$as_eta) {
+        par[[key]] <- p[[(paste0("eta", sprintf("%02d", i)))]]
       } else {
         par[[key]] <- par[[key]] * exp(p[[(paste0("eta", sprintf("%02d", i)))]])
       }
@@ -187,7 +189,7 @@ get_map_estimates <- function(
     sim_object$p <- par
     ipred <- transf(PKPDsim::sim_core(sim_object, ode = model, duplicate_t_obs = TRUE)$y)
     dv <- transf(data$y)
-    ofv_cens <- 0
+    ofv_cens <- NULL
     if(!is.null(censoring_idx)) {
       ipred_cens <- ipred[censoring_idx]
       ipred <- ipred[!censoring_idx]
@@ -200,7 +202,6 @@ get_map_estimates <- function(
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
     et <- mget(objects()[grep("^eta", objects())])
     et <- as.numeric(as.character(et[et != ""]))
-    et <- et[!names(parameters) %in% fixed]
     omega_full <- as.matrix(omega_full)[1:length(et), 1:length(et)]
     ofv <- calc_ofv(
       eta = et,
@@ -223,56 +224,11 @@ get_map_estimates <- function(
     return(-2 * sum(ofv))
   }
 
-  ## generic likelihood function
-  ll_func_generic <- function(
-    data,
-    # unfortunately seems no other way to do this...
-    eta01, eta02, eta03, eta04, eta05, eta06, eta07, eta08, eta09, eta10,
-    eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20,
-    eta21, eta22, eta23, eta24,
-    parameters,
-    fixed = c(),
-    covariates = NULL,
-    covariate_names = NULL,
-    regimen = regimen,
-    omega_full = omega_full,
-    error = error,
-    model,
-    t_obs,
-    sig,
-    weight_prior,
-    ...) {
-    par <- parameters
-    p <- as.list(match.call())
-    for(i in seq(names(par))) {
-      par[[i]] <- par[[i]] * exp(p[[(paste0("eta", sprintf("%02d", i)))]])
-    }
-    ipred <- model(t = data[data$evid == 0,]$t,
-                   parameters = par)
-    y <- data$y
-    res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
-    et <- mget(objects()[grep("^eta", objects())])
-    et <- as.numeric(as.character(et[et != ""]))
-    omega_full <- omega_full[1:length(et), 1:length(et)]
-    ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
-                                sigma = omega_full[1:length(et), 1:length(et)],
-                                log=TRUE) * weight_prior,
-               stats::dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
-    if(verbose) {
-      print(ofv)
-    }
-    return(-sum(ofv))
-  }
-
   ll_func <- ll_func_PKPDsim
   if(is.null(attr(model, "cpp")) || !attr(model, "cpp")) {
     ll_func <- ll_func_generic
   }
 
-  eta <- list()
-  for(i in seq(parameters)) {
-    eta[[paste0("eta", sprintf("%02d", i))]] <- 0
-  }
   ## check if fixed parameter actually in parameter list
   if(length(intersect(fixed, names(parameters))) != length(fixed)) {
     warning("Warning: not all fixed parameters were found in parameter set!\n")
@@ -281,25 +237,24 @@ get_map_estimates <- function(
   if(length(fixed) == 0) {
     fixed <- NULL
   }
+
   ## fix etas
   nonfixed <- names(parameters)[is.na(match(names(parameters), fixed))]
   n_nonfix <- length(nonfixed)
-  if (!is.null(fixed)) {
-    if(n_nonfix == 0) {
-      stop("Nothing to estimate!")
-    }
-    id_fix <- match(fixed, names(parameters))
-    fix <- list()
-    for(i in (n_nonfix+1):length(parameters)) {
-      id <- names(eta)[i]
-      fix[[id]] <- 0
-    }
-  } else {
-    fix <- NULL
+  eta <- list()
+  for(i in seq(nonfixed)) {
+    eta[[paste0("eta", sprintf("%02d", i))]] <- 0
   }
-  omega_full <- diag(length(names(parameters))) # dummy om matrix
+  fix <- NULL
+
+#  omega_full <- diag(length(names(parameters))) # dummy om matrix
+  if(class(omega) == "matrix") {
+    omega_full <- omega # dummy om matrix
+  } else {
+    omega_full <- triangle_to_full(omega) # dummy om matrix
+  }
   om_nonfixed <- triangle_to_full(omega)
-  if(nrow(om_nonfixed) < (length(parameters) - length(fix))) {
+  if(nrow(om_nonfixed) < (length(parameters) - length(fixed))) {
     msg <- "Provided omega matrix is smaller than expected based on the number of model parameters. Either fix some parameters or increase the size of the omega matrix.\n"
     msg <- c(msg,
       paste0("Non-fixed omegas: ", paste(om_nonfixed, collapse=", "), "\n"),
@@ -307,8 +262,7 @@ get_map_estimates <- function(
       paste0("Fixed: ", paste(fix, collapse=","), "\n"))
     stop(msg)
   }
-  omega_full[1:n_nonfix, 1:n_nonfix] <- om_nonfixed[1:n_nonfix, 1:n_nonfix]
-
+  
   ## check if censoring code needs to be used
   censoring_idx <- NULL
   if(!is.null(censoring)) {
@@ -320,7 +274,9 @@ get_map_estimates <- function(
     }
   }
 
+  #################################################  
   ## create simulation design up-front:
+  #################################################  
   suppressMessages({
     sim_object <- PKPDsim::sim(ode = model,
                                parameters = parameters,
@@ -368,6 +324,10 @@ get_map_estimates <- function(
     }
   }
   obj <- list(fit = fit)
+  
+  #################################################  
+  ## Non-parametric estimation
+  #################################################  
   if(type == "np_hybrid") {
     obj$parameters_map <- par ## keep MAP estimates
     np_settings <- replace_list_elements(np_settings_default, np_settings)
@@ -411,6 +371,10 @@ get_map_estimates <- function(
     obj$np <- list(prob = np$prob)
   }
   obj$parameters <- par
+  
+  #################################################  
+  ## Add g.o.f. info
+  #################################################  
   if(residuals) {
     suppressMessages({
       sim_ipred <- PKPDsim::sim_ode(ode = model,
