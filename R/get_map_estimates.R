@@ -12,7 +12,8 @@
 #' @param iov_bins bins for inter-occasion variability. Passed unchanged to PKPDsim.
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
 #' @param ltbs log-transform both sides? (`NULL` by default, meaning that it will be picked up from the PKPDsim model. Can be overridden with `TRUE`). Note: `error` should commonly only have additive part.
-#' @param censoring censoring specification. Needs to be a list containing: `flag` (column in `data` indicating censoring: 1 or 0), `limit` (numeric value of censoring limit), and `type` (`lower` or `upper`), e.g. `list(flag="lloq", limit=10, type = 'lower')`.
+#' @param censoring censoring specification. Needs to be a list containing: `label` (column in `data` indicating censoring limit, should be different from 0), and `type` (`lower` or `upper`), e.g. `list(label='lloq', type = 'lower')`.
+#' @param mixture specify mixture model. Currently for single parameter only. Overwrites regular parameter, if specified. Specify e.g. as: `mixture = list("CL" = c(5, 9))`
 #' @param include_omega TRUE
 #' @param include_error TRUE
 #' @param regimen regimen
@@ -43,6 +44,7 @@ get_map_estimates <- function(
                       error = NULL,
                       ltbs = NULL,
                       censoring = NULL,
+                      mixture = NULL,
                       weights = NULL,
                       include_omega = TRUE,
                       include_error = TRUE,
@@ -99,8 +101,8 @@ get_map_estimates <- function(
     list(prop = 0.1, add = 0.1, exp = 0)
   }
   if(!is.null(censoring)) {
-    if(is.null(censoring$limit) || is.null(censoring$type) || is.null(censoring$flag)) {
-      stop("Censoring argument requires list containing `limit`, `type`, and `flag` elements.")
+    if(is.null(censoring$type) || is.null(censoring$label)) {
+      stop("Censoring argument requires list containing `type`, and `label` elements.")
     }
   }
   if(!("function" %in% class(model))) {
@@ -173,10 +175,10 @@ get_map_estimates <- function(
     weight_prior,
     as_eta,
     censoring_idx,
-    censoring_limit,
+    censoring_label,
     iov_bins,
     ...) {
-    par <- sim_object$p
+    par <- parameters
     p <- as.list(match.call())
     for(i in seq(nonfixed)) {
       key <- nonfixed[i]
@@ -193,11 +195,12 @@ get_map_estimates <- function(
     if(!is.null(censoring_idx)) {
       ipred_cens <- ipred[censoring_idx]
       ipred <- ipred[!censoring_idx]
+      dv_cens <- dv[censoring_idx]
       dv <- dv[!censoring_idx]
       weights_cens <- weights[censoring_idx]
       weights <- weights[!censoring_idx]
       res_sd_cens <- sqrt(error$prop^2*ipred_cens^2 + error$add^2)
-      ofv_cens <- stats::pnorm(censoring_limit - ipred_cens, 0, res_sd_cens, log=TRUE) * weights_cens
+      ofv_cens <- stats::pnorm(dv_cens - ipred_cens, 0, res_sd_cens, log=TRUE) * weights_cens
     }
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
     et <- mget(objects()[grep("^eta", objects())])
@@ -266,8 +269,8 @@ get_map_estimates <- function(
   ## check if censoring code needs to be used
   censoring_idx <- NULL
   if(!is.null(censoring)) {
-    if(any(data[[tolower(censoring$flag)]] != 0)) {
-      censoring_idx <- data[[tolower(censoring$flag)]] != 0
+    if(any(data[[tolower(censoring$label)]] != 0)) {
+      censoring_idx <- data[[tolower(censoring$label)]] != 0
       if(verbose) message("One or more values in data are censored, including censoring in likelihood.")
     } else {
       if(verbose) message("Warning: censoring specified, but no censored values in data.")
@@ -294,25 +297,70 @@ get_map_estimates <- function(
                                return_design = TRUE,
                                ...)
   })
-  fit <- bbmle::mle2(ll_func,
-              start = eta,
-              method = method,
-              optimizer = optimizer,
-              control = control,
-              skip.hessian = skip_hessian,
-              data = list(data = data,
-                          sim_object = sim_object,
-                          parameters = parameters,
-                          t_obs = t_obs,
-                          model = model,
-                          error = error,
-                          weight_prior = weight_prior,
-                          sig = sig,
-                          as_eta = as_eta,
-                          censoring_idx = censoring_idx,
-                          censoring_limit = censoring$limit,
-                          iov_bins = iov_bins),
-              fixed = fix)
+  
+  mixture_obj <- NULL
+  if(!is.null(mixture)) {
+    if((class(mixture) != "list") || length(names(mixture)) != 1) {
+      stop("`mixture` argument needs to be a list containing elements `parameters` and `values`.")
+    }
+    mix_par <- names(mixture)[1]
+    mix_par_values <- mixture[[mix_par]]
+    fits <- list()
+    par_mix <- parameters
+    ofvs <- c()
+    for(i in seq(mix_par_values)) {
+      par_mix[[mix_par]] <- mix_par_values[i]
+      fits[[i]] <- bbmle::mle2(ll_func,
+                         start = eta,
+                         method = method,
+                         optimizer = optimizer,
+                         control = control,
+                         skip.hessian = skip_hessian,
+                         data = list(data = data,
+                                     sim_object = sim_object,
+                                     parameters = par_mix,
+                                     t_obs = t_obs,
+                                     model = model,
+                                     error = error,
+                                     weight_prior = weight_prior,
+                                     sig = sig,
+                                     as_eta = as_eta,
+                                     censoring_idx = censoring_idx,
+                                     censoring_label = censoring$label,
+                                     iov_bins = iov_bins),
+                         fixed = fix)
+      ofvs <- c(ofvs, bbmle::logLik(fits[[i]]))
+    }
+    like <- exp(ofvs)
+    prob <- like / sum(like)
+    fit <- fits[[match(max(prob), prob)]]
+    mixture_obj <- list(
+      parameter = mix_par,
+      values = mix_par_values,
+      selected = mix_par_values[match(max(prob), prob)],
+      probabilities = prob
+    )
+  } else {
+    fit <- bbmle::mle2(ll_func,
+                       start = eta,
+                       method = method,
+                       optimizer = optimizer,
+                       control = control,
+                       skip.hessian = skip_hessian,
+                       data = list(data = data,
+                                   sim_object = sim_object,
+                                   parameters = parameters,
+                                   t_obs = t_obs,
+                                   model = model,
+                                   error = error,
+                                   weight_prior = weight_prior,
+                                   sig = sig,
+                                   as_eta = as_eta,
+                                   censoring_idx = censoring_idx,
+                                   censoring_label = censoring$label,
+                                   iov_bins = iov_bins),
+                       fixed = fix)
+  }
   cf <- bbmle::coef(fit)
   par <- parameters
   for(i in seq(nonfixed)) {
@@ -323,7 +371,7 @@ get_map_estimates <- function(
       par[[key]] <- as.numeric(as.numeric(par[[key]]) * exp(as.numeric(cf[i])))
     }
   }
-  obj <- list(fit = fit)
+  obj <- list(fit = fit, mixture = mixture_obj)
   
   #################################################  
   ## Non-parametric estimation
