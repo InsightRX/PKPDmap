@@ -34,5 +34,5 @@ fit2 <- get_map_estimates(parameters = par,
                           data = data1,
                           ltbs = TRUE
 )
-assert("correct CL", round(fit2$parameters$CL,3) == 7.408)
+assert("correct CL", round(fit2$parameters$CL,3) == 5.408)
 assert("correct V", round(fit2$parameters$V,3) == 98.954)
