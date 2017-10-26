@@ -157,9 +157,9 @@ get_map_estimates <- function(
     transf <- function(x) x
   }
 
-  #################################################  
+  #################################################
   ## Likelihood function using PKPDsim
-  #################################################  
+  #################################################
   ll_func_PKPDsim <- function(
     data,
     sim_object,
@@ -265,7 +265,7 @@ get_map_estimates <- function(
       paste0("Fixed: ", paste(fix, collapse=","), "\n"))
     stop(msg)
   }
-  
+
   ## check if censoring code needs to be used
   censoring_idx <- NULL
   if(!is.null(censoring)) {
@@ -277,9 +277,9 @@ get_map_estimates <- function(
     }
   }
 
-  #################################################  
+  #################################################
   ## create simulation design up-front:
-  #################################################  
+  #################################################
   suppressMessages({
     sim_object <- PKPDsim::sim(ode = model,
                                parameters = parameters,
@@ -297,7 +297,7 @@ get_map_estimates <- function(
                                return_design = TRUE,
                                ...)
   })
-  
+
   mixture_obj <- NULL
   if(!is.null(mixture)) {
     if((class(mixture) != "list") || length(names(mixture)) != 1) {
@@ -372,10 +372,10 @@ get_map_estimates <- function(
     }
   }
   obj <- list(fit = fit, mixture = mixture_obj)
-  
-  #################################################  
+
+  #################################################
   ## Non-parametric estimation
-  #################################################  
+  #################################################
   if(type == "np_hybrid") {
     obj$parameters_map <- par ## keep MAP estimates
     np_settings <- replace_list_elements(np_settings_default, np_settings)
@@ -419,10 +419,10 @@ get_map_estimates <- function(
     obj$np <- list(prob = np$prob)
   }
   obj$parameters <- par
-  
-  #################################################  
+
+  #################################################
   ## Add g.o.f. info
-  #################################################  
+  #################################################
   if(residuals) {
     suppressMessages({
       sim_ipred <- PKPDsim::sim_ode(ode = model,
