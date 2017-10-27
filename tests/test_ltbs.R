@@ -14,6 +14,7 @@ par   <- list(CL = 7.67, V = 97.7)
 lloq <- 500
 data1$lloq <- 0
 data1[data1$y < lloq,]$lloq <- 1
+data1[data1$y < lloq,]$y <- lloq
 omega <- c(0.0406, 
            0.0623, 0.117)
 reg <- new_regimen(amt = 100000, times=c(0, 24), type="bolus")
@@ -23,8 +24,7 @@ fit1 <- get_map_estimates(parameters = par,
                          omega = omega,
                          error = list(prop = 0.15),
                          data = data1,
-                         ltbs = FALSE,
-                         censoring = list(flag = "lloq", limit = lloq, type = "lower")
+                         ltbs = FALSE
 )
 fit2 <- get_map_estimates(parameters = par,
                           model = model,
@@ -32,8 +32,7 @@ fit2 <- get_map_estimates(parameters = par,
                           omega = omega,
                           error = list(add = 0.15),
                           data = data1,
-                          ltbs = TRUE,
-                          censoring = list(flag = "lloq", limit = lloq, type = "lower")
+                          ltbs = TRUE
 )
-assert("correct CL", round(fit2$parameters$CL,3) == 7.217)
-assert("correct V", round(fit2$parameters$V,3) == 95.112)
+assert("correct CL", round(fit2$parameters$CL,3) == 5.408)
+assert("correct V", round(fit2$parameters$V,3) == 98.954)
