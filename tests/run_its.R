@@ -19,16 +19,16 @@ regimen <- new_regimen(amt = 100000, times=c(0, 24), type="bolus")
 run <- FALSE
 
 if(run) {
-  run_its(parameters = parameters,
-          omega = omega,
-          err = 100,
-          regimen = regimen,
-          model = model,
-          max_iter=10,
-          data = dat[dat$id < 20,])
+  fit <- run_its(
+    parameters = parameters,
+    omega = omega,
+    err = list(prop = 0.3, add = 1),
+    regimen = regimen,
+    model = model,
+    max_iter = 10,
+    data = dat,
+    min_crit = 0.002)
 }
-
-test <- c(0.01010668, 0.02881619, 0.08216081)
 
 check_high_corr <- function(cov_mat, limit = 0.99) {
   tmp <- cov2cor(cov_mat)  

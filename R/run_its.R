@@ -1,9 +1,9 @@
-#' Iterative Two State (ITS) estimation method for PK data
+#' Crude implementation of Iterative Two State Bayesian (ITSB) estimation method for PopPK data
 #' 
 #' Note: this estimation method is mostly for demonstration purposes
 #' as it is unstable, biased, and imprecise. The implementation
 #' in this package is also pretty slow. It is however
-#' a great example estimation method e.g. for teaching the concept
+#' a nice example estimation method e.g. for teaching the concept
 #' of estimation methods in pharmacokinetics.
 #'       
 #' @param parameters list of intial parameter estimates
@@ -33,6 +33,7 @@ run_its <- function(
   err_tmp   <- err  # additive error
   cvs       <- diag(triangle_to_full(omega))
   ids       <- unique(data$id)
+  par_mn    <- unlist(parameters)
   all_pars  <- c()  
   
   ## loop iterations, only break when max_iter reached or stopping criterion reached
@@ -41,10 +42,11 @@ run_its <- function(
     ## init and console output
     pars <- c()
     etas <- c()
+    resid <- c()
     message(paste0("ITS iteration: ", j-1))
     message(" - Population means: ", paste(round(par_mn, 3), collapse = "  "))
     message(" - IIV %: ", paste(round(100 * sqrt(cvs), 1), collapse = "  "))
-    message(" - Error: ", err_tmp)
+    message(paste0(" - Error: prop = ", err_tmp$prop, ", add = ", err_tmp$add))
     
     ## loop over patients
     pb <- txtProgressBar(min = 0, max = length(ids), initial = 0, style = 3)
@@ -55,21 +57,22 @@ run_its <- function(
                           regimen = regimen,
                           omega = omega_tmp,
                           weights = rep(1, length(dv[,1])),
-                          error = list("add" = err_tmp, prop=0),
+                          error = err_tmp,
                           int_step_size = 1,
                           data = dv,
                           residuals = TRUE,
                           include_error = TRUE,
                           ...
-        )
-
+      )
       setTxtProgressBar(pb, i)
       pars <- rbind(pars, cbind(t(as.numeric(unlist(tmp$parameters)))))
       etas <- rbind(etas, cbind(t(as.numeric(unlist(tmp$fit@coef)))))
+      resid <- rbind(resid, cbind(ipred = tmp$ipred, ires = abs(tmp$ires)))
     }
     
     ## update parameters to mean of estimates
-    par_mn <- apply(pars, 2, mean)
+    par_mn <- apply(pars, 2, function(x) { exp(mean(log(x)) ) } )
+    # par_mn <- apply(pars, 2, mean)
     par_tmp <- parameters
     for(k in seq(names(parameters))) {
       par_tmp[[k]] <- par_mn[k]
@@ -86,15 +89,23 @@ run_its <- function(
     cvs <- diag(omega_tmp1)
 
     ## update residual error estimate
-#    err_tmp <- sd(tmp$res)
-    
+    fit_comb <- glm(ires ~ ipred, data = data.frame(resid))
+    intercept <- coef(fit_comb)[1]
+    if(intercept < 0) {
+      fit_prop <- glm(ires ~ ipred + 0 + offset(rep(intercept, length(resid[,1]))), data = data.frame(resid))
+      err_tmp <- list(prop = coef(fit_prop)[1], add = 0)
+    } else {
+      err_tmp <- list(prop = coef(fit_prop)[2], add = coef(fit_prop)[1])
+    }
+
     ## stopping criterion
     all_pars <- rbind(all_pars, c(par_mn, cvs))
     if(j > 1) {
       crit <- mean(abs(all_pars[j,] - all_pars[j-1,]) / all_pars[j-1,])
       message(paste0("Stopping parameter: ", crit, " (min value ", min_crit, ")"))
       if(crit < min_crit) {
-        stop("Minimization criterion reached, stopping search.")
+        message("Minimization criterion reached, stopping search.")
+        return(all_pars)
       }
     }
     
