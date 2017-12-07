@@ -49,6 +49,7 @@ get_map_estimates <- function(
                       include_omega = TRUE,
                       include_error = TRUE,
                       regimen = NULL,
+                      t_init = 0,
                       int_step_size = 0.1,
                       optimizer = "optim",
                       method = "BFGS",
@@ -189,7 +190,10 @@ get_map_estimates <- function(
       }
     }
     sim_object$p <- par
-    ipred <- transf(PKPDsim::sim_core(sim_object, ode = model, duplicate_t_obs = TRUE)$y)
+    ipred <- transf(PKPDsim::sim_core(
+      sim_object, ode = model,
+      duplicate_t_obs = TRUE,
+      t_init = t_init)$y)
     dv <- transf(data$y)
     ofv_cens <- NULL
     if(!is.null(censoring_idx)) {
@@ -292,9 +296,10 @@ get_map_estimates <- function(
                                only_obs = TRUE,
                                A_init = A_init,
                                fixed = fixed,
-                               t_max = tail(t_obs, 1) + 1,
+                               t_max = tail(t_obs, 1) + t_init + 1,
                                iov_bins = iov_bins,
                                return_design = TRUE,
+                               t_init = t_init,
                                ...)
   })
 
@@ -436,6 +441,7 @@ get_map_estimates <- function(
                            checks = FALSE,
                            A_init = A_init,
                            output_include = output_include,
+                           t_init = t_init,
                            ...)
     })
     suppressMessages({
@@ -449,6 +455,7 @@ get_map_estimates <- function(
                           only_obs = TRUE,
                           checks = FALSE,
                           A_init = A_init,
+                          t_init = t_init,
                           ...)
     })
     ipred <- sim_ipred$y
