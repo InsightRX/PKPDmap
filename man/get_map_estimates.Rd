@@ -7,13 +7,13 @@
 get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   covariates = NULL, fixed = c(), as_eta = c(), omega = NULL,
   weight_prior = 1, iov_bins = NULL, error = NULL, ltbs = NULL,
-  censoring = NULL, weights = NULL, include_omega = TRUE,
-  include_error = TRUE, regimen = NULL, int_step_size = 0.1,
-  optimizer = "optim", method = "BFGS", control = list(reltol = 1e-05),
-  type = "map", np_settings = list(), cols = list(x = "t", y = "y"),
-  residuals = TRUE, verbose = FALSE, A_init = NULL,
-  skip_hessian = FALSE, output_include = list(covariates = FALSE, parameters
-  = FALSE), ...)
+  censoring = NULL, mixture = NULL, weights = NULL,
+  include_omega = TRUE, include_error = TRUE, regimen = NULL,
+  t_init = 0, int_step_size = 0.1, optimizer = "optim", method = "BFGS",
+  control = list(reltol = 1e-05), type = "map", np_settings = list(),
+  cols = list(x = "t", y = "y"), residuals = TRUE, verbose = FALSE,
+  A_init = NULL, skip_hessian = FALSE, output_include = list(covariates =
+  FALSE, parameters = FALSE), ...)
 }
 \arguments{
 \item{model}{model, created using `PKPDsim::new_ode_model()`}
@@ -38,7 +38,9 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 
 \item{ltbs}{log-transform both sides? (`NULL` by default, meaning that it will be picked up from the PKPDsim model. Can be overridden with `TRUE`). Note: `error` should commonly only have additive part.}
 
-\item{censoring}{censoring specification. Needs to be a list containing: `flag` (column in `data` indicating censoring: 1 or 0), `limit` (numeric value of censoring limit), and `type` (`lower` or `upper`), e.g. `list(flag="lloq", limit=10, type = 'lower')`.}
+\item{censoring}{censoring specification. Needs to be a list containing: `label` (column in `data` indicating censoring limit, should be different from 0), and `type` (`lower` or `upper`), e.g. `list(label='lloq', type = 'lower')`.}
+
+\item{mixture}{specify mixture model. Currently for single parameter only. Overwrites regular parameter, if specified. Specify e.g. as: `mixture = list("CL" = c(5, 9))`}
 
 \item{weights}{vector of weights for error. Length of vector should be same as length of observation vector. If NULL (default), all weights are equal. Used in both MAP and NP methods. Note that `weights` argument will also affect residuals (residuals will be scaled too).}
 

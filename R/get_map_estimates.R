@@ -12,7 +12,7 @@
 #' @param iov_bins bins for inter-occasion variability. Passed unchanged to PKPDsim.
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
 #' @param ltbs log-transform both sides? (`NULL` by default, meaning that it will be picked up from the PKPDsim model. Can be overridden with `TRUE`). Note: `error` should commonly only have additive part.
-#' @param censoring censoring specification. Needs to be a list containing: `label` (column in `data` indicating censoring limit, should be different from 0), and `type` (`lower` or `upper`), e.g. `list(label='lloq', type = 'lower')`.
+#' @param censoring label for column specifying censoring. If value in dataset in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.
 #' @param mixture specify mixture model. Currently for single parameter only. Overwrites regular parameter, if specified. Specify e.g. as: `mixture = list("CL" = c(5, 9))`
 #' @param include_omega TRUE
 #' @param include_error TRUE
@@ -49,6 +49,7 @@ get_map_estimates <- function(
                       include_omega = TRUE,
                       include_error = TRUE,
                       regimen = NULL,
+                      t_init = 0,
                       int_step_size = 0.1,
                       optimizer = "optim",
                       method = "BFGS",
@@ -100,10 +101,8 @@ get_map_estimates <- function(
     warning("No residual error specified, using: 10% proportional + 0.1 additive error.")
     list(prop = 0.1, add = 0.1, exp = 0)
   }
-  if(!is.null(censoring)) {
-    if(is.null(censoring$type) || is.null(censoring$label)) {
-      stop("Censoring argument requires list containing `type`, and `label` elements.")
-    }
+  if(!is.null(censoring) && class(censoring) != "character") {
+    stop("Censoring argument requires label specifying column in dataset with censoring info.")
   }
   if(!("function" %in% class(model))) {
     stop("The 'model' argument requires a function, e.g. a model defined using the new_ode_model() function from the PKPDsim package.")
@@ -189,10 +188,15 @@ get_map_estimates <- function(
       }
     }
     sim_object$p <- par
-    ipred <- transf(PKPDsim::sim_core(sim_object, ode = model, duplicate_t_obs = TRUE)$y)
+    ipred <- transf(PKPDsim::sim_core(
+      sim_object, ode = model,
+      duplicate_t_obs = TRUE,
+      t_init = t_init)$y)
     dv <- transf(data$y)
     ofv_cens <- NULL
     if(!is.null(censoring_idx)) {
+      cens <- data[[censoring_label]][censoring_idx] # if <0 then LLOQ, if >0 ULOQ
+      cens <- ifelse(cens > 0, -1, 1)
       ipred_cens <- ipred[censoring_idx]
       ipred <- ipred[!censoring_idx]
       dv_cens <- dv[censoring_idx]
@@ -200,7 +204,7 @@ get_map_estimates <- function(
       weights_cens <- weights[censoring_idx]
       weights <- weights[!censoring_idx]
       res_sd_cens <- sqrt(error$prop^2*ipred_cens^2 + error$add^2)
-      ofv_cens <- stats::pnorm(dv_cens - ipred_cens, 0, res_sd_cens, log=TRUE) * weights_cens
+      ofv_cens <- stats::pnorm((dv_cens - ipred_cens) * cens, 0, res_sd_cens, log=TRUE) * weights_cens
     }
     res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
     et <- mget(objects()[grep("^eta", objects())])
@@ -269,8 +273,8 @@ get_map_estimates <- function(
   ## check if censoring code needs to be used
   censoring_idx <- NULL
   if(!is.null(censoring)) {
-    if(any(data[[tolower(censoring$label)]] != 0)) {
-      censoring_idx <- data[[tolower(censoring$label)]] != 0
+    if(any(data[[tolower(censoring)]] != 0)) {
+      censoring_idx <- data[[tolower(censoring)]] != 0
       if(verbose) message("One or more values in data are censored, including censoring in likelihood.")
     } else {
       if(verbose) message("Warning: censoring specified, but no censored values in data.")
@@ -292,9 +296,10 @@ get_map_estimates <- function(
                                only_obs = TRUE,
                                A_init = A_init,
                                fixed = fixed,
-                               t_max = tail(t_obs, 1) + 1,
+                               t_max = tail(t_obs, 1) + t_init + 1,
                                iov_bins = iov_bins,
                                return_design = TRUE,
+                               t_init = t_init,
                                ...)
   })
 
@@ -326,7 +331,7 @@ get_map_estimates <- function(
                                      sig = sig,
                                      as_eta = as_eta,
                                      censoring_idx = censoring_idx,
-                                     censoring_label = censoring$label,
+                                     censoring_label = censoring,
                                      iov_bins = iov_bins),
                          fixed = fix)
       ofvs <- c(ofvs, bbmle::logLik(fits[[i]]))
@@ -357,7 +362,7 @@ get_map_estimates <- function(
                                    sig = sig,
                                    as_eta = as_eta,
                                    censoring_idx = censoring_idx,
-                                   censoring_label = censoring$label,
+                                   censoring_label = censoring,
                                    iov_bins = iov_bins),
                        fixed = fix)
   }
@@ -436,6 +441,7 @@ get_map_estimates <- function(
                            checks = FALSE,
                            A_init = A_init,
                            output_include = output_include,
+                           t_init = t_init,
                            ...)
     })
     suppressMessages({
@@ -449,6 +455,7 @@ get_map_estimates <- function(
                           only_obs = TRUE,
                           checks = FALSE,
                           A_init = A_init,
+                          t_init = t_init,
                           ...)
     })
     ipred <- sim_ipred$y
