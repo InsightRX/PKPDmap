@@ -18,6 +18,7 @@ This R library implements various methods for fitting of individual PK(PD) data.
 
 The module also supports sequential MAP Bayesian estimation (using anyone of the aforementioned methods), thus allowing the Bayes estimates to change over time. This can be useful for fitting data from patients in which PK is changing over time, such as commonly observed in patients on the ICU.
 
+
 ## License
 
 MIT
