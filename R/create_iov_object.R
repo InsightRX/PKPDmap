@@ -32,21 +32,26 @@ create_iov_object <- function(cv = list(CL = 0.1),
   if(is.null(omega)) {
     stop("No omega block specified.")
   }
-  if("TDM_INIT" %in% names(parameters) && !is.null(tdm_init_level)) {
-    parameters$TDM_INIT <- tdm_init_level
-    if(!estimate_init_level) {
-      ## Add TDM_INIT to fixed parameters, if listed in parameters and we don't want to estimate
-      fixed <- unique(c(fixed, "TDM_INIT"))
-    } else {
-      ## otherwise we have to increase the omega_matrix with one row, to allow estimation of TDM_INIT
-      if(is.null(ruv)) {
-        stop("Residual variability required when estimating init level.")
+  om_init <- NULL
+  if("TDM_INIT" %in% names(parameters)) {
+    if(!is.null(tdm_init_level) && tdm_init_level != 0) {
+      parameters$TDM_INIT <- tdm_init_level
+      if(!estimate_init_level) {
+        ## Add TDM_INIT to fixed parameters, if listed in parameters and we don't want to estimate
+        fixed <- unique(c(fixed, "TDM_INIT"))
+      } else {
+        ## otherwise we have to increase the omega_matrix with one row, to allow estimation of TDM_INIT
+        if(is.null(ruv)) {
+          stop("Residual variability required when estimating init level.")
+        }
+        init_var <- 0
+        if(!is.null(ruv$exp))  init_var <- init_var + (ruv$exp)^2 # treat as proportional
+        if(!is.null(ruv$prop)) init_var <- init_var + (ruv$prop)^2
+        if(!is.null(ruv$add))  init_var <- init_var + (ruv$add/tdm_init_level)^2
+        om_init <- init_var / init_level_weight^2
       }
-      init_var <- 0
-      if(!is.null(ruv$exp))  init_var <- init_var + (ruv$exp)^2 # treat as proportional
-      if(!is.null(ruv$prop)) init_var <- init_var + (ruv$prop)^2
-      if(!is.null(ruv$exp))  init_var <- init_var + (ruv$add/tdm_init_level)^2
-      omega <- join_blocks(omega, init_var / init_level_weight^2, as_triangle = FALSE)
+    } else {
+      fixed <- unique(c(fixed, "TDM_INIT"))
     }
   }
   if(is.null(cv)) {
@@ -54,6 +59,7 @@ create_iov_object <- function(cv = list(CL = 0.1),
     # make sure all kappa parameters (if present) are included in fixed vector
     iov_par <- grep("kappa_", names(parameters))
     fixed <- unique(c(fixed, names(parameters)[iov_par]))
+    if(!is.null(om_init)) omega <- join_blocks(omega, om_init, as_triangle = ifelse(class(omega) == "matrix", TRUE, FALSE))
     return(list(
       parameters = parameters,
       kappa = c(),
@@ -87,6 +93,9 @@ create_iov_object <- function(cv = list(CL = 0.1),
 
   non_iov <- parameters[!iov_par]
   new_par <- c(non_iov[1:n_om], iov_list, non_iov[(n_om+1):length(non_iov)])
+
+  if(!is.null(om_init)) om_new <- join_blocks(om_new, om_init, as_triangle = ifelse(class(omega) == "matrix", TRUE, FALSE))
+
   return(list(
     parameters = new_par,
     kappa = kappa,
