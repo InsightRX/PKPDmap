@@ -4,6 +4,12 @@ committer_email=$(git log -1 --pretty=%ae)
 slack_user_list=$(curl -H "application/x-www-form-urlencoded" "https://slack.com/api/users.list?token=$KHALEESI_SLACK_TOKEN&pretty=1")
 members=()
 
+if [[ $committer_email == "ronkeizer@gmail.com" ]]; then
+  committer_email="ron@insight-rx.com"
+fi
+
+echo $committer_email
+
 members+=($(echo "$slack_user_list" | jq -r ".members[$a].id"))
 
 for (( a=0; a<${#members[@]}; a++ ))
