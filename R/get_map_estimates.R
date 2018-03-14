@@ -189,7 +189,8 @@ get_map_estimates <- function(
     }
     sim_object$p <- par
     ipred <- transf(PKPDsim::sim_core(
-      sim_object, ode = model,
+      sim_object,
+      ode = model,
       duplicate_t_obs = TRUE,
       t_init = t_init)$y)
     dv <- transf(data$y)
