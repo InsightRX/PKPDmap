@@ -347,7 +347,8 @@ get_map_estimates <- function(
       probabilities = prob
     )
   } else {
-    fit <- bbmle::mle2(ll_func,
+    output <- tryCatch({
+      fit <- bbmle::mle2(ll_func,
                        start = eta,
                        method = method,
                        optimizer = optimizer,
@@ -366,6 +367,10 @@ get_map_estimates <- function(
                                    censoring_label = censoring,
                                    iov_bins = iov_bins),
                        fixed = fix)
+    }, error = function(e) {
+       return(e)
+    })
+    if("error" %in% class(output)) return(output)
   }
   cf <- bbmle::coef(fit)
   par <- parameters
