@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_its.R
 \name{run_its}
 \alias{run_its}
-\title{Iterative Two State (ITS) estimation method for PK data}
+\title{Crude implementation of Iterative Two State Bayesian (ITSB) estimation method for PopPK data}
 \usage{
 run_its(parameters = NULL, omega = NULL, err = 100, regimen = NULL,
   model = NULL, max_iter = 5, data = NULL, min_crit = 0.01, ...)
@@ -30,6 +30,6 @@ run_its(parameters = NULL, omega = NULL, err = 100, regimen = NULL,
 Note: this estimation method is mostly for demonstration purposes
 as it is unstable, biased, and imprecise. The implementation
 in this package is also pretty slow. It is however
-a great example estimation method e.g. for teaching the concept
+a nice example estimation method e.g. for teaching the concept
 of estimation methods in pharmacokinetics.
 }
