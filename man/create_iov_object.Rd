@@ -7,8 +7,9 @@ and the right size of the new omega matrix.
 Currently only working for a single parameter!}
 \usage{
 create_iov_object(cv = list(CL = 0.1), omega = c(0.1), bins = c(0, 24, 48,
-  9999), parameters = list(CL = 5), fixed = NULL, n = NULL,
-  verbose = TRUE)
+  9999), parameters = list(CL = 5), tdm_init_level = NULL,
+  estimate_init_level = FALSE, init_level_weight = 0.5, ruv = NULL,
+  fixed = NULL, n = NULL, verbose = TRUE)
 }
 \arguments{
 \item{cv}{list of CVs of parameters}
@@ -18,6 +19,14 @@ create_iov_object(cv = list(CL = 0.1), omega = c(0.1), bins = c(0, 24, 48,
 \item{bins}{vector of bins for IOV}
 
 \item{parameters}{named list of parameter values}
+
+\item{tdm_init_level}{pre-first dose TDM level}
+
+\item{estimate_init_level}{estimate the pre-dose. If FALSE, will use any TDM levels before first dose as the deterministic level for compartment initiation.}
+
+\item{init_level_weight}{weight in MAP fit for init level}
+
+\item{ruv}{residual variability model. Required when estimate_init_level is `TRUE` to estimate error on init level.}
 
 \item{fixed}{vector of fixed parameters}
 
