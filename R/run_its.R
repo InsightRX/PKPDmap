@@ -26,6 +26,15 @@ run_its <- function(
   data = NULL,
   min_crit = 0.01,
   ...) {
+  
+  check_high_corr <- function(cov_mat, limit = 0.99) {
+    tmp <- cov2cor(cov_mat)  
+    if(any(tmp[lower.tri(tmp)] > limit)) {
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+  }
 
   ## initialize
   par_tmp   <- parameters
@@ -33,8 +42,9 @@ run_its <- function(
   err_tmp   <- err  # additive error
   cvs       <- diag(triangle_to_full(omega))
   ids       <- unique(data$id)
+  message(paste0("Found ", length(ids), " subjects in dataset."))
   par_mn    <- unlist(parameters)
-  all_pars  <- c()  
+  all_pars  <- c(par_mn, diag(triangle_to_full(omega)))  
   
   ## loop iterations, only break when max_iter reached or stopping criterion reached
   for(j in 1:max_iter) {
@@ -51,28 +61,30 @@ run_its <- function(
     ## loop over patients
     pb <- txtProgressBar(min = 0, max = length(ids), initial = 0, style = 3)
     for(i in seq(ids)) {
-      dv <- data[data$id == i & data$EVID == 0,]
-      tmp <- get_map_estimates(parameters = par_tmp,
-                          model = model,
-                          regimen = regimen,
-                          omega = omega_tmp,
-                          weights = rep(1, length(dv[,1])),
-                          error = err_tmp,
-                          int_step_size = 1,
-                          data = dv,
-                          residuals = TRUE,
-                          include_error = TRUE,
-                          ...
+      dv <- data[data$id == ids[i] && data$evid == 0,]
+      dv <- data %>% filter(id == ids[i], evid == 0)
+      tmp <- get_map_estimates(
+        parameters = par_tmp,
+        model = model,
+        regimen = regimen,
+        omega = omega_tmp,
+        # weights = rep(1, length(dv[,1])),
+        error = err_tmp,
+        int_step_size = 1,
+        data = dv,
+        residuals = TRUE,
+        include_error = TRUE,
+        ...
       )
       setTxtProgressBar(pb, i)
       pars <- rbind(pars, cbind(t(as.numeric(unlist(tmp$parameters)))))
       etas <- rbind(etas, cbind(t(as.numeric(unlist(tmp$fit@coef)))))
-      resid <- rbind(resid, cbind(ipred = tmp$ipred, ires = abs(tmp$ires)))
+      resid <- rbind(resid, cbind(t = tmp$t, pred = tmp$pred, ipred = tmp$ipred, ires = abs(tmp$ires), dv = tmp$dv))
     }
     
     ## update parameters to mean of estimates
-    par_mn <- apply(pars, 2, function(x) { exp(mean(log(x)) ) } )
-    # par_mn <- apply(pars, 2, mean)
+    # par_mn <- apply(pars, 2, function(x) { exp(mean(log(x)) ) } )
+    par_mn <- apply(pars, 2, mean)
     par_tmp <- parameters
     for(k in seq(names(parameters))) {
       par_tmp[[k]] <- par_mn[k]
@@ -81,10 +93,10 @@ run_its <- function(
     ## update between-subject variability estimate
     omega_tmp1 <- cov(etas)
     if(!check_high_corr(omega_tmp1)) {
-      omega_tmp <- full_to_triangle(omega_tmp1)
+      omega_tmp <- omega_tmp1 # full_to_triangle(omega_tmp1)
     } else {
       message("High correlation in IIV matrix, resetting correlation to 0.")
-      omega_tmp <- full_to_triangle(omega_tmp1 * diag(ncol(omega_tmp1)))
+      omega_tmp <- omega_tmp1 * diag(ncol(omega_tmp1))
     }
     cvs <- diag(omega_tmp1)
 
@@ -95,19 +107,19 @@ run_its <- function(
       fit_prop <- glm(ires ~ ipred + 0 + offset(rep(intercept, length(resid[,1]))), data = data.frame(resid))
       err_tmp <- list(prop = coef(fit_prop)[1], add = 0)
     } else {
-      err_tmp <- list(prop = coef(fit_prop)[2], add = coef(fit_prop)[1])
+      err_tmp <- list(prop = coef(fit_comb)[2], add = coef(fit_comb)[1])
     }
 
     ## stopping criterion
     all_pars <- rbind(all_pars, c(par_mn, cvs))
     if(j > 1) {
       crit <- mean(abs(all_pars[j,] - all_pars[j-1,]) / all_pars[j-1,])
-      message(paste0("Stopping parameter: ", crit, " (min value ", min_crit, ")"))
+      message(paste0("\nStopping parameter: ", crit, " (min value ", min_crit, ")"))
       if(crit < min_crit) {
         message("Minimization criterion reached, stopping search.")
-        return(all_pars)
+        return(list(parameters = all_pars, res = resid))
       }
     }
-    
   }
+  return(list(parameters = all_pars, res = resid))
 } 

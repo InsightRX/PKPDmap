@@ -22,6 +22,7 @@
 #' @param optimizer optimization library to use, default is `optim`
 #' @param method optimization method, default `BFGS`
 #' @param control list of options passed to `optim()` function
+#' @param allow_obs_before_dose allow observation before first dose?
 #' @param type estimation type, options are `map`, `ls`, and `np_hybrid`
 #' @param np_settings list with settings for non-parametric estimation (if selected), containing any of the following: `error`, `grid_span`, grid_size`, `grid_exponential`
 #' @param cols column names
@@ -54,6 +55,7 @@ get_map_estimates <- function(
                       optimizer = "optim",
                       method = "BFGS",
                       control = list(reltol = 1e-5),
+                      allow_obs_before_dose = FALSE,
                       type = "map",
                       np_settings = list(),
                       cols = list(x = "t", y = "y"),
@@ -124,13 +126,15 @@ get_map_estimates <- function(
   }
   zero_offset <- NULL
   y_orig <- data$y
-  if(any(data$t < min(regimen$dose_times))) { # protection against solving ODE from t < 0
-    zero_offset <- rep(0, sum(data$t < min(regimen$dose_times)))
-    filt <- data$t >= min(regimen$dose_times)
-    if(!is.null(weights) && length(weights) == length(data$t) ) {
-      weights <- weights[filt]
+  if(!allow_obs_before_dose) {
+    if(any(data$t < min(regimen$dose_times))) { # protection against solving ODE from t < 0
+      zero_offset <- rep(0, sum(data$t < min(regimen$dose_times)))
+      filt <- data$t >= min(regimen$dose_times)
+      if(!is.null(weights) && length(weights) == length(data$t) ) {
+        weights <- weights[filt]
+      }
+      data <- data[filt,]
     }
-    data <- data[filt,]
   }
   t_obs <- data$t
   if(any(duplicated(t_obs))) message("Duplicate times were detected in data. Estimation will proceed but please check that data is correct. For putting more weight on certain measurements, please use the `weights` argument.")

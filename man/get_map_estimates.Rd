@@ -10,10 +10,11 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   censoring = NULL, mixture = NULL, weights = NULL,
   include_omega = TRUE, include_error = TRUE, regimen = NULL,
   t_init = 0, int_step_size = 0.1, optimizer = "optim", method = "BFGS",
-  control = list(reltol = 1e-05), type = "map", np_settings = list(),
-  cols = list(x = "t", y = "y"), residuals = TRUE, verbose = FALSE,
-  A_init = NULL, skip_hessian = FALSE, output_include = list(covariates =
-  FALSE, parameters = FALSE), ...)
+  control = list(reltol = 1e-05), allow_obs_before_dose = FALSE,
+  type = "map", np_settings = list(), cols = list(x = "t", y = "y"),
+  residuals = TRUE, verbose = FALSE, A_init = NULL,
+  skip_hessian = FALSE, output_include = list(covariates = FALSE, parameters
+  = FALSE), ...)
 }
 \arguments{
 \item{model}{model, created using `PKPDsim::new_ode_model()`}
@@ -38,7 +39,7 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 
 \item{ltbs}{log-transform both sides? (`NULL` by default, meaning that it will be picked up from the PKPDsim model. Can be overridden with `TRUE`). Note: `error` should commonly only have additive part.}
 
-\item{censoring}{censoring specification. Needs to be a list containing: `label` (column in `data` indicating censoring limit, should be different from 0), and `type` (`lower` or `upper`), e.g. `list(label='lloq', type = 'lower')`.}
+\item{censoring}{label for column specifying censoring. If value in dataset in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
 
 \item{mixture}{specify mixture model. Currently for single parameter only. Overwrites regular parameter, if specified. Specify e.g. as: `mixture = list("CL" = c(5, 9))`}
 
@@ -57,6 +58,8 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 \item{method}{optimization method, default `BFGS`}
 
 \item{control}{list of options passed to `optim()` function}
+
+\item{allow_obs_before_dose}{allow observation before first dose?}
 
 \item{type}{estimation type, options are `map`, `ls`, and `np_hybrid`}
 
