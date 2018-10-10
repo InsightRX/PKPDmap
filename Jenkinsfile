@@ -56,10 +56,6 @@
           ./slack_notification.sh
           exit 1
           }
-          R CMD check . --no-manual || { export STATUS=failed
-          ./slack_notification.sh
-          exit 1
-          }
           """
         }
 
