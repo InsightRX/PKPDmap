@@ -263,9 +263,9 @@ get_map_estimates <- function(
   if(class(omega) == "matrix") {
     omega_full <- omega # dummy om matrix
   } else {
-    omega_full <- triangle_to_full(omega) # dummy om matrix
+    omega_full <-  PKPDsim::triangle_to_full(omega) # dummy om matrix
   }
-  om_nonfixed <- triangle_to_full(omega)
+  om_nonfixed <-  PKPDsim::triangle_to_full(omega)
   if(nrow(om_nonfixed) < (length(parameters) - length(fixed))) {
     msg <- "Provided omega matrix is smaller than expected based on the number of model parameters. Either fix some parameters or increase the size of the omega matrix.\n"
     msg <- c(msg,

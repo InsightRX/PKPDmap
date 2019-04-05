@@ -40,11 +40,11 @@ run_its <- function(
   par_tmp   <- parameters
   omega_tmp <- omega
   err_tmp   <- err  # additive error
-  cvs       <- diag(triangle_to_full(omega))
+  cvs       <- diag(PKPDsim::triangle_to_full(omega))
   ids       <- unique(data$id)
   message(paste0("Found ", length(ids), " subjects in dataset."))
   par_mn    <- unlist(parameters)
-  all_pars  <- c(par_mn, diag(triangle_to_full(omega)))  
+  all_pars  <- c(par_mn, diag(PKPDsim::triangle_to_full(omega)))  
   
   ## loop iterations, only break when max_iter reached or stopping criterion reached
   for(j in 1:max_iter) {

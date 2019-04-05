@@ -9,12 +9,12 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
   weight_prior = 1, iov_bins = NULL, error = NULL, ltbs = NULL,
   censoring = NULL, mixture = NULL, weights = NULL,
   include_omega = TRUE, include_error = TRUE, regimen = NULL,
-  t_init = 0, int_step_size = 0.1, optimizer = "optim", method = "BFGS",
-  control = list(reltol = 1e-05), allow_obs_before_dose = FALSE,
-  type = "map", np_settings = list(), cols = list(x = "t", y = "y"),
-  residuals = TRUE, verbose = FALSE, A_init = NULL,
-  skip_hessian = FALSE, output_include = list(covariates = FALSE, parameters
-  = FALSE), ...)
+  t_init = 0, int_step_size = 0.1, optimizer = "optim",
+  method = "BFGS", control = list(reltol = 1e-05),
+  allow_obs_before_dose = FALSE, type = "map", np_settings = list(),
+  cols = list(x = "t", y = "y"), residuals = TRUE, verbose = FALSE,
+  A_init = NULL, skip_hessian = FALSE,
+  output_include = list(covariates = FALSE, parameters = FALSE), ...)
 }
 \arguments{
 \item{model}{model, created using `PKPDsim::new_ode_model()`}
