@@ -6,7 +6,7 @@
 #' @param regimen PKPDsim regimen
 #' @param parameters population values for parameters for `model``
 #' @param omega vector or matrix specifying lower triangle or full variance-covariance matrix for between-individual variability
-#' @param ruv list specifying residual variability model (see `PKPDsim` for more details)
+#' @param error list specifying residual variability model (see `PKPDsim` for more details)
 #' @param covariates covariates for `model`, if present
 #' @param data data.frame with `t` and `y` columns
 #' @param breaks_by_data set breaks automatically (`T`/`F``), 1 data point per section (end of section).
@@ -27,7 +27,7 @@ run_sequential_map <- function(
   parameters = NULL,
   covariates = NULL,
   omega = NULL,
-  ruv = NULL,
+  error = NULL,
   data = NULL,
   breaks_by_data = TRUE,
   breaks_by_time = FALSE,
@@ -58,7 +58,7 @@ run_sequential_map <- function(
   if(is.null(omega)) {
     stop("No omega matrix specified!")
   }
-  if(is.null(ruv)) {
+  if(is.null(error)) {
     stop("No residual variability specified!")
   }
   if(weight_focus == 0) {
@@ -75,7 +75,7 @@ run_sequential_map <- function(
       breaks <- unique(c(seq(from = 0, to = max(data$t), by = break_interval), max(data$t)))
     }
   }
-  breaks <- unique(c(0, breaks))
+  breaks <- unique(c(breaks))
   
   ## Initialize variables for loop
   fits <- list()
@@ -104,47 +104,64 @@ run_sequential_map <- function(
     pb <- txtProgressBar(min = 1, max = length(breaks))
   }
   t_max_calc <- regimen$dose_times + regimen$interval
+  om_init <- omega
+  par_init <- parameters
   
   ## Start loop over sections
-  for(i in 2:length(breaks)) {
+  for(i in 1:length(breaks)) {
 
     if(progress) { setTxtProgressBar(pb, i) }
 
     reg_tmp <- regimen
     obs_tmp <- data
-    t_last <- 0
-    if(i > 1) { # update data
-      t_last <- breaks[i-1]
-      reg_tmp$dose_times <- reg_tmp$dose_times - t_last
-      reg_tmp$dose_times <- reg_tmp$dose_times[reg_tmp$dose_times >= 0]
-      reg_tmp$dose_amts <- tail(reg_tmp$dose_amts, length(reg_tmp$dose_times))
-      reg_tmp$t_inf <- tail(reg_tmp$t_inf, length(reg_tmp$dose_times))
-      reg_tmp$type <- tail(reg_tmp$type, length(reg_tmp$dose_times))
-      obs_tmp <- data[data$t > t_last,]
-      obs_tmp$t <- obs_tmp$t - t_last
-      # do covariates too!
-    }
-    t1 <- 0
-    t2 <- breaks[i] - t_last
     
-    ## Set weights for points
-    weights <- rep(weight_nonfocus, length(obs_tmp$t))
-    weights[obs_tmp$t < t2] <- weight_focus
-
+    # times:
+    t1 <- c(0, breaks)[i]
+    t2 <- breaks[i]
+    
+    # shorten regimen to only the relevant part
+    reg_tmp$dose_times <- reg_tmp$dose_times - t1
+    reg_tmp$dose_times <- reg_tmp$dose_times[reg_tmp$dose_times >= 0]
+    reg_tmp$dose_amts <- tail(reg_tmp$dose_amts, length(reg_tmp$dose_times))
+    reg_tmp$t_inf <- tail(reg_tmp$t_inf, length(reg_tmp$dose_times))
+    reg_tmp$type <- tail(reg_tmp$type, length(reg_tmp$dose_times))
+    if(length(reg_tmp$dose_times) == 0) {
+      reg_tmp <- PKPDsim::new_regimen(amt = 0, times=0)
+    }
+    
+    # only use the relevant observation data
+    obs_tmp <- data[data$t > t1 & data$t <= t2,]
+    obs_tmp$t <- obs_tmp$t - t1
+    
     ## Fit to data from i to end
     fits[[i]] <- PKPDmap::get_map_estimates(
       model = model,
       data = obs_tmp,
       A_init = A_init,
       regimen = reg_tmp,
-      omega = omega,
+      omega = om_init,
       covariates = covariates,
-      weights = weights,
       weight_prior = weight_prior,
-      parameters = parameters,
-      ruv = ruv,
-      verbose = FALSE,
-      ...)
+      parameters = par_init,
+      error = error,
+      verbose = FALSE)
+    
+    ## Update parameters
+    om_init <- fits[[i]]$vcov_full
+    par_init <- fits[[i]]$parameters
+    
+    stdv <- insightrxr:::get_var_y(
+      model = model,
+      A_init = A_init,
+      regimen = reg_tmp,
+      omega = as.numeric(om_init)[-3], ## FIX!
+      covariates = covariates,
+      weight_prior = weight_prior,
+      parameters = par_init,
+      error = error,
+      t_obs = c(seq(from = 0, to = t2 - t1, by = 0.1)),
+      verbose = FALSE)
+    
 
     ## simulate out data from i-1 to i
     tmp <- PKPDsim::sim_ode(ode = model,
@@ -153,15 +170,18 @@ run_sequential_map <- function(
                    parameters = fits[[i]]$parameters,
                    omega = NULL, ruv = NULL,
                    A_init = A_init,
-                   t_obs=c(seq(from = t1, to = floor(t2), by = 0.1), t2),
+                   t_obs = c(seq(from = 0, to = t2 - t1, by = 0.1)),
                    verbose = FALSE)
 
     ## Save data 
     conc <- rbind(conc,
-                  tmp %>% filter(comp == "obs") %>% mutate(t = t + t_last))
+                  tmp %>% 
+                    filter(comp == "obs") %>%
+                    mutate(stdv = stdv) %>%
+                    mutate(t = t + t1))
     par_table <- rbind(par_table,
-                       cbind(t1 = t1 + t_last,
-                             t2 = t2 + t_last, as.data.frame(fits[[i]]$parameters)))
+                       cbind(t1 = t1,
+                             t2 = t2, as.data.frame(fits[[i]]$parameters)))
     tmp_filt <- tmp %>%
       dplyr::filter(t == max(t) & !duplicated(t) & comp != "obs")
     
@@ -174,7 +194,7 @@ run_sequential_map <- function(
   class(conc) <- c("PKPDsim_data", "data.frame")
   return(list(
     fit = fits,
-    obs = conc,
+    obs = conc, # %>% group_by(t) %>% summarise(y = mean(y)),
     parameters = par_table
   ))
 }
