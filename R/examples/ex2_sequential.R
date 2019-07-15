@@ -11,12 +11,12 @@ library(pk1cmtiv)
 ## define parameters
 # pk1 <- new_ode_model(code = "dAdt[1] = -(CL/V)*A[1]")
 pk1 <- pk1cmtiv::model()
-regimen  <- new_regimen(amt = 500, interval = 6, times=c(0,24), n = 5, type="infusion")
+regimen  <- new_regimen(amt = 1500, interval = 12, n = 5, type="infusion")
 parameters   <- list("CL" = 5, "V" = 100) 
 par_prior <- list("CL" = 7, "V" = 80)
 # omega = PKPDsim::cv_to_omega(list("CL" = 0.2, "V" = 0.2, "KA" = 0.1), parameters)
 omega <- PKPDsim::cv_to_omega(list("CL" = 0.4, "V" = 0.4), parameters[1:2])
-ruv <- list(prop = 0.15, add = 0.2)
+ruv <- list(prop = 0.15, add = 0.1)
 
 ## simulate single individual in population
 data <- sim_ode(ode = pk1, 
@@ -50,6 +50,7 @@ fits <- run_sequential_map(model = pk1,
                           parameters = par_prior,
                           omega = omega,
                           regimen = regimen,
+                          update_omega = TRUE,
                           error = ruv)
 
 fits$obs %>%
@@ -58,8 +59,7 @@ fits$obs %>%
     geom_ribbon(aes(ymin = y-1.96*stdv, ymax = y+1.96*stdv), fill="#bfbfbf") +
     geom_line() + 
     geom_line(data=ipred1, colour='darkblue', linetype = 'dashed') + 
-    geom_point(data = data) +
-    scale_y_log10()
+    geom_point(data = data)
 
 fits$obs %>%
   filter(t %in% data$t) 

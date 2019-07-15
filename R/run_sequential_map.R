@@ -37,6 +37,7 @@ run_sequential_map <- function(
   weight_prior = 1,
   weight_focus = 1,
   weight_nonfocus = 0,
+  update_omega = TRUE,
   verbose = FALSE,
   progress = TRUE,
   ...
@@ -147,14 +148,16 @@ run_sequential_map <- function(
       verbose = FALSE)
     
     ## Update parameters
-    om_init <- fits[[i]]$vcov_full
+    if(update_omega) {
+      om_init <- as.numeric(fits[[i]]$vcov_full)[-3] ## FIX
+    }
     par_init <- fits[[i]]$parameters
     
     stdv <- insightrxr:::get_var_y(
       model = model,
       A_init = A_init,
       regimen = reg_tmp,
-      omega = as.numeric(om_init)[-3], ## FIX!
+      omega = om_init,
       covariates = covariates,
       weight_prior = weight_prior,
       parameters = par_init,

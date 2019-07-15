@@ -1,8 +1,8 @@
 Package: PKPDmap
 Type: Package
 Title: MAP Bayesian estimates
-Version: 0.11
-Date: 2019-06-28
+Version: 0.12
+Date: 2019-07-15
 Author: Ron Keizer
 Maintainer: Ron Keizer <ronkeizer@gmail.com>
 Description: Obtain MAP Bayesian estimates based on individual data and
