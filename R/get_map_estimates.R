@@ -213,12 +213,13 @@ get_map_estimates <- function(
       cens <- ifelse(cens > 0, -1, 1)
       ipred_cens <- ipred[censoring_idx]
       ipred <- ipred[!censoring_idx]
-      type <- type[!censoring_idx]
+      obs_type_cens <- obs_type[censoring_idx]
+      obs_type <- obs_type[!censoring_idx]
       dv_cens <- dv[censoring_idx]
       dv <- dv[!censoring_idx]
       weights_cens <- weights[censoring_idx]
       weights <- weights[!censoring_idx]
-      res_sd_cens <- sqrt(error$prop[obs_type]^2*ipred_cens^2 + error$add[obs_type]^2)
+      res_sd_cens <- sqrt(error$prop[obs_type_cens]^2*ipred_cens^2 + error$add[obs_type_cens]^2)
       ofv_cens <- stats::pnorm((dv_cens - ipred_cens) * cens, 0, res_sd_cens, log=TRUE) * weights_cens
     }
     res_sd <- sqrt(error$prop[obs_type]^2*ipred^2 + error$add[obs_type]^2)
