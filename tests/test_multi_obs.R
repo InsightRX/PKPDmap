@@ -1,6 +1,8 @@
 ## Example multiple observation types (with multiple residual errors)
+library(testit)
 library(PKPDsim)
 library(PKPDmap)
+Sys.setenv("R_TESTS" = "")
 
 ## define parameters
 pk1 <- new_ode_model(code = "dAdt[1] = -(CL/V)*A[1]", obs = list(scale="V/1000", cmt=1))
