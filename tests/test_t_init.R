@@ -35,6 +35,7 @@ fit4 <- get_map_estimates(parameters = par,
                          t_init = 4,
                          verbose = F
 )
+
 fit2 <- get_map_estimates(parameters = par,
                          model = mod,
                          fixed = c("TDM_INIT"),

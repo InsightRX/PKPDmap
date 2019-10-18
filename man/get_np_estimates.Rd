@@ -4,9 +4,9 @@
 \alias{get_np_estimates}
 \title{Get non-parametric estimates given a set of support points, model, and data}
 \usage{
-get_np_estimates(parameter_grid = NULL, error = list(prop = 0.1, add = 0.1),
-  model = NULL, covariates = NULL, regimen = NULL, data = NULL,
-  weights = NULL, ...)
+get_np_estimates(parameter_grid = NULL, error = list(prop = 0.1, add =
+  0.1), model = NULL, covariates = NULL, regimen = NULL,
+  data = NULL, weights = NULL, ...)
 }
 \arguments{
 \item{parameter_grid}{grid (data.frame) of support points}

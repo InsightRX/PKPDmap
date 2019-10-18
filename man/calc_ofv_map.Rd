@@ -4,8 +4,8 @@
 \alias{calc_ofv_map}
 \title{Calculate objective function value for MAP Bayesian fit}
 \usage{
-calc_ofv_map(eta, omega, dv, ipred, res_sd, weights = 1, weight_prior = 1,
-  include_omega = TRUE, include_error = TRUE)
+calc_ofv_map(eta, omega, dv, ipred, res_sd, weights = 1,
+  weight_prior = 1, include_omega = TRUE, include_error = TRUE)
 }
 \arguments{
 \item{eta}{eta's}
