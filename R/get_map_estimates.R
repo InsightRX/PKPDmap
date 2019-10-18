@@ -102,7 +102,6 @@ get_map_estimates <- function(
   } else {
     data$obs_type <- data[[obs_type_label]]
   }
-  obs_type <- data$obs_type
   if(!is.null(error)) { ## safety checks
     if(is.null(error$prop)) error$prop <- 0
     if(is.null(error$add)) error$add <- 0

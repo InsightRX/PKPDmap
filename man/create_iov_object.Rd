@@ -6,8 +6,8 @@
 and the right size of the new omega matrix.
 Currently only working for a single parameter!}
 \usage{
-create_iov_object(cv = list(CL = 0.1), omega = c(0.1), bins = c(0, 24, 48,
-  9999), parameters = list(CL = 5), tdm_init_level = NULL,
+create_iov_object(cv = list(CL = 0.1), omega = c(0.1), bins = c(0,
+  24, 48, 9999), parameters = list(CL = 5), tdm_init_level = NULL,
   estimate_init_level = FALSE, init_level_weight = 0.5, ruv = NULL,
   fixed = NULL, n = NULL, verbose = TRUE)
 }
