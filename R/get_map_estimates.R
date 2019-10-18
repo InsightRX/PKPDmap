@@ -462,6 +462,7 @@ get_map_estimates <- function(
                            only_obs = TRUE,
                            checks = FALSE,
                            A_init = A_init,
+                           iov_bins = iov_bins,
                            output_include = output_include,
                            t_init = t_init,
                            ...)
@@ -477,6 +478,7 @@ get_map_estimates <- function(
                           obs_type = data$obs_type,
                           only_obs = TRUE,
                           checks = FALSE,
+                          iov_bins = iov_bins,
                           A_init = A_init,
                           t_init = t_init,
                           ...)
