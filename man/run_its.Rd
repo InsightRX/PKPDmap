@@ -4,8 +4,17 @@
 \alias{run_its}
 \title{Crude implementation of Iterative Two State Bayesian (ITSB) estimation method for PopPK data}
 \usage{
-run_its(parameters = NULL, omega = NULL, err = 100, regimen = NULL,
-  model = NULL, max_iter = 5, data = NULL, min_crit = 0.01, ...)
+run_its(
+  parameters = NULL,
+  omega = NULL,
+  err = 100,
+  regimen = NULL,
+  model = NULL,
+  max_iter = 5,
+  data = NULL,
+  min_crit = 0.01,
+  ...
+)
 }
 \arguments{
 \item{parameters}{list of intial parameter estimates}
