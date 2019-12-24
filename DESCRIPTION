@@ -1,8 +1,8 @@
 Package: PKPDmap
 Type: Package
 Title: MAP Bayesian estimates
-Version: 0.18
-Date: 2019-11-26
+Version: 0.19
+Date: 2019-12-24
 Author: Ron Keizer
 Maintainer: Ron Keizer <ronkeizer@gmail.com>
 Description: Obtain MAP Bayesian estimates based on individual data and
@@ -11,4 +11,4 @@ License: MIT + file LICENSE
 Depends: dplyr, utils, stats
 Imports: mvtnorm, PKPDsim, bbmle, optimx
 Suggests: testit
-RoxygenNote: 7.0.1
+RoxygenNote: 7.0.2
