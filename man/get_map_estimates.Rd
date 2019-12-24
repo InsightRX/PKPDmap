@@ -4,17 +4,41 @@
 \alias{get_map_estimates}
 \title{Get MAP estimates}
 \usage{
-get_map_estimates(model = NULL, data = NULL, parameters = NULL,
-  covariates = NULL, fixed = c(), as_eta = c(), omega = NULL,
-  weight_prior = 1, iov_bins = NULL, error = NULL, ltbs = NULL,
-  censoring = NULL, mixture = NULL, weights = NULL,
-  include_omega = TRUE, include_error = TRUE, regimen = NULL,
-  t_init = 0, int_step_size = 0.1, optimizer = "optim",
-  method = "BFGS", control = list(reltol = 1e-05),
-  allow_obs_before_dose = FALSE, type = "map", np_settings = list(),
-  cols = list(x = "t", y = "y"), residuals = TRUE, verbose = FALSE,
-  A_init = NULL, skip_hessian = FALSE,
-  output_include = list(covariates = FALSE, parameters = FALSE), ...)
+get_map_estimates(
+  model = NULL,
+  data = NULL,
+  parameters = NULL,
+  covariates = NULL,
+  fixed = c(),
+  as_eta = c(),
+  omega = NULL,
+  weight_prior = 1,
+  iov_bins = NULL,
+  error = NULL,
+  ltbs = NULL,
+  obs_type_label = NULL,
+  censoring = NULL,
+  mixture = NULL,
+  weights = NULL,
+  include_omega = TRUE,
+  include_error = TRUE,
+  regimen = NULL,
+  t_init = 0,
+  int_step_size = 0.1,
+  optimizer = "optim",
+  method = "BFGS",
+  control = list(reltol = 1e-05),
+  allow_obs_before_dose = FALSE,
+  type = "map",
+  np_settings = list(),
+  cols = list(x = "t", y = "y"),
+  residuals = TRUE,
+  verbose = FALSE,
+  A_init = NULL,
+  skip_hessian = FALSE,
+  output_include = list(covariates = FALSE, parameters = FALSE),
+  ...
+)
 }
 \arguments{
 \item{model}{model, created using `PKPDsim::new_ode_model()`}
@@ -38,6 +62,8 @@ get_map_estimates(model = NULL, data = NULL, parameters = NULL,
 \item{error}{residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts}
 
 \item{ltbs}{log-transform both sides? (`NULL` by default, meaning that it will be picked up from the PKPDsim model. Can be overridden with `TRUE`). Note: `error` should commonly only have additive part.}
+
+\item{obs_type_label}{column name in `data` referring to observation type. Can be used for specification of different residual error models for differing observation types (e.g. venous and capillary or parent and metabolite), Residual error should then be specified as list of vectors, e.g. `list(prop = c(0.2, 0.1), add = c(1, 2))`.}
 
 \item{censoring}{label for column specifying censoring. If value in dataset in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
 

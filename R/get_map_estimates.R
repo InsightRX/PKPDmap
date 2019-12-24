@@ -12,6 +12,7 @@
 #' @param iov_bins bins for inter-occasion variability. Passed unchanged to PKPDsim.
 #' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
 #' @param ltbs log-transform both sides? (`NULL` by default, meaning that it will be picked up from the PKPDsim model. Can be overridden with `TRUE`). Note: `error` should commonly only have additive part.
+#' @param obs_type_label column name in `data` referring to observation type. Can be used for specification of different residual error models for differing observation types (e.g. venous and capillary or parent and metabolite), Residual error should then be specified as list of vectors, e.g. `list(prop = c(0.2, 0.1), add = c(1, 2))`.
 #' @param censoring label for column specifying censoring. If value in dataset in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.
 #' @param mixture specify mixture model. Currently for single parameter only. Overwrites regular parameter, if specified. Specify e.g. as: `mixture = list("CL" = c(5, 9))`
 #' @param include_omega TRUE
@@ -44,6 +45,7 @@ get_map_estimates <- function(
                       iov_bins = NULL,
                       error = NULL,
                       ltbs = NULL,
+                      obs_type_label = NULL,
                       censoring = NULL,
                       mixture = NULL,
                       weights = NULL,
@@ -94,6 +96,11 @@ get_map_estimates <- function(
     }
     calc_ofv <- calc_ofv_ls
     error <- list(prop = 0, add = 1)
+  }
+  if(is.null(obs_type_label)) {
+    data$obs_type <- 1
+  } else {
+    data$obs_type <- data[[obs_type_label]]
   }
   if(!is.null(error)) { ## safety checks
     if(is.null(error$prop)) error$prop <- 0
@@ -198,20 +205,23 @@ get_map_estimates <- function(
       duplicate_t_obs = TRUE,
       t_init = t_init)$y)
     dv <- transf(data$y)
+    obs_type <- data$obs_type
     ofv_cens <- NULL
     if(!is.null(censoring_idx)) {
       cens <- data[[censoring_label]][censoring_idx] # if <0 then LLOQ, if >0 ULOQ
       cens <- ifelse(cens > 0, -1, 1)
       ipred_cens <- ipred[censoring_idx]
       ipred <- ipred[!censoring_idx]
+      obs_type_cens <- obs_type[censoring_idx]
+      obs_type <- obs_type[!censoring_idx]
       dv_cens <- dv[censoring_idx]
       dv <- dv[!censoring_idx]
       weights_cens <- weights[censoring_idx]
       weights <- weights[!censoring_idx]
-      res_sd_cens <- sqrt(error$prop^2*ipred_cens^2 + error$add^2)
+      res_sd_cens <- sqrt(error$prop[obs_type_cens]^2*ipred_cens^2 + error$add[obs_type_cens]^2)
       ofv_cens <- stats::pnorm((dv_cens - ipred_cens) * cens, 0, res_sd_cens, log=TRUE) * weights_cens
     }
-    res_sd <- sqrt(error$prop^2*ipred^2 + error$add^2)
+    res_sd <- sqrt(error$prop[obs_type]^2*ipred^2 + error$add[obs_type]^2)
     et <- mget(objects()[grep("^eta", objects())])
     et <- as.numeric(as.character(et[et != ""]))
     omega_full <- as.matrix(omega_full)[1:length(et), 1:length(et)]
@@ -297,6 +307,7 @@ get_map_estimates <- function(
                                int_step_size = int_step_size,
                                regimen = regimen,
                                t_obs = t_obs,
+                               obs_type = data$obs_type,
                                checks = FALSE,
                                only_obs = TRUE,
                                A_init = A_init,
@@ -447,9 +458,11 @@ get_map_estimates <- function(
                            int_step_size = int_step_size,
                            regimen = regimen,
                            t_obs = t_obs,
+                           obs_type = data$obs_type,
                            only_obs = TRUE,
                            checks = FALSE,
                            A_init = A_init,
+                           iov_bins = iov_bins,
                            output_include = output_include,
                            t_init = t_init,
                            ...)
@@ -462,16 +475,18 @@ get_map_estimates <- function(
                           int_step_size = int_step_size,
                           regimen = regimen,
                           t_obs = t_obs,
+                          obs_type = data$obs_type,
                           only_obs = TRUE,
                           checks = FALSE,
+                          iov_bins = iov_bins,
                           A_init = A_init,
                           t_init = t_init,
                           ...)
     })
     ipred <- sim_ipred$y
     pred <- sim_pred$y
-    w_ipred <- sqrt(error$prop^2 * transf(ipred)^2 + error$add^2)
-    w_pred <- sqrt(error$prop^2 * transf(pred)^2 + error$add^2)
+    w_ipred <- sqrt(error$prop[data$obs_type]^2 * transf(ipred)^2 + error$add[data$obs_type]^2)
+    w_pred <- sqrt(error$prop[data$obs_type]^2 * transf(pred)^2 + error$add[data$obs_type]^2)
     y <- data$y
     prob <- list(par = c(mvtnorm::pmvnorm(cf, mean=rep(0, length(cf)),
                          sigma = omega_full[1:length(cf), 1:length(cf)])),

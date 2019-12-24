@@ -4,11 +4,26 @@
 \alias{run_sequential_map}
 \title{Perform a sequential MAP Bayesian fit.}
 \usage{
-run_sequential_map(model = NULL, regimen = NULL, parameters = NULL,
-  covariates = NULL, omega = NULL, ruv = NULL, data = NULL,
-  breaks_by_data = TRUE, breaks_by_time = FALSE, break_interval = 24,
-  breaks = NULL, A_init = NULL, weight_prior = 1, weight_focus = 1,
-  weight_nonfocus = 0, verbose = FALSE, progress = TRUE, ...)
+run_sequential_map(
+  model = NULL,
+  regimen = NULL,
+  parameters = NULL,
+  covariates = NULL,
+  omega = NULL,
+  ruv = NULL,
+  data = NULL,
+  breaks_by_data = TRUE,
+  breaks_by_time = FALSE,
+  break_interval = 24,
+  breaks = NULL,
+  A_init = NULL,
+  weight_prior = 1,
+  weight_focus = 1,
+  weight_nonfocus = 0,
+  verbose = FALSE,
+  progress = TRUE,
+  ...
+)
 }
 \arguments{
 \item{model}{PKPDsim model}
