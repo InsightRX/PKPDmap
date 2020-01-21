@@ -21,6 +21,7 @@
 #' @param A_init initial state vector
 #' @param int_step_size integrator step size passed to PKPDsim
 #' @param optimizer optimization library to use, default is `optim`
+#' @param use_ae use analytical equation, if available?
 #' @param method optimization method, default `BFGS`
 #' @param control list of options passed to `optim()` function
 #' @param allow_obs_before_dose allow observation before first dose?
@@ -55,6 +56,7 @@ get_map_estimates <- function(
                       t_init = 0,
                       int_step_size = 0.1,
                       optimizer = "optim",
+                      use_ae = FALSE,
                       method = "BFGS",
                       control = list(reltol = 1e-5),
                       allow_obs_before_dose = FALSE,
@@ -166,7 +168,8 @@ get_map_estimates <- function(
   } else {
     transf <- function(x) x
   }
-
+  sim_function <- ifelse(use_ae, PKPDsim::sim_core_ae, PKPDsim::sim_core)
+  
   #################################################
   ## Likelihood function using PKPDsim
   #################################################
@@ -188,22 +191,20 @@ get_map_estimates <- function(
     censoring_label,
     iov_bins,
     ...) {
-    par <- parameters
-    p <- as.list(match.call())
     for(i in seq(nonfixed)) {
       key <- nonfixed[i]
       if(key %in% p$as_eta) {
-        par[[key]] <- p[[(paste0("eta", sprintf("%02d", i)))]]
+        sim_object[["p"]][[key]] <- get(paste0("eta", sprintf("%02d", i)))
       } else {
-        par[[key]] <- par[[key]] * exp(p[[(paste0("eta", sprintf("%02d", i)))]])
+        sim_object[["p"]][[key]] <- sim_object[["p"]][[key]] * exp(get(paste0("eta", sprintf("%02d", i))))
       }
     }
-    sim_object$p <- par
-    ipred <- transf(PKPDsim::sim_core(
-      sim_object,
-      ode = model,
+    res <- sim_function(
+      sim_object = sim_object,
+      model = model,
       duplicate_t_obs = TRUE,
-      t_init = t_init)$y)
+      t_init = t_init)
+    ipred <- transf(res$y)
     dv <- transf(data$y)
     obs_type <- data$obs_type
     ofv_cens <- NULL
