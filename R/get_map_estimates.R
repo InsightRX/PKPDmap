@@ -265,7 +265,7 @@ get_map_estimates <- function(
                                      t_obs = t_obs,
                                      model = model,
                                      error = error,
-                                     omeg_full = omega_full,
+                                     omega_full = omega_full,
                                      nonfixed = nonfixed,
                                      transf = transf,
                                      omega_full = omega_full,
