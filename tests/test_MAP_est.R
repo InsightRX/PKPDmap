@@ -28,6 +28,7 @@ for(i in seq(unique(dat$id))) {
   fits <- rbind(fits, cbind(tmp$parameters$CL, tmp$parameters$V))
 }
 
+
 ## allow max deviation of 0.5% with NONMEM
 assert("PK 1cmt iv MAP CL estimate same as NONMEM (delta < 0.5%)", 
        max(fits[,1] - ebe$CL) / mean(ebe$CL) < 0.005)
