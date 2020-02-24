@@ -20,6 +20,7 @@
 #' @param regimen regimen
 #' @param A_init initial state vector
 #' @param int_step_size integrator step size passed to PKPDsim
+#' @param ll_func likelihood function, default is `ll_func_PKPDsim` as included in this package.
 #' @param optimizer optimization library to use, default is `optim`
 #' @param method optimization method, default `BFGS`
 #' @param control list of options passed to `optim()` function
@@ -54,6 +55,7 @@ get_map_estimates <- function(
                       regimen = NULL,
                       t_init = 0,
                       int_step_size = 0.1,
+                      ll_func = ll_func_PKPDsim,
                       optimizer = "optim",
                       method = "BFGS",
                       control = list(reltol = 1e-5),
@@ -167,86 +169,6 @@ get_map_estimates <- function(
     transf <- function(x) x
   }
 
-  #################################################
-  ## Likelihood function using PKPDsim
-  #################################################
-  ll_func_PKPDsim <- function(
-    data,
-    sim_object,
-    parameters,
-    t_obs,
-    # unfortunately seems no other way to do this using the optim package...
-    eta01, eta02, eta03, eta04, eta05, eta06, eta07, eta08, eta09, eta10,
-    eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20,
-    eta21, eta22, eta23, eta24,
-    error = error,
-    model,
-    sig,
-    weight_prior,
-    as_eta,
-    censoring_idx,
-    censoring_label,
-    iov_bins,
-    ...) {
-    par <- parameters
-    p <- as.list(match.call())
-    for(i in seq(nonfixed)) {
-      key <- nonfixed[i]
-      if(key %in% p$as_eta) {
-        par[[key]] <- p[[(paste0("eta", sprintf("%02d", i)))]]
-      } else {
-        par[[key]] <- par[[key]] * exp(p[[(paste0("eta", sprintf("%02d", i)))]])
-      }
-    }
-    sim_object$p <- par
-    ipred <- transf(PKPDsim::sim_core(
-      sim_object,
-      ode = model,
-      duplicate_t_obs = TRUE,
-      t_init = t_init)$y)
-    dv <- transf(data$y)
-    obs_type <- data$obs_type
-    ofv_cens <- NULL
-    if(!is.null(censoring_idx)) {
-      cens <- data[[censoring_label]][censoring_idx] # if <0 then LLOQ, if >0 ULOQ
-      cens <- ifelse(cens > 0, -1, 1)
-      ipred_cens <- ipred[censoring_idx]
-      ipred <- ipred[!censoring_idx]
-      obs_type_cens <- obs_type[censoring_idx]
-      obs_type <- obs_type[!censoring_idx]
-      dv_cens <- dv[censoring_idx]
-      dv <- dv[!censoring_idx]
-      weights_cens <- weights[censoring_idx]
-      weights <- weights[!censoring_idx]
-      res_sd_cens <- sqrt(error$prop[obs_type_cens]^2*ipred_cens^2 + error$add[obs_type_cens]^2)
-      ofv_cens <- stats::pnorm((dv_cens - ipred_cens) * cens, 0, res_sd_cens, log=TRUE) * weights_cens
-    }
-    res_sd <- sqrt(error$prop[obs_type]^2*ipred^2 + error$add[obs_type]^2)
-    et <- mget(objects()[grep("^eta", objects())])
-    et <- as.numeric(as.character(et[et != ""]))
-    omega_full <- as.matrix(omega_full)[1:length(et), 1:length(et)]
-    ofv <- calc_ofv(
-      eta = et,
-      omega = omega_full,
-      dv = dv,
-      ipred = ipred,
-      res_sd = res_sd,
-      weights = weights,
-      weight_prior = weight_prior,
-      include_omega = include_omega,
-      include_error = include_error)
-    ofv <- c(ofv, ofv_cens)
-    if(verbose) {
-      cat("-------------------------------------------------------------\n")
-      cat(paste0("Eta\t: [", paste(signif(et,5), collapse=", "),"]\n"))
-      cat(paste0("y_hat\t: [", paste(ipred, collapse=", "),"]\n"))
-      cat(paste0("P(y)\t: [", paste(signif(exp(ofv[-1]),5), collapse=", "),"]\n"))
-      cat(paste0("OFV\t: [", paste(signif(-2*sum(ofv),5), collapse=", "), "]\n"))
-    }
-    return(-2 * sum(ofv))
-  }
-
-  ll_func <- ll_func_PKPDsim
   if(is.null(attr(model, "cpp")) || !attr(model, "cpp")) {
     ll_func <- ll_func_generic
   }
@@ -343,12 +265,21 @@ get_map_estimates <- function(
                                      t_obs = t_obs,
                                      model = model,
                                      error = error,
+                                     omega_full = omega_full,
+                                     nonfixed = nonfixed,
+                                     transf = transf,
+                                     omega_full = omega_full,
+                                     weights = weights,
                                      weight_prior = weight_prior,
                                      sig = sig,
                                      as_eta = as_eta,
                                      censoring_idx = censoring_idx,
                                      censoring_label = censoring,
-                                     iov_bins = iov_bins),
+                                     iov_bins = iov_bins,
+                                     calc_ofv = calc_ofv,
+                                     include_omega = include_omega,
+                                     include_error = include_error,
+                                     verbose = verbose),
                          fixed = fix)
       ofvs <- c(ofvs, bbmle::logLik(fits[[i]]))
     }
@@ -375,12 +306,21 @@ get_map_estimates <- function(
                                    t_obs = t_obs,
                                    model = model,
                                    error = error,
+                                   omeg_full = omega_full,
+                                   nonfixed = nonfixed,
+                                   transf = transf,
+                                   omega_full = omega_full,
+                                   weights = weights,
                                    weight_prior = weight_prior,
                                    sig = sig,
                                    as_eta = as_eta,
                                    censoring_idx = censoring_idx,
                                    censoring_label = censoring,
-                                   iov_bins = iov_bins),
+                                   iov_bins = iov_bins,
+                                   calc_ofv = calc_ofv,
+                                   include_omega = include_omega,
+                                   include_error = include_error,
+                                   verbose = verbose),
                        fixed = fix)
     }, error = function(e) {
        return(e)

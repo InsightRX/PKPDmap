@@ -25,6 +25,7 @@ get_map_estimates(
   regimen = NULL,
   t_init = 0,
   int_step_size = 0.1,
+  ll_func = ll_func_PKPDsim,
   optimizer = "optim",
   method = "BFGS",
   control = list(reltol = 1e-05),
@@ -78,6 +79,8 @@ get_map_estimates(
 \item{regimen}{regimen}
 
 \item{int_step_size}{integrator step size passed to PKPDsim}
+
+\item{ll_func}{likelihood function, default is `ll_func_PKPDsim` as included in this package.}
 
 \item{optimizer}{optimization library to use, default is `optim`}
 
