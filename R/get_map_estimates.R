@@ -268,7 +268,6 @@ get_map_estimates <- function(
                                      omega_full = omega_full,
                                      nonfixed = nonfixed,
                                      transf = transf,
-                                     omega_full = omega_full,
                                      weights = weights,
                                      weight_prior = weight_prior,
                                      sig = sig,
