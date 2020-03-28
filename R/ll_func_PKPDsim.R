@@ -67,6 +67,7 @@ ll_func_PKPDsim <- function(
   iov_bins,
   t_init = 0,
   calc_ofv,
+  steady_state,
   include_omega,
   include_error,
   verbose = FALSE,
@@ -82,6 +83,21 @@ ll_func_PKPDsim <- function(
     }
   }
   sim_object$p <- par
+  if(!is.null(steady_state)) {
+    dose <- sim_object$design$dose[1]
+    interval <- diff(sim_object$design[sim_object$design$evid == 1,]$t)[1]
+    sim_object$A_init <- PKPDsim::calc_ss_lin(
+      f = steady_state$f,
+      dose,
+      interval,
+      model,
+      parameters = par,
+      covariates = covariates,
+      auc = ifelse(!is.null(steady_state$auc), steady_state$auc, FALSE)
+    )
+    # sim_object$t_obs <- sim_object$t_obs - min(sim_object$design$t)
+    # sim_object$design$t <- sim_object$design$t - min(sim_object$design$t)
+  }
   ipred <- transf(PKPDsim::sim_core(
     sim_object,
     ode = model,

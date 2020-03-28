@@ -45,6 +45,7 @@ ll_func_PKPDsim(
   iov_bins,
   t_init = 0,
   calc_ofv,
+  steady_state,
   include_omega,
   include_error,
   verbose = FALSE,
