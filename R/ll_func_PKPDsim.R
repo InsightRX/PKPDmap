@@ -17,6 +17,8 @@
 #' @param t_init init time for simulations, default 0.
 #' @param iov_bins IOV bins object
 #' @param calc_ofv function to calculate OFV based on simulated data and set of parameters and omega matrix
+#' @param regimen PKPDsim regimen
+#' @param steady_state list with settings for steady state calculation
 #' @param include_omega include omega in calculation of OFV?
 #' @param include_error include residual error in calculation of OFV?
 #' @param verbose verbose output?
@@ -67,6 +69,7 @@ ll_func_PKPDsim <- function(
   iov_bins,
   t_init = 0,
   calc_ofv,
+  regimen,
   steady_state,
   include_omega,
   include_error,
@@ -84,17 +87,17 @@ ll_func_PKPDsim <- function(
   }
   sim_object$p <- par
   if(!is.null(steady_state)) {
-    dose <- sim_object$design$dose[1]
-    interval <- diff(sim_object$design[sim_object$design$evid == 1,]$t)[1]
     sim_object$A_init <- PKPDsim::calc_ss_lin(
       f = steady_state$f,
-      dose,
-      interval,
+      dose = regimen$dose_amts[1],
+      interval = regimen$interval[1],
       model,
       parameters = par,
       covariates = covariates,
+      map = steady_state$map,
       auc = ifelse(!is.null(steady_state$auc), steady_state$auc, FALSE)
     )
+    sim_object$design <- sim_object$design[sim_object$design$t >= regimen$dose_times[1],]
     # sim_object$t_obs <- sim_object$t_obs - min(sim_object$design$t)
     # sim_object$design$t <- sim_object$design$t - min(sim_object$design$t)
   }
