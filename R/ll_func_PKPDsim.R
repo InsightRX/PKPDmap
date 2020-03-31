@@ -88,7 +88,7 @@ ll_func_PKPDsim <- function(
   sim_object$p <- par
   if(!is.null(steady_state)) {
     if(isTRUE(steady_state$analytical_equations)) {
-      sim_object$A_init <- PKPDsim::calc_ss_lin(
+      sim_object$A_init <- PKPDsim::calc_ss_analytic(
         f = steady_state$f,
         dose = regimen$dose_amts[1],
         interval = regimen$interval[1],
