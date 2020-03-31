@@ -82,12 +82,12 @@ tdm <- sim(model2, parameters = par_true,
            regimen = reg, t_obs = t_tdm, only_obs=TRUE)
 
 ## plot
-library(ggplot2)
-dat <- sim(model2, parameters = par,
-           covariates = covariates, regimen = reg, only_obs=TRUE, t_obs = c(0:500))
-dat %>%
-  ggplot(aes(x = t, y = y)) +
-  geom_line()
+# library(ggplot2)
+# dat <- sim(model2, parameters = par,
+#            covariates = covariates, regimen = reg, only_obs=TRUE, t_obs = c(0:500))
+# dat %>%
+#   ggplot(aes(x = t, y = y)) +
+#   geom_line()
 
 # fit with full dosing history extrapolated to steady state (manually)
 tmp2 <- get_map_estimates(
@@ -129,7 +129,7 @@ tmp2b <- get_map_estimates(
   parameters = par,
   model = model2,
   data = tdm,
-  regimen = reg_ss3,
+  regimen = reg_ss,
   fixed = c("KA"),
   covariates = covariates, 
   omega = c(0.1, 0.05, 0.1),
