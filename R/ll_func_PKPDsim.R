@@ -87,19 +87,19 @@ ll_func_PKPDsim <- function(
   }
   sim_object$p <- par
   if(!is.null(steady_state)) {
-    sim_object$A_init <- PKPDsim::calc_ss_lin(
-      f = steady_state$f,
-      dose = regimen$dose_amts[1],
-      interval = regimen$interval[1],
-      model,
-      parameters = par,
-      covariates = covariates,
-      map = steady_state$map,
-      auc = ifelse(!is.null(steady_state$auc), steady_state$auc, FALSE)
-    )
+    if(isTRUE(steady_state$analytical_equations)) {
+      sim_object$A_init <- PKPDsim::calc_ss_lin(
+        f = steady_state$f,
+        dose = regimen$dose_amts[1],
+        interval = regimen$interval[1],
+        model,
+        parameters = par,
+        covariates = covariates,
+        map = steady_state$map,
+        auc = ifelse(!is.null(steady_state$auc), steady_state$auc, FALSE)
+      )
+    }
     sim_object$design <- sim_object$design[sim_object$design$t >= regimen$dose_times[1],]
-    # sim_object$t_obs <- sim_object$t_obs - min(sim_object$design$t)
-    # sim_object$design$t <- sim_object$design$t - min(sim_object$design$t)
   }
   ipred <- transf(PKPDsim::sim_core(
     sim_object,
