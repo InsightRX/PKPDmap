@@ -41,7 +41,7 @@ tmp_ss <- get_map_estimates(
   fixed = c("Q", "V2", "KA"),
   omega = c(0.1, 0.05, 0.1),
   error = list(prop = 0.1, add = 0.1),
-  steady_state = list(
+  steady_state_analytic = list(
     f = "2cmt_oral",
     map = list(CL = "CL", V = "V", Q = "Q", V2 = "V2", KA = "KA"),
     auc = TRUE
@@ -134,7 +134,7 @@ tmp2b <- get_map_estimates(
   covariates = covariates, 
   omega = c(0.1, 0.05, 0.1),
   error = list(prop = 0.1, add = 0.1),
-  steady_state = list(
+  steady_state_analytic = list(
     linear = TRUE,
     f = "1cmt_oral",
     map = list(CL = "CLi", V = "V", KA = "KA"),

@@ -46,7 +46,7 @@ ll_func_PKPDsim(
   t_init = 0,
   calc_ofv,
   regimen,
-  steady_state,
+  steady_state_analytic,
   include_omega,
   include_error,
   verbose = FALSE,
@@ -118,7 +118,7 @@ ll_func_PKPDsim(
 
 \item{regimen}{PKPDsim regimen}
 
-\item{steady_state}{list with settings for steady state calculation}
+\item{steady_state_analytic}{list object with settings for steady state MAP estimation.}
 
 \item{include_omega}{include omega in calculation of OFV?}
 
