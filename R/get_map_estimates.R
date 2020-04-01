@@ -283,7 +283,7 @@ get_map_estimates <- function(
                                      steady_state_analytic = steady_state_analytic,
                                      include_omega = include_omega,
                                      include_error = include_error,
-                                     verbose = TRUE),
+                                     verbose = verbose),
                          fixed = fix)
       ofvs <- c(ofvs, bbmle::logLik(fits[[i]]))
     }
