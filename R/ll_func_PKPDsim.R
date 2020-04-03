@@ -95,8 +95,8 @@ ll_func_PKPDsim <- function(
       parameters = par,
       covariates = covariates,
       map = steady_state_analytic$map,
-      n_transit_compartments = ifelse(!is.null(steady_state_analytic$n_transit_compartments), steady_state_analytic$n_transit_compartments, FALSE),
-      auc = ifelse(!is.null(steady_state_analytic$auc), steady_state_analytic$auc, FALSE)
+      n_transit_compartments = PKPDsim::ifelse0(steady_state_analytic$n_transit_compartments, FALSE),
+      auc = PKPDsim::ifelse0(steady_state_analytic$auc, FALSE)
     )
     sim_object$design <- sim_object$design[sim_object$design$t >= regimen$dose_times[1],]
   }

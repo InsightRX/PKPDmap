@@ -56,9 +56,6 @@ assert("V equal", delta(tmp_ss$parameters$V, tmp$parameters$V) < 0.001)
 #############################
 ## Model with covariates
 #############################
-library(PKPDmap)
-library(testit)
-library(PKPDsim)
 
 ## Set up model and regimen
 # covariates <- list(WT = new_covariate(c(70, 80), times = c(0, 120)))
