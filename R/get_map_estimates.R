@@ -15,6 +15,7 @@
 #' @param obs_type_label column name in `data` referring to observation type. Can be used for specification of different residual error models for differing observation types (e.g. venous and capillary or parent and metabolite), Residual error should then be specified as list of vectors, e.g. `list(prop = c(0.2, 0.1), add = c(1, 2))`.
 #' @param censoring label for column specifying censoring. If value in dataset in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.
 #' @param mixture specify mixture model. Currently for single parameter only. Overwrites regular parameter, if specified. Specify e.g. as: `mixture = list("CL" = c(5, 9))`
+#' @param steady_state_analytic list object with settings for steady state MAP estimation.
 #' @param include_omega TRUE
 #' @param include_error TRUE
 #' @param regimen regimen
@@ -50,6 +51,7 @@ get_map_estimates <- function(
                       censoring = NULL,
                       mixture = NULL,
                       weights = NULL,
+                      steady_state_analytic = NULL,
                       include_omega = TRUE,
                       include_error = TRUE,
                       regimen = NULL,
@@ -276,6 +278,9 @@ get_map_estimates <- function(
                                      censoring_label = censoring,
                                      iov_bins = iov_bins,
                                      calc_ofv = calc_ofv,
+                                     covariates = covariates,
+                                     regimen = regimen,
+                                     steady_state_analytic = steady_state_analytic,
                                      include_omega = include_omega,
                                      include_error = include_error,
                                      verbose = verbose),
@@ -317,6 +322,9 @@ get_map_estimates <- function(
                                    censoring_label = censoring,
                                    iov_bins = iov_bins,
                                    calc_ofv = calc_ofv,
+                                   covariates = covariates,
+                                   steady_state_analytic = steady_state_analytic,
+                                   regimen = regimen,
                                    include_omega = include_omega,
                                    include_error = include_error,
                                    verbose = verbose),

@@ -45,6 +45,8 @@ ll_func_PKPDsim(
   iov_bins,
   t_init = 0,
   calc_ofv,
+  regimen,
+  steady_state_analytic,
   include_omega,
   include_error,
   verbose = FALSE,
@@ -113,6 +115,10 @@ ll_func_PKPDsim(
 \item{t_init}{init time for simulations, default 0.}
 
 \item{calc_ofv}{function to calculate OFV based on simulated data and set of parameters and omega matrix}
+
+\item{regimen}{PKPDsim regimen}
+
+\item{steady_state_analytic}{list object with settings for steady state MAP estimation.}
 
 \item{include_omega}{include omega in calculation of OFV?}
 

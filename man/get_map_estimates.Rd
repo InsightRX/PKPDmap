@@ -20,6 +20,7 @@ get_map_estimates(
   censoring = NULL,
   mixture = NULL,
   weights = NULL,
+  steady_state_analytic = NULL,
   include_omega = TRUE,
   include_error = TRUE,
   regimen = NULL,
@@ -71,6 +72,8 @@ get_map_estimates(
 \item{mixture}{specify mixture model. Currently for single parameter only. Overwrites regular parameter, if specified. Specify e.g. as: `mixture = list("CL" = c(5, 9))`}
 
 \item{weights}{vector of weights for error. Length of vector should be same as length of observation vector. If NULL (default), all weights are equal. Used in both MAP and NP methods. Note that `weights` argument will also affect residuals (residuals will be scaled too).}
+
+\item{steady_state_analytic}{list object with settings for steady state MAP estimation.}
 
 \item{include_omega}{TRUE}
 
