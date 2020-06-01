@@ -397,6 +397,33 @@ get_map_estimates <- function(
   ## Add g.o.f. info
   #################################################
   if(residuals) {
+      if(!is.null(steady_state_analytic)) {
+        A_init_ipred <- PKPDsim::calc_ss_analytic(
+          f = steady_state_analytic$f,
+          dose = regimen$dose_amts[1],
+          interval = regimen$interval[1],
+          model,
+          parameters = obj$parameters,
+          covariates = covariates,
+          map = steady_state_analytic$map,
+          n_transit_compartments = PKPDsim::ifelse0(steady_state_analytic$n_transit_compartments, FALSE),
+          auc = PKPDsim::ifelse0(steady_state_analytic$auc, FALSE)
+       )
+       A_init_pred <- PKPDsim::calc_ss_analytic(
+          f = steady_state_analytic$f,
+          dose = regimen$dose_amts[1],
+          interval = regimen$interval[1],
+          model,
+          parameters = parameters,
+          covariates = covariates,
+          map = steady_state_analytic$map,
+          n_transit_compartments = PKPDsim::ifelse0(steady_state_analytic$n_transit_compartments, FALSE),
+          auc = PKPDsim::ifelse0(steady_state_analytic$auc, FALSE)
+       )
+    } else {
+      A_init_pred <- A_init
+      A_init_ipred <- A_init
+    }
     suppressMessages({
       sim_ipred <- PKPDsim::sim_ode(ode = model,
                            parameters = par,
@@ -408,7 +435,7 @@ get_map_estimates <- function(
                            obs_type = data$obs_type,
                            only_obs = TRUE,
                            checks = FALSE,
-                           A_init = A_init,
+                           A_init = A_init_ipred,
                            iov_bins = iov_bins,
                            output_include = output_include,
                            t_init = t_init,
@@ -426,7 +453,7 @@ get_map_estimates <- function(
                           only_obs = TRUE,
                           checks = FALSE,
                           iov_bins = iov_bins,
-                          A_init = A_init,
+                          A_init = A_init_pred,
                           t_init = t_init,
                           ...)
     })
