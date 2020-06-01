@@ -27,16 +27,19 @@ tmp <- get_map_estimates(
   regimen = reg,
   fixed = c("Q", "V2", "KA"),
   omega = c(0.1, 0.05, 0.1),
-  error = list(prop = 0.1, add = 0.1)
+  error = list(prop = 0.1, add = 0.1),
+  residuals = TRUE
 )
 
 # fit with steady state assumption
-reg_ss <- new_regimen(amt = 1000, n = 2, interval = 12, type = "oral")
-reg_ss$dose_times <- reg_ss$dose_times + max(reg$dose_times)
+reg_ss <- new_regimen(amt = 1000, n = 2, interval = 12, type = "oral",
+                      ss = TRUE, n_ss = 30)
+tdm_ss <- tdm
+tdm_ss$t <- tdm_ss$t - max(reg$dose_times)
 tmp_ss <- get_map_estimates(
   parameters = par,
   model = model,
-  data = tdm,
+  data = tdm_ss,
   regimen = reg_ss,
   fixed = c("Q", "V2", "KA"),
   omega = c(0.1, 0.05, 0.1),
@@ -52,6 +55,7 @@ tmp_ss <- get_map_estimates(
 delta <- function(x,ref) (x-ref)/ref
 assert("CL equal", delta(tmp_ss$parameters$CL, tmp$parameters$CL) < 0.001)
 assert("V equal", delta(tmp_ss$parameters$V, tmp$parameters$V) < 0.001)
+assert("residuals equal", all(abs(delta(tmp_ss$res, tmp$res)) < 0.01)) 
 
 #############################
 ## Model with covariates
@@ -118,14 +122,13 @@ tmp2a <- get_map_estimates(
 ## tests
 assert("CL equal", delta(tmp2a$parameters$CL, tmp2$parameters$CL) < 0.001)
 assert("V equal", delta(tmp2a$parameters$V, tmp2$parameters$V) < 0.001)
+assert("residuals equal", all(abs(delta(tmp2a$res, tmp2$res)) < 0.001))
 
 # fit with linear steady state equation
-reg_ss <- new_regimen(amt = 1000, n = 1, interval = 24, type = "oral")
-reg_ss$dose_times <- reg_ss$dose_times + max(reg$dose_times)
 tmp2b <- get_map_estimates(
   parameters = par,
   model = model2,
-  data = tdm,
+  data = tdm2,
   regimen = reg_ss,
   fixed = c("KA"),
   covariates = covariates, 
@@ -142,3 +145,4 @@ tmp2b <- get_map_estimates(
 ## tests
 assert("CL equal", delta(tmp2b$parameters$CL, tmp2$parameters$CL) < 0.001)
 assert("V equal", delta(tmp2b$parameters$V, tmp2$parameters$V) < 0.001)
+assert("residuals equal", all(abs(delta(tmp2b$res, tmp2$res)) < 0.001))
