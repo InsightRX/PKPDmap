@@ -1,7 +1,6 @@
 library(testit)
 library(PKPDmap)
 library(PKPDsim)
-library(dplyr)
 
 Sys.setenv("R_TESTS" = "")
 

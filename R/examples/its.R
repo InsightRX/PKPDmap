@@ -1,6 +1,5 @@
 library(PKPDsim)
 library(PKPDmap)
-library(dplyr)
 
 ############################################################
 ## Example A
@@ -32,8 +31,10 @@ fitA$parameters
 ############################################################
 
 modB <- new_ode_model(code = "dAdt[1] = -(CL/V)*A[1];", obs = list(scale = "V/1000"))
-datB <- read.table(file = "~/git/nonmem_examples/Hands_onB/pktab1", skip=1, header=T) %>%
-   dplyr::select(id = ID, t = TIME, y = DV, amt = AMT, evid = EVID, crcl = CRCL, age = AGE, sex = SEX)
+cols <- c("ID", "TIME","DV", "AMT", "EVID", "CRCL", "AGE", "SEX")
+datB <- read.table(file = "~/git/nonmem_examples/Hands_onB/pktab1", skip=1, header=T)[,cols]
+conames(datB) <- tolower(colnames(datB))
+colnames(datB)[2] <- "t"
 dosesB <- datB %>% filter(evid == 1, id == 1)
 tdmB <- datB %>% filter(evid == 0, id < 101) 
 parB <- list(CL = 5, V = 50)

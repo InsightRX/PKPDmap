@@ -1,5 +1,4 @@
 library(PKPDmap)
-library(dplyr)
 library(PKPDsim)
 library(PKPDplot)
 library(pk1cmtiv)

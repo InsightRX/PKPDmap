@@ -162,9 +162,8 @@ run_sequential_map <- function(
     par_table <- rbind(par_table,
                        cbind(t1 = t1 + t_last,
                              t2 = t2 + t_last, as.data.frame(fits[[i]]$parameters)))
-    tmp_filt <- tmp %>%
-      dplyr::filter(t == max(t) & !duplicated(t) & comp != "obs")
-    
+    tmp_filt <- tmp[tmp$t == max(tmp$t) & !duplicated(tmp$t) & tmp$comp != "obs",]
+
     ## Update state for next section
     A_init <- tmp_filt$y
     
