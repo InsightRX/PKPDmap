@@ -91,7 +91,7 @@ ll_func_PKPDsim <- function(
       f = steady_state_analytic$f,
       dose = regimen$dose_amts[1],
       interval = regimen$interval[1],
-      model,
+      model = model,
       parameters = par,
       covariates = covariates,
       map = steady_state_analytic$map,
