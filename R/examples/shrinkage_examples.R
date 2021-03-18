@@ -22,7 +22,7 @@ t_obs <- c(24, 26, 36)
 res <- sim(ode = model, parameters = parameters, regimen = regimen, 
            omega = omega, n = 100, t_obs = seq(0, 36, .25), only_obs = TRUE)
 
-res %>% plot() + 
+plot(res) + 
   geom_point(data = data.frame(t = t_obs, y = 0), (aes(x=t, y = y)))
 
 ###############################################################
@@ -46,7 +46,7 @@ fit1sim <- sim(ode = model,
             only_obs = TRUE, 
             t_obs = seq(0, 36, .25))
 
-res %>% plot() + 
+plot(res) + 
   geom_line(data = fit1sim, (aes(x=t, y = y)), size = 2, colour="green") + 
   geom_point(data = res1, aes(x=t, y =y), colour="red")
 
@@ -77,7 +77,7 @@ fit2sim <- sim(ode = model,
                only_obs = TRUE, 
                t_obs = seq(0, 36, .25))
 
-res %>% plot() + 
+plot(res) + 
   geom_line(data = fit2sim, (aes(x=t, y = y)), size = 2, colour="green") + 
   geom_point(data = res2, aes(x=t, y =y), colour="red")
 
@@ -95,7 +95,7 @@ fit3sim <- sim(ode = model,
                only_obs = TRUE, 
                t_obs = seq(0, 36, .25))
 
-res %>% plot() + 
+plot(res) + 
   geom_line(data = fit3sim, (aes(x=t, y = y)), size = 2, colour="green") + 
   geom_point(data = res1, aes(x=t, y =y), colour="red")
 
@@ -103,12 +103,13 @@ res %>% plot() +
 ## Automated, using shrinkage control
 #' @param shrinkage_control automatically control individual shrinkage. Not used when `NULL` (default). Suggested value e.g. `0.05`` for allowing 5% shrinkage (averaged over all parameters).
 #' 
+res1$y <- 25
 fit4 <- map_shrinkage_control(shrinkage_control = 0.05, 
                       model = model, 
                       parameters = parameters, 
                       omega = omega,
                       regimen = regimen, 
-                      data = res1 %>% mutate(y= 25),
+                      data = res1,
                       error = ruv) 
 fit4$shrinkage_control
 
@@ -118,8 +119,7 @@ fit4sim <- sim(ode = model,
                only_obs = TRUE, 
                t_obs = seq(0, 36, .25))
 
-res %>% plot() + 
+plot(res) + 
   geom_line(data = fit4sim, (aes(x=t, y = y)), size = 2, colour="green") + 
   geom_point(data = res1, aes(x=t, y =y), colour="red")
-
 

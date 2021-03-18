@@ -10,7 +10,7 @@ pk1 <- new_ode_model(code = "dAdt[1] = -(CL/V)*A[1] + rate;\n", obs = list(scale
 regimen  <- new_regimen(amt = 100, interval = 12, times=c(0,24), type="infusion")
 parameters   <- list("CL" = 3, "V" = 10) 
 # omega = PKPDsim::cv_to_omega(list("CL" = 0.2, "V" = 0.2, "KA" = 0.1), parameters)
-omega = PKPDsim::cv_to_omega(list("CL" = 0.2, "V" = 0.2), parameters[1:2])
+omega <- PKPDsim::cv_to_omega(list("CL" = 0.2, "V" = 0.2), parameters[1:2])
 
 ## simulate single individual in population
 data <- sim_ode(ode = pk1, 
