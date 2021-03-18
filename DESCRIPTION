@@ -1,10 +1,10 @@
 Package: PKPDmap
 Type: Package
 Title: MAP Bayesian estimates
-Version: 0.35
-Date: 2020-08-21
+Version: 0.38
+Date: 2021-03-18
 Author: Ron Keizer
-Maintainer: Ron Keizer <ronkeizer@gmail.com>
+Maintainer: Ron Keizer <ron@insight-rx.com>
 Description: Obtain MAP Bayesian estimates based on individual data and
         PK/PD model.
 License: MIT + file LICENSE

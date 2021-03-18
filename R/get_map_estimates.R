@@ -402,7 +402,7 @@ get_map_estimates <- function(
           f = steady_state_analytic$f,
           dose = regimen$dose_amts[1],
           interval = regimen$interval[1],
-          model,
+          model = model,
           parameters = obj$parameters,
           covariates = covariates,
           map = steady_state_analytic$map,
@@ -413,7 +413,7 @@ get_map_estimates <- function(
           f = steady_state_analytic$f,
           dose = regimen$dose_amts[1],
           interval = regimen$interval[1],
-          model,
+          model = model,
           parameters = parameters,
           covariates = covariates,
           map = steady_state_analytic$map,
@@ -496,7 +496,11 @@ get_map_estimates <- function(
     }
   }
   obj$vcov_full <- fit@vcov
-  obj$vcov <- fit@vcov[t(!upper.tri(fit@vcov))]
+  if(any(is.na(obj$vcov_full)) || !PKPDsim::is_positive_definite(obj$vcov_full)) {
+    obj$vcov_full <- omega_full
+    warning("Var-cov matrix of MAP estimate not positive-definite, returning original `omega` instead.")
+  }
+  obj$vcov <- obj$vcov_full[t(!upper.tri(obj$vcov_full))]
   class(obj) <- c(class(obj), "map_estimates")
   return(obj)
 }
