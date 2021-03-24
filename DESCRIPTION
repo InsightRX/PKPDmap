@@ -11,4 +11,6 @@ License: MIT + file LICENSE
 Depends: dplyr, utils, stats
 Imports: mvtnorm, PKPDsim, bbmle, optimx
 Suggests: testit
+Remotes:
+    InsightRX/PKPDsim2
 RoxygenNote: 7.0.2
