@@ -1,5 +1,4 @@
 library(PKPDmap)
-library(dplyr)
 library(PKPDsim)
 library(PKPDplot)
 library(pk1cmtiv)
@@ -20,7 +19,7 @@ t_obs <- c(24, 26, 36)
 res <- sim(ode = model, parameters = parameters, regimen = regimen, 
            omega = omega, n = 100, only_obs = TRUE)
 
-res %>% plot() + 
+plot(res) + 
   geom_point(data = data.frame(t = t_obs, y = 0), (aes(x=t, y = y)))
 
 ###############################################################
