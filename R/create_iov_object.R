@@ -81,7 +81,7 @@ create_iov_object <- function(cv = list(CL = 0.1),
   n_om <- lower_triangle_mat_size(omega)
 
   ## reshuffle parameters
-  iov_par <- !is.na(c(stringr::str_match(names(parameters), "kappa_")))
+  iov_par <- grepl("^kappa_", names(parameters))
   if(! any(iov_par)) {
     stop("No `kappa` parameters seem to be defined for this model.")
   }
