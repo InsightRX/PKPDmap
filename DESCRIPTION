@@ -4,11 +4,13 @@ Title: MAP Bayesian estimates
 Version: 0.40
 Date: 2021-03-31
 Author: Ron Keizer
-Maintainer: Ron Keizer <ronkeizer@gmail.com>
+Maintainer: Ron Keizer <ron@insight-rx.com>
 Description: Obtain MAP Bayesian estimates based on individual data and
         PK/PD model.
 License: MIT + file LICENSE
-Depends: dplyr, utils, stats
+Depends: utils, stats
 Imports: mvtnorm, PKPDsim, bbmle, optimx
 Suggests: testit
+Remotes:
+    InsightRX/PKPDsim2
 RoxygenNote: 7.0.2
