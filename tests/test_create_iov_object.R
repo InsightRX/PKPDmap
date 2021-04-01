@@ -9,7 +9,7 @@ assert("Throw error when no IOV present", has_error(create_iov_object(
   parameters = structure(list(CL = 36.6, V = 496, Q = 31.7, Vp = 1270, KA = 1.7, TLAG = 0.41), units = ""),
   fixed = c("Q", "TLAG"),
   ruv = list(prop = 0.23, add = 0.87)
-), silent = TRUE))
+)))
 
 ## Test output from create_iov_object, with non-ordered fixed parameters
 res1 <- create_iov_object(
