@@ -24,6 +24,7 @@
 #' @param ll_func likelihood function, default is `ll_func_PKPDsim` as included in this package.
 #' @param optimizer optimization library to use, default is `optim`
 #' @param method optimization method, default `BFGS`
+#' @param calc_ofv function to calculate OFV
 #' @param control list of options passed to `optim()` function
 #' @param allow_obs_before_dose allow observation before first dose?
 #' @param type estimation type, options are `map`, `ls`, and `np_hybrid`
@@ -60,6 +61,7 @@ get_map_estimates <- function(
                       ll_func = ll_func_PKPDsim,
                       optimizer = "optim",
                       method = "BFGS",
+                      calc_ofv = calc_ofv_map,
                       control = list(reltol = 1e-5),
                       allow_obs_before_dose = FALSE,
                       type = "map",
@@ -80,7 +82,6 @@ get_map_estimates <- function(
     weight_prior <- 1
   }
   weight_prior <- weight_prior^2 # 3x larger IIV on SD scale
-  calc_ofv <- calc_ofv_map
   if(weight_prior == 0) {
     calc_ofv <- calc_ofv_ls
   }

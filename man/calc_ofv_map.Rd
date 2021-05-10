@@ -2,7 +2,8 @@
 % Please edit documentation in R/calc_ofv_map.R
 \name{calc_ofv_map}
 \alias{calc_ofv_map}
-\title{Calculate objective function value for MAP Bayesian fit}
+\title{Calculate objective function value for MAP Bayesian fit
+Uses faster library to get multivariate normal distribution}
 \usage{
 calc_ofv_map(
   eta,
@@ -37,4 +38,5 @@ calc_ofv_map(
 }
 \description{
 Calculate objective function value for MAP Bayesian fit
+Uses faster library to get multivariate normal distribution
 }

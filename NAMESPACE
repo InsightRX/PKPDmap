@@ -3,6 +3,7 @@
 S3method(print,map_estimates)
 export(calc_ofv_ls)
 export(calc_ofv_map)
+export(calc_ofv_map_slow)
 export(create_block_from_cv)
 export(create_grid_around_parameters)
 export(create_iov_object)

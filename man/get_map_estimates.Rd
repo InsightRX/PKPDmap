@@ -29,6 +29,7 @@ get_map_estimates(
   ll_func = ll_func_PKPDsim,
   optimizer = "optim",
   method = "BFGS",
+  calc_ofv = calc_ofv_map,
   control = list(reltol = 1e-05),
   allow_obs_before_dose = FALSE,
   type = "map",
@@ -88,6 +89,8 @@ get_map_estimates(
 \item{optimizer}{optimization library to use, default is `optim`}
 
 \item{method}{optimization method, default `BFGS`}
+
+\item{calc_ofv}{function to calculate OFV}
 
 \item{control}{list of options passed to `optim()` function}
 
