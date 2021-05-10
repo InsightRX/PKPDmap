@@ -12,14 +12,30 @@
 #' @param include_error Include residual error in the likelihood?
 #' @export
 calc_ofv_map <- function(
-  eta, omega,
-  dv, ipred, res_sd,
+  eta, 
+  omega,
+  dv, 
+  ipred, 
+  res_sd,
   weights = 1,
-  weight_prior = 1, include_omega = TRUE, include_error = TRUE) {
-  ofv <-   c(mvnfast::dmvn(X = eta, mu = rep(0, length(eta)),
-                           sigma = as.matrix(omega) * 1/weight_prior,
-                           log=TRUE) * include_omega,
-             stats::dnorm((dv - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
+  weight_prior = 1, 
+  include_omega = TRUE, 
+  include_error = TRUE
+) {
+  c(
+    mvnfast::dmvn(
+      X = eta, 
+      mu = rep(0, length(eta)),
+      sigma = as.matrix(omega) * 1/weight_prior,
+      log=TRUE
+    ) * include_omega,
+    stats::dnorm(
+      (dv - ipred) * include_error, 
+      mean = 0, 
+      sd = res_sd, 
+      log = TRUE
+    ) * weights
+  )
 }
 
 #' Calculate objective function value for MAP Bayesian fit
@@ -37,12 +53,28 @@ calc_ofv_map <- function(
 #' @param include_error Include residual error in the likelihood?
 #' @export
 calc_ofv_map_slow <- function(
-  eta, omega,
-  dv, ipred, res_sd,
+  eta, 
+  omega,
+  dv, 
+  ipred, 
+  res_sd,
   weights = 1,
-  weight_prior = 1, include_omega = TRUE, include_error = TRUE) {
-  ofv <-   c(mvtnorm::dmvnorm(eta, mean=rep(0, length(eta)),
-                              sigma = as.matrix(omega) * 1/weight_prior,
-                              log=TRUE) * include_omega,
-             stats::dnorm((dv - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
+  weight_prior = 1, 
+  include_omega = TRUE, 
+  include_error = TRUE
+) {
+  c(
+    mvtnorm::dmvnorm(
+      eta, 
+      mean = rep(0, length(eta)),
+      sigma = as.matrix(omega) * 1 / weight_prior,
+      log = TRUE
+    ) * include_omega,
+    stats::dnorm(
+      (dv - ipred) * include_error, 
+      mean = 0, 
+      sd = res_sd, 
+      log = TRUE
+    ) * weights
+  )
 }
