@@ -1,5 +1,5 @@
 #' Calculate objective function value for MAP Bayesian fit
-#' Uses faster library to get multivariate normal distribution
+#' Uses mvnfast, which was found to be faster for computing multivariate normal distribution than {mvtnorm}
 #'
 #' @param eta eta's
 #' @param omega full omega matrix
