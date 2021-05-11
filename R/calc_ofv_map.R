@@ -10,6 +10,10 @@
 #' @param weight_prior relative weight of the population priors
 #' @param include_omega Include deviation from population parameters in the likelihood?
 #' @param include_error Include residual error in the likelihood?
+#' @return Returns a vector of probabilities based on the probability of parameter 
+#'         estimates given their multivariate distribution and the prediction errors
+#'         based on these parameters. The product of the returned probabilities 
+#'         is the likelihood.
 #' @export
 calc_ofv_map <- function(
   eta, omega,
@@ -35,6 +39,10 @@ calc_ofv_map <- function(
 #' @param weight_prior relative weight of the population priors
 #' @param include_omega Include deviation from population parameters in the likelihood?
 #' @param include_error Include residual error in the likelihood?
+#' @return Returns a vector of probabilities based on the probability of parameter 
+#'         estimates given their multivariate distribution and the prediction errors
+#'         based on these parameters. The product of the returned probabilities 
+#'         is the likelihood.
 #' @export
 calc_ofv_map_slow <- function(
   eta, omega,
