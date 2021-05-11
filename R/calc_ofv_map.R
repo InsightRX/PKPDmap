@@ -39,7 +39,7 @@ calc_ofv_map <- function(
 }
 
 #' Calculate objective function value for MAP Bayesian fit
-#' This implementation is slower, but leaving available for use
+#' This implementation uses {mvtnorm}, which is slower than {mvnfast}, but leaving available for use
 #' in case of stability issues
 #'
 #' @param eta eta's
