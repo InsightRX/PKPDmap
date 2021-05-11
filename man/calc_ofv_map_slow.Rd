@@ -37,6 +37,12 @@ calc_ofv_map_slow(
 
 \item{include_error}{Include residual error in the likelihood?}
 }
+\value{
+Returns a vector of probabilities based on the probability of parameter 
+        estimates given their multivariate distribution and the prediction errors
+        based on these parameters. The product of the returned probabilities 
+        is the likelihood.
+}
 \description{
 Calculate objective function value for MAP Bayesian fit
 This implementation is slower, but leaving available for use
