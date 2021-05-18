@@ -21,7 +21,7 @@ pipeline {
     }
     stage('Build & test PKPDmap') {
       steps {
-        echo 'Installing and checking irxtools'
+        echo 'Installing and checking PKPDmap'
         sh """
         docker cp . ${BUILD_TAG}:/src/PKPDmap
         docker exec -i ${BUILD_TAG} Rscript -e "devtools::check('PKPDmap')"
