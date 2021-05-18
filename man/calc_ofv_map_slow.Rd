@@ -3,7 +3,7 @@
 \name{calc_ofv_map_slow}
 \alias{calc_ofv_map_slow}
 \title{Calculate objective function value for MAP Bayesian fit
-This implementation is slower, but leaving available for use
+This implementation uses {mvtnorm}, which is slower than {mvnfast}, but leaving available for use
 in case of stability issues}
 \usage{
 calc_ofv_map_slow(
@@ -45,6 +45,6 @@ Returns a vector of probabilities based on the probability of parameter
 }
 \description{
 Calculate objective function value for MAP Bayesian fit
-This implementation is slower, but leaving available for use
+This implementation uses {mvtnorm}, which is slower than {mvnfast}, but leaving available for use
 in case of stability issues
 }

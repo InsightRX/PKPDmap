@@ -19,5 +19,10 @@ assert(
   res_sd <- rep(0.29, 2)
   
   out <- calc_ofv_map(eta, omega, dv, ipred, res_sd)
+  
   all(round(out, 4) == c(3.3149, -9.7286, -3.4861))
 })
+
+# f1 <- function() {   out <- calc_ofv_map(eta, omega, dv, ipred, res_sd) }
+# f2 <- function() {   out <- calc_ofv_map_slow(eta, omega, dv, ipred, res_sd) }
+# microbenchmark::microbenchmark(f1(), f2(), 5000)

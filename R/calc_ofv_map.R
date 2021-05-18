@@ -1,5 +1,7 @@
 #' Calculate objective function value for MAP Bayesian fit
-#' Uses mvnfast, which was found to be faster for computing multivariate normal distribution than {mvtnorm}
+#' Uses implementation using RcppArmadillo, which was found to be faster for computing 
+#' multivariate normal distribution than {mvtnorm}.
+#' Adapted from: https://www.r-bloggers.com/2013/07/faster-multivariate-normal-densities-with-rcpparmadillo-and-openmp/
 #'
 #' @param eta eta's
 #' @param omega full omega matrix
@@ -27,12 +29,10 @@ calc_ofv_map <- function(
   include_error = TRUE
 ) {
   c(
-    mvnfast::dmvn(
-      X = eta, 
-      mu = rep(0, length(eta)),
-      sigma = as.matrix(omega) * 1/weight_prior,
-      log=TRUE
-    ) * include_omega,
+    as.numeric(dmvnorm_arma(x = as.matrix(t(eta)), 
+                            mean = rep(0, length(eta)), 
+                            sigma = as.matrix(omega) * 1/weight_prior, 
+                            log = TRUE)) * include_omega,
     stats::dnorm(
       (dv - ipred) * include_error, 
       mean = 0, 

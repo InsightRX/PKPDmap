@@ -3,7 +3,7 @@
 \name{calc_ofv_map}
 \alias{calc_ofv_map}
 \title{Calculate objective function value for MAP Bayesian fit
-Uses faster library to get multivariate normal distribution}
+Uses mvnfast, which was found to be faster for computing multivariate normal distribution than {mvtnorm}}
 \usage{
 calc_ofv_map(
   eta,
@@ -44,5 +44,5 @@ Returns a vector of probabilities based on the probability of parameter
 }
 \description{
 Calculate objective function value for MAP Bayesian fit
-Uses faster library to get multivariate normal distribution
+Uses mvnfast, which was found to be faster for computing multivariate normal distribution than {mvtnorm}
 }
