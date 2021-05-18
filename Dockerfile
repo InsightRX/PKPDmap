@@ -7,5 +7,5 @@ COPY ./ /src
 WORKDIR /src
 
 # Install dependencies
-RUN R CMD INSTALL ./PKPDsim --no-multiarch --no-docs
-RUN rm -rf ./PKPDsim
+RUN R CMD INSTALL ./PKPDsim2 --no-multiarch --no-docs
+RUN rm -rf ./PKPDsim2
