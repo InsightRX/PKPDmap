@@ -3,7 +3,9 @@
 \name{calc_ofv_map}
 \alias{calc_ofv_map}
 \title{Calculate objective function value for MAP Bayesian fit
-Uses mvnfast, which was found to be faster for computing multivariate normal distribution than {mvtnorm}}
+Uses implementation using RcppArmadillo, which was found to be faster for computing 
+multivariate normal distribution than {mvtnorm}.
+Adapted from: https://www.r-bloggers.com/2013/07/faster-multivariate-normal-densities-with-rcpparmadillo-and-openmp/}
 \usage{
 calc_ofv_map(
   eta,
@@ -44,5 +46,7 @@ Returns a vector of probabilities based on the probability of parameter
 }
 \description{
 Calculate objective function value for MAP Bayesian fit
-Uses mvnfast, which was found to be faster for computing multivariate normal distribution than {mvtnorm}
+Uses implementation using RcppArmadillo, which was found to be faster for computing 
+multivariate normal distribution than {mvtnorm}.
+Adapted from: https://www.r-bloggers.com/2013/07/faster-multivariate-normal-densities-with-rcpparmadillo-and-openmp/
 }

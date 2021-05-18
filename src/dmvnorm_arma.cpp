@@ -34,9 +34,9 @@ Rcpp::NumericVector dmvnorm_arma(arma::vec x,  arma::rowvec mean,  arma::mat sig
   double log2pi = std::log(2.0 * M_PI);
   arma::vec logretval = -( (y.n_cols * log2pi + logdet + distval)/2  ) ;
   
-  if (log){ 
+  if (log){
     return(Rcpp::NumericVector(logretval.begin(), logretval.end()));
-  }else { 
+  } else {
     return(exp(Rcpp::NumericVector(logretval.begin(), logretval.end())));
   }
 }

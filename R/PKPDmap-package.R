@@ -4,6 +4,9 @@
 #'
 #' @docType package
 #' @name PKPDmap
-#' @import mvtnorm PKPDsim bbmle
-#' @author Ron Keizer \email{ronkeizer@@gmail.com}
+#' @import PKPDsim bbmle Rcpp
+#' @importFrom Rcpp sourceCpp
+#' @author Ron Keizer \email{ron@insight-rx.com}
 #' @useDynLib PKPDmap
+NULL
+#> NULL

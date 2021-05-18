@@ -29,10 +29,11 @@ calc_ofv_map <- function(
   include_error = TRUE
 ) {
   c(
-    as.numeric(dmvnorm_arma(x = as.matrix(t(eta)), 
-                            mean = rep(0, length(eta)), 
-                            sigma = as.matrix(omega) * 1/weight_prior, 
-                            log = TRUE)) * include_omega,
+    PKPDmap:::dmvnorm_arma(
+      x = as.matrix(t(eta)), 
+      mean = rep(0, length(eta)), 
+      sigma = as.matrix(omega) * 1/weight_prior, 
+      log = TRUE) * include_omega,
     stats::dnorm(
       (dv - ipred) * include_error, 
       mean = 0, 
