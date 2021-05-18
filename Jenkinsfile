@@ -36,7 +36,7 @@ pipeline {
       steps {
         echo 'Checking PKPDmap'
         sh """
-        docker exec -i ${BUILD_TAG} Rscript -e "devtools::check()"
+        docker exec -i ${BUILD_TAG} Rscript -e "devtools::check(error_on = 'error')"
         """
       }
     }
