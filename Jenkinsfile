@@ -27,8 +27,8 @@ pipeline {
         echo "Running container"
         sh """
         \$(aws ecr get-login --no-include-email --region us-west-2 &> /dev/null)
-        docker build -t PKPDmap .
-        docker run -d --name ${BUILD_TAG} PKPDmap:latest
+        docker build -t pkpdmap .
+        docker run -d --name ${BUILD_TAG} pkpdmap:latest
         """
       }
     }
