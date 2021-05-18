@@ -29,7 +29,7 @@ calc_ofv_map <- function(
   include_error = TRUE
 ) {
   c(
-    PKPDmap:::dmvnorm_arma(
+    dmvnorm_arma(
       x = as.matrix(t(eta)), 
       mean = rep(0, length(eta)), 
       sigma = as.matrix(omega) * 1/weight_prior, 

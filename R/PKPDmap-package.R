@@ -4,8 +4,10 @@
 #'
 #' @docType package
 #' @name PKPDmap
-#' @import PKPDsim bbmle Rcpp
+#' @import mvtnorm PKPDsim bbmle Rcpp
 #' @importFrom Rcpp sourceCpp
+#' @importFrom stats cov cov2cor filter glm lm predict.lm weights
+#' @importFrom utils setTxtProgressBar txtProgressBar tail
 #' @author Ron Keizer \email{ron@insight-rx.com}
 #' @useDynLib PKPDmap
 NULL
