@@ -20,7 +20,11 @@ omega <- c(0.205590,
            0.000000, 0.000000, 0.000000, 0.000000, 0.057068)
 
 ## Set up model and regimen
-egfr <- clinPK::calc_egfr(age = 65, weight = 156, height = 180, scr = 1.49, sex = "male", method = "cockcroft_gault_adjusted")$value
+
+## Commented out to avoid taking on a dependency for this one use of clinPK, but
+## left in so we track where the egfr value was derived from
+# egfr <- clinPK::calc_egfr(age = 65, weight = 156, height = 180, scr = 1.49, sex = "male", method = "cockcroft_gault_adjusted")$value
+egfr <- 75.080589758495
 covs <- list(CRCL = PKPDsim::new_covariate(value = egfr))
 mod <- PKPDsim::new_ode_model(
   code = "

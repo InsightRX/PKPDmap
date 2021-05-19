@@ -1,71 +1,53 @@
 #!groovy
 
-  pipeline {
-    agent {
-      label 'r-slave'
+pipeline {
+  agent {
+    label 'docker-runner'
+  }
+  environment {
+    KHALEESI_SLACK_TOKEN = credentials('KHALEESI_SLACK_TOKEN')
+    JENKINS_SLACKBOT = credentials('JENKINS_SLACKBOT')
+  }
+  stages{
+    stage('Pull PKPDsim') {
+      steps {
+        echo 'Pulling PKPDsim'
+        sh """
+        sudo rm -rf PKPDsim2
+        git clone git@github.com:InsightRX/PKPDsim2.git
+        """
+      }
     }
-    stages{
-      stage('Dependencies - build clinPK') {
-        steps {
-          echo 'building clinPK'
-          sh """
-            cd /$workspace
-            if [ -d "clinPK2" ]; then
-              sudo rm -R clinPK2
-            fi
-            git clone git@github.com:InsightRX/clinPK2.git
-            cd clinPK2
-            chmod +x slack_notification.sh
-            R CMD INSTALL . --library=/usr/lib/R/site-library || { export STATUS=failed
-            ./slack_notification.sh
-            exit 1
-            }
-            """
-        }
+    stage('Run docker container') {
+      environment {
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
       }
-      stage('Dependencies - PKPDsim') {
-        steps {
-          echo 'building PKPDsim'
-          sh """
-          if [ -d "PKPDsim2" ]; then
-            sudo rm -R PKPDsim2
-          fi
-          git clone git@github.com:InsightRX/PKPDsim2.git
-          cd PKPDsim2
-          chmod +x slack_notification.sh
-          R CMD INSTALL . --library=/usr/lib/R/site-library || { export STATUS=failed
-          ./slack_notification.sh
-          exit 1
-          }
-          R CMD check . --no-manual || { export STATUS=failed
-          ./slack_notification.sh
-          exit 1
-          }
-          """
-        }
-
+      steps {
+        echo "Running container"
+        sh """
+        \$(aws ecr get-login --no-include-email --region us-west-2 &> /dev/null)
+        docker build -t pkpdmap .
+        docker run -d --name ${BUILD_TAG} pkpdmap:latest
+        """
       }
-      stage('Build - PKPDmap') {
-        steps {
-          echo 'buildilng PKPDmap'
-          sh """
-          if [ -d "PKPDmap" ]; then
-            sudo rm -R PKPDmap
-          fi
-          git clone git@github.com:InsightRX/PKPDmap.git
-          cd PKPDmap
-          git checkout $GIT_BRANCH
-          git pull origin $GIT_BRANCH
-          chmod +x slack_notification.sh
-          { R CMD INSTALL . --library=/usr/lib/R/site-library
-
-          R CMD check . --no-manual
-          } || { export STATUS=failed
-          ./slack_notification.sh
-          exit 1
-          }
-          """
-        }
+    }
+    stage('Run R CMD check') {
+      steps {
+        echo 'Checking PKPDmap'
+        sh """
+        docker exec -i ${BUILD_TAG} Rscript -e "devtools::check(error_on = 'error')"
+        """
       }
     }
   }
+  post {
+    always {
+      sh "docker rm -f ${BUILD_TAG} &>/dev/null && echo 'Removed container'"
+    }
+    failure {
+      sh "chmod +x slack_notification.sh"
+      sh "./slack_notification.sh"
+    }
+  }
+}
