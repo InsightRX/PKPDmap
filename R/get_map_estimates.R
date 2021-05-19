@@ -74,8 +74,6 @@ get_map_estimates <- function(
                       output_include = list(covariates = FALSE, parameters = FALSE),
                       ...) {
 
-  if(optimizer == "optimx") require("optimx")
-
   ## Handle weighting of priors, allow for some presets but can
   ## also be set manually using `weight_prior`
   if(is.null(weight_prior) || is.na(weight_prior)) {
