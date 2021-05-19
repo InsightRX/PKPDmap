@@ -3,6 +3,7 @@ library(testit)
 library(PKPDmap)
 library(PKPDsim)
 Sys.setenv("R_TESTS" = "")
+
 model <- new_ode_model("pk_1cmt_iv")
 i <- 1
 
