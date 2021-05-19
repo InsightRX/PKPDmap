@@ -42,8 +42,6 @@ create_iov_object(
 \item{n}{number of IOV elements, will be determined automatically from data, `n` will override if not NULL.}
 
 \item{verbose}{verbosity (`TRUE` or `FALSE`)}
-
-\item{reverse_time}{reverse the timing of the bins to mean "t before last observation". `FALSE` by default.}
 }
 \description{
 Calculate the specs for including IOV, e.g. which elements should be fixed

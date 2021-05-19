@@ -8,7 +8,6 @@
 #' @param parameters named list of parameter values
 #' @param fixed vector of fixed parameters
 #' @param n number of IOV elements, will be determined automatically from data, `n` will override if not NULL.
-#' @param reverse_time reverse the timing of the bins to mean "t before last observation". `FALSE` by default.
 #' @param tdm_init_level pre-first dose TDM level
 #' @param estimate_init_level estimate the pre-dose. If FALSE, will use any TDM levels before first dose as the deterministic level for compartment initiation.
 #' @param init_level_weight weight in MAP fit for init level
