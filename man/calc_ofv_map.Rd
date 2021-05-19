@@ -2,10 +2,7 @@
 % Please edit documentation in R/calc_ofv_map.R
 \name{calc_ofv_map}
 \alias{calc_ofv_map}
-\title{Calculate objective function value for MAP Bayesian fit
-Uses implementation using RcppArmadillo, which was found to be faster for computing 
-multivariate normal distribution than {mvtnorm}.
-Adapted from: https://www.r-bloggers.com/2013/07/faster-multivariate-normal-densities-with-rcpparmadillo-and-openmp/}
+\title{Calculate objective function value for MAP Bayesian fit}
 \usage{
 calc_ofv_map(
   eta,
@@ -38,15 +35,6 @@ calc_ofv_map(
 
 \item{include_error}{Include residual error in the likelihood?}
 }
-\value{
-Returns a vector of probabilities based on the probability of parameter 
-        estimates given their multivariate distribution and the prediction errors
-        based on these parameters. The product of the returned probabilities 
-        is the likelihood.
-}
 \description{
 Calculate objective function value for MAP Bayesian fit
-Uses implementation using RcppArmadillo, which was found to be faster for computing 
-multivariate normal distribution than {mvtnorm}.
-Adapted from: https://www.r-bloggers.com/2013/07/faster-multivariate-normal-densities-with-rcpparmadillo-and-openmp/
 }
