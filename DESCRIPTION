@@ -10,6 +10,9 @@ Description: Obtain MAP Bayesian estimates based on individual data and
 License: MIT + file LICENSE
 Depends: utils, stats
 Imports: mvtnorm, PKPDsim, bbmle, optimx
-Suggests: testit
+Suggests: 
+    testthat (>= 3.0.0),
+    testit
 Remotes: InsightRX/PKPDsim2
 RoxygenNote: 7.0.2
+Config/testthat/edition: 3
