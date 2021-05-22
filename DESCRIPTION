@@ -12,5 +12,5 @@ Depends: utils, stats
 Imports: mvtnorm, PKPDsim, bbmle, Rcpp, optimx
 Suggests: testit
 LinkingTo: Rcpp, RcppArmadillo, BH
-Remotes: InsightRX/PKPDsim2
+Remotes: InsightRX/PKPDmap
 RoxygenNote: 7.1.1

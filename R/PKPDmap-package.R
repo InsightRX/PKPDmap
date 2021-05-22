@@ -11,4 +11,3 @@
 #' @author Ron Keizer \email{ron@insight-rx.com}
 #' @useDynLib PKPDmap
 NULL
-#> NULL
