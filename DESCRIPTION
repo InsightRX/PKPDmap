@@ -11,5 +11,6 @@ License: MIT + file LICENSE
 Depends: utils, stats
 Imports: mvtnorm, PKPDsim, bbmle, optimx
 Suggests: testit
-Remotes: InsightRX/PKPDsim2
-RoxygenNote: 7.0.2
+LinkingTo: Rcpp, RcppArmadillo, BH
+Remotes: InsightRX/PKPDmap
+RoxygenNote: 7.1.1
