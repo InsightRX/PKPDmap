@@ -473,11 +473,7 @@ get_map_estimates <- function(
     iwres <- (ires / w_ipred)
     iwres_weighted <- iwres * weights
     obj$prob <- prob
-    if(length(w_ipred) > 1) {
-      obj$mahalanobis <- stats::mahalanobis(transf(y), transf(ipred), cov = diag(w_ipred^2))
-    } else {
-      obj$mahalanobis <- stats::mahalanobis(transf(y), transf(ipred), cov = w_ipred^2)
-    }
+    obj$mahalanobis <- get_mahalanobis(y, ipred, w_ipred, ltbs)
     obj$res <- c(zero_offset, res)
     obj$wres <- c(zero_offset, cwres)
     obj$cwres <- c(zero_offset, cwres)
