@@ -53,6 +53,9 @@ create_iov_object <- function(cv = list(CL = 0.1),
       fixed <- unique(c(fixed, "TDM_INIT"))
     }
   }
+  
+  fixed <- fixed[fixed %in% names(parameters)]
+  
   if(is.null(cv)) {
     if(verbose) message("No IOV specified for model.")
     # make sure all kappa parameters (if present) are included in fixed vector
