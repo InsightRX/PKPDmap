@@ -7,3 +7,4 @@
 README.MD
 Dockerfile
 Jenkinsfile
+^~/\.boxr-oauth$

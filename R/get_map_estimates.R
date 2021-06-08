@@ -14,7 +14,6 @@
 #' @param ltbs log-transform both sides? (`NULL` by default, meaning that it will be picked up from the PKPDsim model. Can be overridden with `TRUE`). Note: `error` should commonly only have additive part.
 #' @param obs_type_label column name in `data` referring to observation type. Can be used for specification of different residual error models for differing observation types (e.g. venous and capillary or parent and metabolite), Residual error should then be specified as list of vectors, e.g. `list(prop = c(0.2, 0.1), add = c(1, 2))`.
 #' @param censoring label for column specifying censoring. If value in dataset in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.
-#' @param mixture specify mixture model. Currently for single parameter only. Overwrites regular parameter, if specified. Specify e.g. as: `mixture = list("CL" = c(5, 9))`
 #' @param steady_state_analytic list object with settings for steady state MAP estimation.
 #' @param include_omega TRUE
 #' @param include_error TRUE
@@ -49,7 +48,6 @@ get_map_estimates <- function(
                       ltbs = NULL,
                       obs_type_label = NULL,
                       censoring = NULL,
-                      mixture = NULL,
                       weights = NULL,
                       steady_state_analytic = NULL,
                       include_omega = TRUE,
@@ -223,6 +221,7 @@ get_map_estimates <- function(
   #################################################
   ## create simulation design up-front:
   #################################################
+  mixture_group <- 1
   suppressMessages({
     sim_object <- PKPDsim::sim(ode = model,
                                parameters = parameters,
@@ -236,6 +235,7 @@ get_map_estimates <- function(
                                only_obs = TRUE,
                                A_init = A_init,
                                fixed = fixed,
+                               mixture_group = mixture_group, # dummy value
                                t_max = tail(t_obs, 1) + t_init + 1,
                                iov_bins = iov_bins,
                                return_design = TRUE,
@@ -244,12 +244,10 @@ get_map_estimates <- function(
   })
 
   mixture_obj <- NULL
-  if(!is.null(mixture)) {
-    if((class(mixture) != "list") || length(names(mixture)) != 1) {
-      stop("`mixture` argument needs to be a list containing elements `parameters` and `values`.")
-    }
+  if(!is.null(attr(model, "mixture"))) {
+    mixture <- attr(model, "mixture")
     mix_par <- names(mixture)[1]
-    mix_par_values <- mixture[[mix_par]]
+    mix_par_values <- mixture[[mix_par]]$values
     fits <- list()
     par_mix <- parameters
     ofvs <- c()
@@ -289,11 +287,12 @@ get_map_estimates <- function(
     }
     like <- exp(ofvs)
     prob <- like / sum(like)
-    fit <- fits[[match(max(prob), prob)]]
+    mixture_group <- match(max(prob), prob)
+    fit <- fits[[mixture_group]]
     mixture_obj <- list(
       parameter = mix_par,
       values = mix_par_values,
-      selected = mix_par_values[match(max(prob), prob)],
+      selected = mix_par_values[mixture_group],
       probabilities = prob
     )
   } else {
@@ -427,6 +426,7 @@ get_map_estimates <- function(
     suppressMessages({
       sim_ipred <- PKPDsim::sim_ode(ode = model,
                            parameters = par,
+                           mixture_group = mixture_group,
                            covariates = covariates,
                            n_ind = 1,
                            int_step_size = int_step_size,
@@ -444,6 +444,7 @@ get_map_estimates <- function(
     suppressMessages({
       sim_pred <- PKPDsim::sim_ode(ode = model,
                           parameters = parameters,
+                          mixture_group = mixture_group,
                           covariates = covariates,
                           n_ind = 1,
                           int_step_size = int_step_size,
