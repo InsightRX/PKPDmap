@@ -246,7 +246,7 @@ get_map_estimates <- function(
   mixture_obj <- NULL
   if(!is.null(attr(model, "mixture"))) {
     mixture <- attr(model, "mixture")
-    mix_par <- names(mixture)[1]
+    mix_par <- names(mixture)
     mix_par_values <- mixture[[mix_par]]$values
     fits <- list()
     par_mix <- parameters
