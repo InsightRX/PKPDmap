@@ -286,14 +286,20 @@ get_map_estimates <- function(
       ofvs <- c(ofvs, bbmle::logLik(fits[[i]]))
     }
     like <- exp(ofvs)
-    prob <- like / sum(like)
+    prior_prob <- c(mixture[[mix_par]]$probability, 1-mixture[[mix_par]]$probability)
+    post_like <- prior_prob * like
+    prob <- post_like / sum(post_like)
     mixture_group <- match(max(prob), prob)
     fit <- fits[[mixture_group]]
+    parameters[[mix_par]] <- mix_par_values[mixture_group] # set population parameter value to most likely one
     mixture_obj <- list(
       parameter = mix_par,
       values = mix_par_values,
+      mixture_group = mixture_group,
       selected = mix_par_values[mixture_group],
-      probabilities = prob
+      probabilities = prob,
+      prior_prob = prior_prob,
+      likelihood = like
     )
   } else {
     output <- tryCatch({
