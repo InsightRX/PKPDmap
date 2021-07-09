@@ -8,5 +8,5 @@
 MAP fitting for PKPD models defined by ODE systems
 }
 \author{
-Ron Keizer \email{ronkeizer@gmail.com}
+Ron Keizer \email{ron@insight-rx.com}
 }

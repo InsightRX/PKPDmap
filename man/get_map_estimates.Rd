@@ -18,7 +18,6 @@ get_map_estimates(
   ltbs = NULL,
   obs_type_label = NULL,
   censoring = NULL,
-  mixture = NULL,
   weights = NULL,
   steady_state_analytic = NULL,
   include_omega = TRUE,
@@ -68,8 +67,6 @@ get_map_estimates(
 \item{obs_type_label}{column name in `data` referring to observation type. Can be used for specification of different residual error models for differing observation types (e.g. venous and capillary or parent and metabolite), Residual error should then be specified as list of vectors, e.g. `list(prop = c(0.2, 0.1), add = c(1, 2))`.}
 
 \item{censoring}{label for column specifying censoring. If value in dataset in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
-
-\item{mixture}{specify mixture model. Currently for single parameter only. Overwrites regular parameter, if specified. Specify e.g. as: `mixture = list("CL" = c(5, 9))`}
 
 \item{weights}{vector of weights for error. Length of vector should be same as length of observation vector. If NULL (default), all weights are equal. Used in both MAP and NP methods. Note that `weights` argument will also affect residuals (residuals will be scaled too).}
 
