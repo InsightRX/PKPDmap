@@ -29,8 +29,9 @@ fit <- get_map_estimates(parameters = par,
                          error = list(prop = 0, add = sqrt(1.73E+04)),
                          data = data1)
 
-assert("correct CL", round(fit$parameters$CL,3) == 8.235)
+assert("correct CL", round(fit$parameters$CL,3) == 5.368)
 assert("correct V", round(fit$parameters$V,3) == 99.762)
 assert("mixture object created", !is.null(fit$mixture$probabilities))
-assert("mixture probs ok", all(round(fit$mixture$probabilities, 2) == c(0.82, 0.18)))
-
+assert("mixture probs ok", all(round(fit$mixture$probabilities, 2) == c(0.66, 0.34)))
+assert("mixture group", fit$mixture$mixture_group == 1)
+assert("mixture group param", fit$mixture$selected == 5)
