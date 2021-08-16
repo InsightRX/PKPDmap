@@ -7,7 +7,14 @@
 #' @param ... dummy parameters, not used
 #' @export
 calc_ofv_ls <- function(
-  dv, ipred, res_sd,
-  weights = 1, ...) {
-  ofv <-   c(stats::dnorm((dv - ipred), mean = 0, sd = res_sd, log=TRUE) * weights)
+  dv, 
+  ipred, 
+  res_sd,
+  weights = 1, 
+  ...) {
+  
+  (log2pi +
+    log(res_sd^2) +
+    ((dv - ipred)^2 / res_sd^2)) * weights
+  
 }

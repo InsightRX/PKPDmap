@@ -7,6 +7,8 @@
 calc_ofv_map(
   eta,
   omega,
+  omega_inv,
+  omega_eigen,
   dv,
   ipred,
   res_sd,
@@ -20,6 +22,10 @@ calc_ofv_map(
 \item{eta}{eta's}
 
 \item{omega}{full omega matrix}
+
+\item{omega_inv}{inverse of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.}
+
+\item{omega_eigen}{eigenvalue decomposation (logged) of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.}
 
 \item{dv}{observed data points}
 
