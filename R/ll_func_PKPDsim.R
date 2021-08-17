@@ -122,7 +122,7 @@ ll_func_PKPDsim <- function(
     weights_cens <- weights[censoring_idx]
     weights <- weights[!censoring_idx]
     res_sd_cens <- sqrt(error$prop[obs_type_cens]^2*ipred_cens^2 + error$add[obs_type_cens]^2)
-    ofv_cens <- stats::pnorm((dv_cens - ipred_cens) * cens, 0, res_sd_cens, log=TRUE) * weights_cens
+    ofv_cens <- -2 * stats::pnorm((dv_cens - ipred_cens) * cens, 0, res_sd_cens, log=TRUE) * weights_cens
   }
   res_sd <- sqrt(error$prop[obs_type]^2*ipred^2 + error$add[obs_type]^2)
   et <- mget(objects()[grep("^eta", objects())])
