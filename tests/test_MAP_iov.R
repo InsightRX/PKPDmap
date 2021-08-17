@@ -36,7 +36,8 @@ fit <- get_map_estimates(
   regimen = reg, 
   fixed = fixed,
   error = ruv,
-  as_eta = as_eta
+  as_eta = as_eta,
+  verbose = T
 )
 
 ## check that IOV etas moved away from initial estimate

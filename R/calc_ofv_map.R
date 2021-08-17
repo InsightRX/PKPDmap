@@ -17,7 +17,9 @@ calc_ofv_map <- function(
   omega,
   omega_inv,
   omega_eigen,
-  dv, ipred, res_sd,
+  dv, 
+  ipred, 
+  res_sd,
   weights = 1,
   weight_prior = 1, 
   include_omega = TRUE, 
@@ -29,7 +31,6 @@ calc_ofv_map <- function(
   #                                                          sigma = as.matrix(omega) * 1/weight_prior,
   #                                                         log=TRUE) * include_omega,
   #            stats::dnorm((dv - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
-  
   ofv_om <- log2pi * ncol(omega) +
             omega_eigen +
             diag(matrix(eta, nrow = 1) %*%

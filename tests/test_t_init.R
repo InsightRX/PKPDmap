@@ -57,6 +57,8 @@ fit0 <- get_map_estimates(parameters = par,
                          data = dat,
                          verbose = F
 )
+print(fit4)
+print(str(fit4))
 assert("check fit object returned", "map_estimates" %in% class(fit4))
 assert("check fit object returned", "map_estimates" %in% class(fit2))
 assert("check fit object returned", "map_estimates" %in% class(fit0))
