@@ -18,5 +18,6 @@ calc_ofv_ls(dv, ipred, res_sd, weights = 1, ...)
 \item{...}{dummy parameters, not used}
 }
 \description{
-Calculate objective function value for LS fit
+The OFV is defined as -2 times the log of the density of the normal distribution 
+at the point `dv-ipred` with mean 0 and standard deviation res_sd.
 }

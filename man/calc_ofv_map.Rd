@@ -7,19 +7,24 @@
 calc_ofv_map(
   eta,
   omega,
+  omega_inv,
+  omega_eigen,
   dv,
   ipred,
   res_sd,
   weights = 1,
-  weight_prior = 1,
   include_omega = TRUE,
   include_error = TRUE
 )
 }
 \arguments{
-\item{eta}{eta's}
+\item{eta}{eta's specified as row matrix, e.g. `matrix(c(...), nrow=1)`.}
 
 \item{omega}{full omega matrix}
+
+\item{omega_inv}{inverse of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.}
+
+\item{omega_eigen}{eigenvalue decomposation (logged) of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.}
 
 \item{dv}{observed data points}
 
@@ -28,8 +33,6 @@ calc_ofv_map(
 \item{res_sd}{standard deviation of the observations}
 
 \item{weights}{weights vector for the observed data}
-
-\item{weight_prior}{relative weight of the population priors}
 
 \item{include_omega}{Include deviation from population parameters in the likelihood?}
 

@@ -7,9 +7,10 @@
 #' @param error error model to use, e.g. `list(add = .5, prop = .15)`
 #' @param model PKPDsim model
 #' @param omega_full full omega matrix
+#' @param omega_inv inverse of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.
+#' @param omega_eigen eigenvalue decomposation (logged) of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.
 #' @param sig signficance, used in optimization
 #' @param weights weights for data, generally a vector of weights between 0 and 1.
-#' @param weight_prior weight of prior
 #' @param transf transformation function for data, if needed. E.g. `log(x)`. Default is `function(x) = x`.
 #' @param as_eta implement as regular eta instead of exponential eta, can be vector.
 #' @param censoring_idx censoring indices, used for <LOQ data.
@@ -62,7 +63,6 @@ ll_func_PKPDsim <- function(
   omega_full,
   sig,
   weights,
-  weight_prior,
   as_eta,
   censoring_idx,
   censoring_label,
@@ -120,20 +120,20 @@ ll_func_PKPDsim <- function(
     weights_cens <- weights[censoring_idx]
     weights <- weights[!censoring_idx]
     res_sd_cens <- sqrt(error$prop[obs_type_cens]^2*ipred_cens^2 + error$add[obs_type_cens]^2)
-    ofv_cens <- stats::pnorm((dv_cens - ipred_cens) * cens, 0, res_sd_cens, log=TRUE) * weights_cens
+    ofv_cens <- -2 * stats::pnorm((dv_cens - ipred_cens) * cens, 0, res_sd_cens, log=TRUE) * weights_cens
   }
   res_sd <- sqrt(error$prop[obs_type]^2*ipred^2 + error$add[obs_type]^2)
   et <- mget(objects()[grep("^eta", objects())])
   et <- as.numeric(as.character(et[et != ""]))
-  omega_full <- as.matrix(omega_full)[1:length(et), 1:length(et)]
   ofv <- calc_ofv(
-    eta = et,
+    eta = matrix(et, nrow=1),
     omega = omega_full,
+    omega_inv = omega_inv,
+    omega_eigen = omega_eigen,
     dv = dv,
     ipred = ipred,
     res_sd = res_sd,
     weights = weights,
-    weight_prior = weight_prior,
     include_omega = include_omega,
     include_error = include_error)
   ofv <- c(ofv, ofv_cens)
@@ -142,7 +142,7 @@ ll_func_PKPDsim <- function(
     cat(paste0("Eta\t: [", paste(signif(et,5), collapse=", "),"]\n"))
     cat(paste0("y_hat\t: [", paste(ipred, collapse=", "),"]\n"))
     cat(paste0("P(y)\t: [", paste(signif(exp(ofv[-1]),5), collapse=", "),"]\n"))
-    cat(paste0("OFV\t: [", paste(signif(-2*sum(ofv),5), collapse=", "), "]\n"))
+    cat(paste0("OFV\t: [", paste(signif(sum(ofv),5), collapse=", "), "]\n"))
   }
-  return(-2 * sum(ofv))
+  sum(ofv)
 }

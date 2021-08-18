@@ -243,6 +243,7 @@ get_map_estimates <- function(
                                ...)
   })
 
+  omega_full_est <- omega_full[1:n_nonfix, 1:n_nonfix]
   mixture_obj <- NULL
   if(!is.null(attr(model, "mixture"))) {
     mixture <- attr(model, "mixture")
@@ -265,11 +266,12 @@ get_map_estimates <- function(
                                      t_obs = t_obs,
                                      model = model,
                                      error = error,
-                                     omega_full = omega_full,
+                                     omega_full = omega_full_est/weight_prior,
+                                     omega_inv = solve(omega_full_est/weight_prior),
+                                     omega_eigen = sum(log(eigen(omega_full_est)$values)),
                                      nonfixed = nonfixed,
                                      transf = transf,
                                      weights = weights,
-                                     weight_prior = weight_prior,
                                      sig = sig,
                                      as_eta = as_eta,
                                      censoring_idx = censoring_idx,
@@ -315,10 +317,12 @@ get_map_estimates <- function(
                                    t_obs = t_obs,
                                    model = model,
                                    error = error,
-                                   omeg_full = omega_full,
+                                   omeg_full = omega_full_est,
                                    nonfixed = nonfixed,
                                    transf = transf,
-                                   omega_full = omega_full,
+                                   omega_full = omega_full_est/weight_prior,
+                                   omega_inv = solve(omega_full_est/weight_prior),
+                                   omega_eigen = sum(log(eigen(omega_full_est/weight_prior)$values)),
                                    weights = weights,
                                    weight_prior = weight_prior,
                                    sig = sig,
