@@ -24,8 +24,7 @@ test_that("Basic OFV calc works", {
                c(-0.8171, 43.87438, 3.594, 9.28779))
 })
 
-## check that weights are applied
-test_that("checkt that tdm weights are applied", {
+test_that("check that tdm weights are applied", {
   res2 <- calc_ofv_map(
     eta, 
     omega,
@@ -37,10 +36,12 @@ test_that("checkt that tdm weights are applied", {
     weights = c(0.2, 0.5, 1),
     weight_prior = 1, 
     include_omega = TRUE, 
-    include_error = TRUE)
-  expect_equal(round(res2, 5), 
-               c(-0.8171, 8.77488, 1.797, 9.28779))
-  
+    include_error = TRUE
+  )
+  expect_equal(
+    round(res2, 5), 
+    c(-0.8171, 8.77488, 1.797, 9.28779)
+  )
 })
 
 test_that("check that weight prior is applied correctly", {

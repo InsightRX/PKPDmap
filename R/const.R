@@ -1,2 +1,2 @@
 #' Constant used in some computations
-log2pi <- 1.837877
+log2pi <- log(2 * pi)

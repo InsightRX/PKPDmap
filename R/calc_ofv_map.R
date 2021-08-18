@@ -27,15 +27,25 @@ calc_ofv_map <- function(
   
   # The code below implements:
   #
-  # ofv <-   -2*c(mvtnorm::dmvnorm(eta, mean=rep(0, length(eta)),
-  #                                                          sigma = as.matrix(omega) * 1/weight_prior,
-  #                                                         log=TRUE) * include_omega,
-  #            stats::dnorm((dv - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
+  # ofv <-  -2 * c(
+  #   include_omega * mvtnorm::dmvnorm(
+  #     eta, 
+  #     mean = rep(0, length(eta)),
+  #     sigma = as.matrix(omega) * 1/weight_prior, 
+  #     log = TRUE
+  #   ),
+  #   weights * stats::dnorm(
+  #     (dv - ipred) * include_error, 
+  #     mean = 0, 
+  #     sd = res_sd, 
+  #     log=TRUE
+  #   )
+  # )
   ofv_om <- log2pi * ncol(omega) +
             omega_eigen +
-            diag(matrix(eta, nrow = 1) %*%
-                       omega_inv %*%
-                       matrix(eta, ncol = 1)) * include_omega
+            include_omega * diag(
+              matrix(eta, nrow = 1) %*% omega_inv %*% matrix(eta, ncol = 1)
+            )
   ofv_y <- (log2pi +
             log(res_sd^2) +
             ((dv - ipred)^2 * include_error / res_sd^2)) * weights
