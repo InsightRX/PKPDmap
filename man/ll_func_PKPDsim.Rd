@@ -38,7 +38,6 @@ ll_func_PKPDsim(
   omega_full,
   sig,
   weights,
-  weight_prior,
   as_eta,
   censoring_idx,
   censoring_label,
@@ -101,8 +100,6 @@ ll_func_PKPDsim(
 \item{sig}{signficance, used in optimization}
 
 \item{weights}{weights for data, generally a vector of weights between 0 and 1.}
-
-\item{weight_prior}{weight of prior}
 
 \item{as_eta}{implement as regular eta instead of exponential eta, can be vector.}
 

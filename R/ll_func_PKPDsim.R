@@ -11,7 +11,6 @@
 #' @param omega_eigen eigenvalue decomposation (logged) of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.
 #' @param sig signficance, used in optimization
 #' @param weights weights for data, generally a vector of weights between 0 and 1.
-#' @param weight_prior weight of prior
 #' @param transf transformation function for data, if needed. E.g. `log(x)`. Default is `function(x) = x`.
 #' @param as_eta implement as regular eta instead of exponential eta, can be vector.
 #' @param censoring_idx censoring indices, used for <LOQ data.
@@ -64,7 +63,6 @@ ll_func_PKPDsim <- function(
   omega_full,
   sig,
   weights,
-  weight_prior,
   as_eta,
   censoring_idx,
   censoring_label,
@@ -136,7 +134,6 @@ ll_func_PKPDsim <- function(
     ipred = ipred,
     res_sd = res_sd,
     weights = weights,
-    weight_prior = weight_prior,
     include_omega = include_omega,
     include_error = include_error)
   ofv <- c(ofv, ofv_cens)

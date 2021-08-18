@@ -1,7 +1,7 @@
 Package: PKPDmap
 Type: Package
 Title: MAP Bayesian estimates
-Version: 0.70
+Version: 0.71
 Date: 2021-08-18
 Author: Ron Keizer
 Maintainer: Ron Keizer <ron@insight-rx.com>

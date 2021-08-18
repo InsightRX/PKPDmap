@@ -15,7 +15,6 @@ ll_func_generic <- function(
   model,
   t_obs,
   sig,
-  weight_prior,
   ...) {
   par <- parameters
   p <- as.list(match.call())
@@ -31,7 +30,7 @@ ll_func_generic <- function(
   omega_full <- omega_full[1:length(et), 1:length(et)]
   ofv <-   c(mvtnorm::dmvnorm(et, mean=rep(0, length(et)),
                               sigma = omega_full[1:length(et), 1:length(et)],
-                              log=TRUE) * weight_prior,
+                              log=TRUE),
              stats::dnorm(y - ipred, mean = 0, sd = res_sd, log=TRUE) * weights)
   if(verbose) {
     print(ofv)

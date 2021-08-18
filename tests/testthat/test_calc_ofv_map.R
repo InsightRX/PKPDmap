@@ -17,16 +17,16 @@ test_that("Basic OFV calc works", {
     ipred, 
     res_sd,
     weights = 1,
-    weight_prior = 1, 
     include_omega = TRUE, 
     include_error = TRUE)
   expect_equal(round(res, 5), 
                c(-0.8171, 43.87438, 3.594, 9.28779))
 })
 
-## check that weights are applied
-test_that("checkt that tdm weights are applied", {
-  res2 <- calc_ofv_map(
+test_that("check that tdm weights are applied", {
+  ## This is weights of observations, not prior weight
+  ## Prior weight is not an argument to calc_ofv_map(), this is handled in get_map_estimates()
+  res2a <- calc_ofv_map(
     eta, 
     omega,
     omega_inv,
@@ -34,17 +34,29 @@ test_that("checkt that tdm weights are applied", {
     dv, 
     ipred, 
     res_sd,
-    weights = c(0.2, 0.5, 1),
-    weight_prior = 1, 
+    weights = 1,
     include_omega = TRUE, 
-    include_error = TRUE)
-  expect_equal(round(res2, 5), 
-               c(-0.8171, 8.77488, 1.797, 9.28779))
-  
+    include_error = TRUE
+  )
+  res2b <- calc_ofv_map(
+    eta, 
+    omega,
+    omega_inv,
+    omega_eigen,
+    dv, 
+    ipred, 
+    res_sd,
+    weights = c(0.2, 0.5, .8),
+    include_omega = TRUE, 
+    include_error = TRUE
+  )
+  expect_true(
+    all(round(res2a[-1], 5) !=  round(res2b[-1], 5))
+  )
 })
 
-test_that("check that weight prior is applied correctly", {
-  res3 <- calc_ofv_map(
+test_that("check that include_omega works", {
+  res4a <- calc_ofv_map(
     eta, 
     omega,
     omega_inv,
@@ -52,10 +64,45 @@ test_that("check that weight prior is applied correctly", {
     dv, 
     ipred, 
     res_sd,
-    weights = 0.3,
-    weight_prior = 1, 
-    include_omega = TRUE, 
+    weights = 1,
+    include_omega = FALSE, 
     include_error = TRUE)
-  expect_equal(round(res3, 5), 
-               c(-0.8171, 13.16231, 1.0782, 2.78634))
+  res4b <- calc_ofv_map(
+    eta, 
+    omega * 2,
+    omega_inv,
+    omega_eigen,
+    dv, 
+    ipred, 
+    res_sd,
+    weights = 1,
+    include_omega = FALSE, 
+    include_error = TRUE)
+  expect_equal(res4a, res4b)
+})
+
+test_that("check that include_error works", {
+  res5a <- calc_ofv_map(
+    eta, 
+    omega,
+    omega_inv,
+    omega_eigen,
+    dv, 
+    ipred, 
+    res_sd,
+    weights = 1,
+    include_omega = TRUE, 
+    include_error = FALSE)
+  res5b <- calc_ofv_map(
+    eta, 
+    omega,
+    omega_inv,
+    omega_eigen,
+    dv, 
+    ipred, 
+    res_sd,
+    weights = 0.5, # changed weights, shouldn't affect since using
+    include_omega = TRUE, 
+    include_error = FALSE)
+  expect_equal(res5a, res5b)
 })
