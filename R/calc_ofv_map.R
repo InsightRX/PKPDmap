@@ -1,6 +1,6 @@
 #' Calculate objective function value for MAP Bayesian fit
 #'
-#' @param eta eta's
+#' @param eta eta's specified as row matrix, e.g. `matrix(c(...), nrow=1)`.
 #' @param omega full omega matrix
 #' @param omega_inv inverse of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.
 #' @param omega_eigen eigenvalue decomposation (logged) of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.
@@ -33,9 +33,7 @@ calc_ofv_map <- function(
   #            stats::dnorm((dv - ipred) * include_error, mean = 0, sd = res_sd, log=TRUE) * weights)
   ofv_om <- log2pi * ncol(omega) +
             omega_eigen +
-            diag(matrix(eta, nrow = 1) %*%
-                       omega_inv %*%
-                       matrix(eta, ncol = 1)) * include_omega
+            diag(eta %*% omega_inv %*% t(eta)) * include_omega
   ofv_y <- (log2pi +
             log(res_sd^2) +
             ((dv - ipred)^2 * include_error / res_sd^2)) * weights

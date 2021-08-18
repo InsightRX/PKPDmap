@@ -1,4 +1,4 @@
-eta <- c(0.1, -0.1)
+eta <- matrix(c(0.1, -0.1), nrow=1)
 omega <- matrix(c(0.1, 0.05, 
                   0.05, 0.1), ncol=2)
 omega_inv <- solve(omega)

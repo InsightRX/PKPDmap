@@ -128,7 +128,7 @@ ll_func_PKPDsim <- function(
   et <- mget(objects()[grep("^eta", objects())])
   et <- as.numeric(as.character(et[et != ""]))
   ofv <- calc_ofv(
-    eta = et,
+    eta = matrix(et, nrow=1),
     omega = omega_full,
     omega_inv = omega_inv,
     omega_eigen = omega_eigen,
