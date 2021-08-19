@@ -157,10 +157,9 @@ run_sequential_map <- function(
                    verbose = FALSE)
 
     ## Save data 
-    conc <- rbind(conc,
-                  tmp[tmp$comp == "obs",])
+    conc <- rbind(conc, tmp[tmp$comp == "obs", ])
     conc$t <- conc$t + t_last
-                  
+    
     par_table <- rbind(par_table,
                        cbind(t1 = t1 + t_last,
                              t2 = t2 + t_last, as.data.frame(fits[[i]]$parameters)))

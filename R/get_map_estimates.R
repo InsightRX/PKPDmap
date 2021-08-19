@@ -259,7 +259,6 @@ get_map_estimates <- function(
         optimizer = optimizer,
         control = control,
         skip_hessian = skip_hessian,
-        fixed = fix,
         data = list(
           data = data,
           sim_object = sim_object,
@@ -269,8 +268,7 @@ get_map_estimates <- function(
           regimen = regimen,
           error = error,
           omega_full = omega_full_est / weight_prior,
-          omega_inv = solve(omega_full_est /
-                              weight_prior),
+          omega_inv = solve(omega_full_est / weight_prior),
           omega_eigen = sum(log(eigen(omega_full_est)$values)),
           nonfixed = nonfixed,
           transf = transf,
@@ -316,7 +314,6 @@ get_map_estimates <- function(
         optimizer = optimizer,
         control = control,
         skip_hessian = skip_hessian,
-        fixed = fix,
         data = list(
           data = data,
           sim_object = sim_object,
