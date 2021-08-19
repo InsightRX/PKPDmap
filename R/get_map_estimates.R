@@ -325,10 +325,9 @@ get_map_estimates <- function(
           model = model,
           regimen = regimen,
           error = error,
-          omega_full = omega_full_est,
           nonfixed = nonfixed,
           transf = transf,
-          # omega_full = omega_full_est / weight_prior,
+          omega_full = omega_full_est / weight_prior,
           omega_inv = solve(omega_full_est / weight_prior),
           omega_eigen = sum(log(eigen(omega_full_est / weight_prior)$values)),
           weights = weights,
@@ -351,7 +350,7 @@ get_map_estimates <- function(
     })
     if("error" %in% class(output)) return(output)
   }
-  cf <- fit$par
+  cf <- fit$coef
   par <- parameters
   for(i in seq(nonfixed)) {
     key <- nonfixed[i]
@@ -510,7 +509,6 @@ get_map_estimates <- function(
       obj$parameters_time <- sim_ipred[!duplicated(sim_ipred$t), names(parameters)]
     }
   }
-  
   obj$vcov_full <- fit$vcov
   if(any(is.na(obj$vcov_full)) || !PKPDsim::is_positive_definite(obj$vcov_full)) {
     obj$vcov_full <- omega_full
