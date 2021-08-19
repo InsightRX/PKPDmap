@@ -191,9 +191,9 @@ get_map_estimates <- function(
   fix <- NULL
 
   if(class(omega) == "matrix") {
-    omega_full <- omega / weight_prior # dummy om matrix
+    omega_full <- omega # dummy om matrix
   } else {
-    omega_full <-  PKPDsim::triangle_to_full(omega) / weight_prior # dummy om matrix
+    omega_full <-  PKPDsim::triangle_to_full(omega) # dummy om matrix
   }
   om_nonfixed <-  PKPDsim::triangle_to_full(omega)
   if(nrow(om_nonfixed) < (length(parameters) - length(fixed))) {
