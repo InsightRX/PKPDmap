@@ -3,6 +3,7 @@
 #' @param data vector of
 #' @param sim_object design (event-table) obtained from PKPDsim to be used in simulations/optimizations
 #' @param parameters parameter list
+#' @param covariates covariates list
 #' @param nonfixed non-fixed (i.e. estimated) parameters
 #' @param error error model to use, e.g. `list(add = .5, prop = .15)`
 #' @param model PKPDsim model
@@ -23,15 +24,15 @@
 #' @param include_omega include omega in calculation of OFV?
 #' @param include_error include residual error in calculation of OFV?
 #' @param verbose verbose output?
-#' @param eta1 eta1 
-#' @param eta2 eta2 
-#' @param eta3 eta3 
-#' @param eta4 eta4 
-#' @param eta5 eta5 
-#' @param eta6 eta6 
-#' @param eta7 eta7 
-#' @param eta8 eta8 
-#' @param eta9 eta9 
+#' @param eta01 eta1 
+#' @param eta02 eta2 
+#' @param eta03 eta3 
+#' @param eta04 eta4 
+#' @param eta05 eta5 
+#' @param eta06 eta6 
+#' @param eta07 eta7 
+#' @param eta08 eta8 
+#' @param eta09 eta9 
 #' @param eta10 eta10 
 #' @param eta11 eta11 
 #' @param eta12 eta12 
@@ -53,14 +54,18 @@ ll_func_PKPDsim <- function(
   data,
   sim_object,
   parameters,
+  covariates = covariates,
   nonfixed,
   # unfortunately seems no other way to do this using the optim package...
   eta01, eta02, eta03, eta04, eta05, eta06, eta07, eta08, eta09, eta10,
   eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20,
   eta21, eta22, eta23, eta24,
   error = error,
+  transf,
   model,
   omega_full,
+  omega_inv,
+  omega_eigen,
   sig,
   weights,
   as_eta,

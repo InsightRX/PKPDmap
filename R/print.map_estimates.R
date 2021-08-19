@@ -8,5 +8,5 @@ print.map_estimates <- function(x, ...) {
     cat(paste0(names(x$parameters[i]), ":\t", signif(as.numeric(x$parameters[i]), 3), "\n"))
   }
   cat("---------------\n")
-  cat(paste0("OFV:\t", signif(x$fit@details$value, 6)))
+  cat(paste0("OFV:\t", signif(x$fit$value, 6)))
 }

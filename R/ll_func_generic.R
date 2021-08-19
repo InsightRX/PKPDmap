@@ -15,6 +15,7 @@ ll_func_generic <- function(
   model,
   t_obs,
   sig,
+  verbose = FALSE,
   ...) {
   par <- parameters
   p <- as.list(match.call())

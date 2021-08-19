@@ -61,8 +61,7 @@ run_its <- function(
     ## loop over patients
     pb <- txtProgressBar(min = 0, max = length(ids), initial = 0, style = 3)
     for(i in seq(ids)) {
-      dv <- data[data$id == ids[i] && data$evid == 0,]
-      dv <- data %>% filter(id == ids[i], evid == 0)
+      dv <- data[data$id == ids[i] & data$evid == 0,]
       tmp <- get_map_estimates(
         parameters = par_tmp,
         model = model,
