@@ -81,8 +81,8 @@ test_that("check that include_omega works", {
   expect_equal(res4a, res4b)
 })
 
-test_that("check that include_error works", {
-  res5a <- calc_ofv_map(
+test_that("check that include_error gives correct likelihoods", {
+  res5 <- calc_ofv_map(
     eta, 
     omega,
     omega_inv,
@@ -92,17 +92,6 @@ test_that("check that include_error works", {
     res_sd,
     weights = 1,
     include_omega = TRUE, 
-    include_error = FALSE)
-  res5b <- calc_ofv_map(
-    eta, 
-    omega,
-    omega_inv,
-    omega_eigen,
-    dv, 
-    ipred, 
-    res_sd,
-    weights = 0.5, # changed weights, shouldn't affect since using
-    include_omega = TRUE, 
-    include_error = FALSE)
-  expect_equal(res5a, res5b)
+    include_error = TRUE)
+  expect_equal(round(res5, 5), c(-0.8171, 43.87438, 3.594, 9.28779))
 })
