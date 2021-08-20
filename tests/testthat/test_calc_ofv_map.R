@@ -53,6 +53,9 @@ test_that("check that tdm weights are applied", {
   expect_true(
     all(round(res2a[-1], 5) !=  round(res2b[-1], 5))
   )
+  expect_equal(
+    round(res2b, 5), c(-0.8171, 8.77488, 1.797, 7.43023)
+  )
 })
 
 test_that("check that include_omega works", {
