@@ -16,7 +16,13 @@ map_shrinkage_control(
 \arguments{
 \item{shrinkage_control}{automatically control individual shrinkage. Suggested value e.g. `0.05` for allowing 5 percent shrinkage (averaged over all parameters).}
 
-\item{...}{passed to PKPDmap}
+\item{parameters}{list of parameters}
+
+\item{fixed}{fix a specific parameters, supplied as vector of strings}
+
+\item{data}{data data.frame with columns `t` and `y` (and possibly evid)}
+
+\item{...}{parameters passed on to `sim_ode()` function}
 }
 \description{
 MAP fitting with shrinkage control

@@ -18,6 +18,7 @@
 #' @param include_omega TRUE
 #' @param include_error TRUE
 #' @param regimen regimen
+#' @param t_init initialization time before first dose, default 0.
 #' @param A_init initial state vector
 #' @param int_step_size integrator step size passed to PKPDsim
 #' @param ll_func likelihood function, default is `ll_func_PKPDsim` as included in this package.
@@ -30,7 +31,7 @@
 #' @param cols column names
 #' @param residuals show residuals? This requires an additional simulation so will be slightly slower.
 #' @param output_include passed to PKPDsim::sim_ode(), returns covariates and parmeter values over time in return object. Only invoked if `residuals` option is `TRUE`.
-#' @param skip_hessian skip calculation of Hessian (in `bbmle::mle2()`)
+#' @param skip_hessian skip calculation of Hessian
 #' @param verbose show more output
 #' @param ... parameters passed on to `sim_ode()` function
 #' @export
@@ -69,8 +70,6 @@ get_map_estimates <- function(
                       skip_hessian = FALSE,
                       output_include = list(covariates = FALSE, parameters = FALSE),
                       ...) {
-
-  if(optimizer == "optimx") require("optimx")
 
   ## Handle weighting of priors, allow for some presets but can
   ## also be set manually using `weight_prior`
@@ -191,7 +190,6 @@ get_map_estimates <- function(
   }
   fix <- NULL
 
-#  omega_full <- diag(length(names(parameters))) # dummy om matrix
   if(class(omega) == "matrix") {
     omega_full <- omega # dummy om matrix
   } else {
@@ -254,38 +252,42 @@ get_map_estimates <- function(
     ofvs <- c()
     for(i in seq(mix_par_values)) {
       par_mix[[mix_par]] <- mix_par_values[i]
-      fits[[i]] <- bbmle::mle2(ll_func,
-                         start = eta,
-                         method = method,
-                         optimizer = optimizer,
-                         control = control,
-                         skip.hessian = skip_hessian,
-                         data = list(data = data,
-                                     sim_object = sim_object,
-                                     parameters = par_mix,
-                                     t_obs = t_obs,
-                                     model = model,
-                                     error = error,
-                                     omega_full = omega_full_est/weight_prior,
-                                     omega_inv = solve(omega_full_est/weight_prior),
-                                     omega_eigen = sum(log(eigen(omega_full_est)$values)),
-                                     nonfixed = nonfixed,
-                                     transf = transf,
-                                     weights = weights,
-                                     sig = sig,
-                                     as_eta = as_eta,
-                                     censoring_idx = censoring_idx,
-                                     censoring_label = censoring,
-                                     iov_bins = iov_bins,
-                                     calc_ofv = calc_ofv,
-                                     covariates = covariates,
-                                     regimen = regimen,
-                                     steady_state_analytic = steady_state_analytic,
-                                     include_omega = include_omega,
-                                     include_error = include_error,
-                                     verbose = verbose),
-                         fixed = fix)
-      ofvs <- c(ofvs, bbmle::logLik(fits[[i]]))
+      fits[[i]] <- mle_wrapper(
+        minuslogl = ll_func,
+        start = eta,
+        method = method,
+        optimizer = optimizer,
+        control = control,
+        skip_hessian = skip_hessian,
+        data = list(
+          data = data,
+          sim_object = sim_object,
+          parameters = par_mix,
+          t_obs = t_obs,
+          model = model,
+          regimen = regimen,
+          error = error,
+          omega_full = omega_full_est / weight_prior,
+          omega_inv = solve(omega_full_est / weight_prior),
+          omega_eigen = sum(log(eigen(omega_full_est)$values)),
+          nonfixed = nonfixed,
+          transf = transf,
+          weights = weights,
+          weight_prior = weight_prior,
+          sig = sig,
+          as_eta = as_eta,
+          censoring_idx = censoring_idx,
+          censoring_label = censoring,
+          iov_bins = iov_bins,
+          calc_ofv = calc_ofv,
+          covariates = covariates,
+          steady_state_analytic = steady_state_analytic,
+          include_omega = include_omega,
+          include_error = include_error,
+          verbose = verbose
+        )
+      )
+      ofvs <- c(ofvs, fits[[i]]$log_likelihood)
     }
     like <- exp(ofvs)
     prior_prob <- c(mixture[[mix_par]]$probability, 1-mixture[[mix_par]]$probability)
@@ -305,45 +307,47 @@ get_map_estimates <- function(
     )
   } else {
     output <- tryCatch({
-      fit <- bbmle::mle2(ll_func,
-                       start = eta,
-                       method = method,
-                       optimizer = optimizer,
-                       control = control,
-                       skip.hessian = skip_hessian,
-                       data = list(data = data,
-                                   sim_object = sim_object,
-                                   parameters = parameters,
-                                   t_obs = t_obs,
-                                   model = model,
-                                   error = error,
-                                   omeg_full = omega_full_est,
-                                   nonfixed = nonfixed,
-                                   transf = transf,
-                                   omega_full = omega_full_est/weight_prior,
-                                   omega_inv = solve(omega_full_est/weight_prior),
-                                   omega_eigen = sum(log(eigen(omega_full_est/weight_prior)$values)),
-                                   weights = weights,
-                                   weight_prior = weight_prior,
-                                   sig = sig,
-                                   as_eta = as_eta,
-                                   censoring_idx = censoring_idx,
-                                   censoring_label = censoring,
-                                   iov_bins = iov_bins,
-                                   calc_ofv = calc_ofv,
-                                   covariates = covariates,
-                                   steady_state_analytic = steady_state_analytic,
-                                   regimen = regimen,
-                                   include_omega = include_omega,
-                                   include_error = include_error,
-                                   verbose = verbose),
-                       fixed = fix)
+      fit <- mle_wrapper(
+        ll_func,
+        start = eta,
+        method = method,
+        optimizer = optimizer,
+        control = control,
+        skip_hessian = skip_hessian,
+        data = list(
+          data = data,
+          sim_object = sim_object,
+          parameters = parameters,
+          t_obs = t_obs,
+          model = model,
+          regimen = regimen,
+          error = error,
+          nonfixed = nonfixed,
+          transf = transf,
+          omega_full = omega_full_est / weight_prior,
+          omega_inv = solve(omega_full_est / weight_prior),
+          omega_eigen = sum(log(eigen(omega_full_est / weight_prior)$values)),
+          weights = weights,
+          weight_prior = weight_prior,
+          sig = sig,
+          as_eta = as_eta,
+          censoring_idx = censoring_idx,
+          censoring_label = censoring,
+          iov_bins = iov_bins,
+          calc_ofv = calc_ofv,
+          covariates = covariates,
+          steady_state_analytic = steady_state_analytic,
+          include_omega = include_omega,
+          include_error = include_error,
+          verbose = verbose
+        )
+      )
     }, error = function(e) {
        return(e)
     })
     if("error" %in% class(output)) return(output)
   }
-  cf <- bbmle::coef(fit)
+  cf <- fit$coef
   par <- parameters
   for(i in seq(nonfixed)) {
     key <- nonfixed[i]
@@ -502,7 +506,7 @@ get_map_estimates <- function(
       obj$parameters_time <- sim_ipred[!duplicated(sim_ipred$t), names(parameters)]
     }
   }
-  obj$vcov_full <- fit@vcov
+  obj$vcov_full <- fit$vcov
   if(any(is.na(obj$vcov_full)) || !PKPDsim::is_positive_definite(obj$vcov_full)) {
     obj$vcov_full <- omega_full
     warning("Var-cov matrix of MAP estimate not positive-definite, returning original `omega` instead.")

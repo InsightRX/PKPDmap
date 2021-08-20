@@ -7,5 +7,5 @@
 README.MD
 Dockerfile
 Jenkinsfile
-slack_notification.R
+slack_notification.sh
 

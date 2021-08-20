@@ -8,6 +8,7 @@ ll_func_PKPDsim(
   data,
   sim_object,
   parameters,
+  covariates = covariates,
   nonfixed,
   eta01,
   eta02,
@@ -34,8 +35,11 @@ ll_func_PKPDsim(
   eta23,
   eta24,
   error = error,
+  transf,
   model,
   omega_full,
+  omega_inv,
+  omega_eigen,
   sig,
   weights,
   as_eta,
@@ -59,7 +63,27 @@ ll_func_PKPDsim(
 
 \item{parameters}{parameter list}
 
+\item{covariates}{covariates list}
+
 \item{nonfixed}{non-fixed (i.e. estimated) parameters}
+
+\item{eta01}{eta1}
+
+\item{eta02}{eta2}
+
+\item{eta03}{eta3}
+
+\item{eta04}{eta4}
+
+\item{eta05}{eta5}
+
+\item{eta06}{eta6}
+
+\item{eta07}{eta7}
+
+\item{eta08}{eta8}
+
+\item{eta09}{eta9}
 
 \item{eta10}{eta10}
 
@@ -93,9 +117,15 @@ ll_func_PKPDsim(
 
 \item{error}{error model to use, e.g. `list(add = .5, prop = .15)`}
 
+\item{transf}{transformation function for data, if needed. E.g. `log(x)`. Default is `function(x) = x`.}
+
 \item{model}{PKPDsim model}
 
 \item{omega_full}{full omega matrix}
+
+\item{omega_inv}{inverse of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.}
+
+\item{omega_eigen}{eigenvalue decomposation (logged) of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.}
 
 \item{sig}{signficance, used in optimization}
 
@@ -124,30 +154,6 @@ ll_func_PKPDsim(
 \item{verbose}{verbose output?}
 
 \item{...}{passed on to PKPDsim}
-
-\item{omega_inv}{inverse of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.}
-
-\item{omega_eigen}{eigenvalue decomposation (logged) of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.}
-
-\item{transf}{transformation function for data, if needed. E.g. `log(x)`. Default is `function(x) = x`.}
-
-\item{eta1}{eta1}
-
-\item{eta2}{eta2}
-
-\item{eta3}{eta3}
-
-\item{eta4}{eta4}
-
-\item{eta5}{eta5}
-
-\item{eta6}{eta6}
-
-\item{eta7}{eta7}
-
-\item{eta8}{eta8}
-
-\item{eta9}{eta9}
 }
 \description{
 Likelihood function for MAP optimization using PKPDsim

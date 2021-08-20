@@ -78,6 +78,8 @@ get_map_estimates(
 
 \item{regimen}{regimen}
 
+\item{t_init}{initialization time before first dose, default 0.}
+
 \item{int_step_size}{integrator step size passed to PKPDsim}
 
 \item{ll_func}{likelihood function, default is `ll_func_PKPDsim` as included in this package.}
@@ -102,7 +104,7 @@ get_map_estimates(
 
 \item{A_init}{initial state vector}
 
-\item{skip_hessian}{skip calculation of Hessian (in `bbmle::mle2()`)}
+\item{skip_hessian}{skip calculation of Hessian}
 
 \item{output_include}{passed to PKPDsim::sim_ode(), returns covariates and parmeter values over time in return object. Only invoked if `residuals` option is `TRUE`.}
 
