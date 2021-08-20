@@ -40,12 +40,12 @@ calc_ofv_map <- function(
   #   )
   # )
   
-  ofv_om <- log2pi * ncol(omega) +
+  ofv_om <- log2pi * ncol(omega_inv) +
             omega_eigen +
             include_omega * diag(eta %*% omega_inv %*% t(eta))
   ofv_y <- (log2pi +
             log(res_sd^2) +
-            ((dv - ipred)^2 * include_error / res_sd^2) * weights)
+            ((dv - ipred)^2 * include_error / res_sd^2)) * weights
   
   c(ofv_om, ofv_y)
   
