@@ -190,7 +190,7 @@ get_map_estimates <- function(
   }
   fix <- NULL
 
-  if(class(omega) == "matrix") {
+  if(inherits(omega, "matrix")) {
     omega_full <- omega # dummy om matrix
   } else {
     omega_full <-  PKPDsim::triangle_to_full(omega) # dummy om matrix
