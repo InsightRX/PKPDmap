@@ -465,30 +465,23 @@ get_map_estimates <- function(
     prob <- list(par = c(mvtnorm::pmvnorm(cf, mean=rep(0, length(cf)),
                          sigma = omega_full[1:length(cf), 1:length(cf)])),
                  data = stats::pnorm(transf(y) - transf(ipred), mean = 0, sd = w_ipred))
-    res <- (transf(y) - transf(pred))
-    weights <- c(rep(0, length(data_before_init$t)), weights)
-    wres <- (res / w_pred) * weights
-    cwres <- res / sqrt(abs(cov(transf(pred), transf(y_orig)))) * c(rep(0, nrow(data_before_init), weights))
+    obj$res <- (transf(y) - transf(pred))
+    obj$weights <- c(rep(0, length(data_before_init$t)), weights)
+    obj$wres <- (obj$res / w_pred) * obj$weights
+    obj$cwres <- obj$res / sqrt(abs(cov(transf(pred), transf(y_orig)))) * c(rep(0, nrow(data_before_init), obj$weights))
     # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
-    ires <- (transf(y_orig) - transf(ipred))
-    iwres <- (ires / w_ipred)
-    iwres_weighted <- iwres * weights
+    obj$ires <- (transf(y_orig) - transf(ipred))
+    obj$iwres <- (obj$ires / w_ipred)
+    obj$iwres_weighted <- obj$iwres * obj$weights
+    obj$pred <- pred
+    obj$ipred <- ipred
     obj$prob <- prob
+    obj$dv <- y_orig
     if(length(w_ipred) > 1) {
       obj$mahalanobis <- stats::mahalanobis(transf(y_orig), transf(ipred), cov = diag(w_ipred^2))
     } else {
       obj$mahalanobis <- stats::mahalanobis(transf(y_orig), transf(ipred), cov = w_ipred^2)
     }
-    obj$res <- res
-    obj$wres <- cwres
-    obj$cwres <- cwres
-    obj$ires <- ires
-    obj$iwres <- iwres
-    obj$iwres_weighted <- iwres_weighted
-    obj$ipred <- ipred
-    obj$pred <- pred
-    obj$weights <- weights
-    obj$dv <- y_orig
     if(output_include$covariates && !is.null(covariates)) {
       obj$covariates_time <- sim_ipred[!duplicated(sim_ipred$t), names(covariates)]
     }
