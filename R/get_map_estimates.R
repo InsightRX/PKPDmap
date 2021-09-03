@@ -135,16 +135,16 @@ get_map_estimates <- function(
   if("evid" %in% colnames(data)) {
     data <- data[data$evid == 0,]
   }
-  zero_offset <- NULL
+  data_before_first_dose <- NULL
   y_orig <- data$y
   if(!allow_obs_before_dose) {
-    if(any(data$t < min(regimen$dose_times))) { # protection against solving ODE from t < 0
-      zero_offset <- rep(0, sum(data$t < min(regimen$dose_times)))
-      filt <- data$t >= min(regimen$dose_times)
+    filt_before_first_dose <- data$t < min(regimen$dose_times)
+    data_before_first_dose <- data[filt_before_first_dose,]
+    if(any(filt_before_first_dose)) { # protection against solving ODE from t < 0
       if(!is.null(weights) && length(weights) == length(data$t) ) {
-        weights <- weights[filt]
+        weights <- weights[!filt_before_first_dose]
       }
-      data <- data[filt,]
+      data <- data[!filt_before_first_dose,]
     }
   }
   t_obs <- data$t
@@ -431,8 +431,8 @@ get_map_estimates <- function(
                            n_ind = 1,
                            int_step_size = int_step_size,
                            regimen = regimen,
-                           t_obs = t_obs,
-                           obs_type = data$obs_type,
+                           t_obs = c(data_before_first_dose$t, t_obs),
+                           obs_type = c(data_before_first_dose$obs_type, data$obs_type),
                            only_obs = TRUE,
                            checks = FALSE,
                            A_init = A_init_ipred,
@@ -448,8 +448,8 @@ get_map_estimates <- function(
                           n_ind = 1,
                           int_step_size = int_step_size,
                           regimen = regimen,
-                          t_obs = t_obs,
-                          obs_type = data$obs_type,
+                          t_obs = c(data_before_first_dose$t, t_obs),
+                          obs_type = c(data_before_first_dose$obs_type, data$obs_type),
                           only_obs = TRUE,
                           checks = FALSE,
                           iov_bins = iov_bins,
@@ -466,27 +466,28 @@ get_map_estimates <- function(
                          sigma = omega_full[1:length(cf), 1:length(cf)])),
                  data = stats::pnorm(transf(y) - transf(ipred), mean = 0, sd = w_ipred))
     res <- (transf(y) - transf(pred))
+    weights <- c(rep(0, length(data_before_first_dose$t)), weights)
     wres <- (res / w_pred) * weights
-    cwres <- res / sqrt(abs(cov(transf(pred), transf(y)))) * weights
+    cwres <- res / sqrt(abs(cov(transf(pred), transf(y_orig)))) * c(rep(0, nrow(data_before_first_dose), weights))
     # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
-    ires <- (transf(y) - transf(ipred))
+    ires <- (transf(y_orig) - transf(ipred))
     iwres <- (ires / w_ipred)
     iwres_weighted <- iwres * weights
     obj$prob <- prob
     if(length(w_ipred) > 1) {
-      obj$mahalanobis <- stats::mahalanobis(transf(y), transf(ipred), cov = diag(w_ipred^2))
+      obj$mahalanobis <- stats::mahalanobis(transf(y_orig), transf(ipred), cov = diag(w_ipred^2))
     } else {
-      obj$mahalanobis <- stats::mahalanobis(transf(y), transf(ipred), cov = w_ipred^2)
+      obj$mahalanobis <- stats::mahalanobis(transf(y_orig), transf(ipred), cov = w_ipred^2)
     }
-    obj$res <- c(zero_offset, res)
-    obj$wres <- c(zero_offset, cwres)
-    obj$cwres <- c(zero_offset, cwres)
-    obj$ires <- c(zero_offset, ires)
-    obj$iwres <- c(zero_offset, iwres)
-    obj$iwres_weighted <- c(zero_offset, iwres_weighted)
-    obj$ipred <- c(zero_offset, ipred)
-    obj$pred <- c(zero_offset, pred)
-    obj$weights <- c(zero_offset, weights)
+    obj$res <- res
+    obj$wres <- cwres
+    obj$cwres <- cwres
+    obj$ires <- ires
+    obj$iwres <- iwres
+    obj$iwres_weighted <- iwres_weighted
+    obj$ipred <- ipred
+    obj$pred <- pred
+    obj$weights <- weights
     obj$dv <- y_orig
     if(output_include$covariates && !is.null(covariates)) {
       obj$covariates_time <- sim_ipred[!duplicated(sim_ipred$t), names(covariates)]
