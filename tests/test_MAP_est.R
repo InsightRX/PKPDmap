@@ -181,3 +181,17 @@ fit2 <- get_map_estimates(model = model, data = obs,
                           residuals = T)
 assert("CL estimate changed appropriately", round(fit2$parameters$CL,1) == 7.7)
 assert("Scaling of residuals based on weighting", diff(abs(fit2$iwres)) < 0.1) # should be small difference. Scaling of residuals is not 100% correct, but seems close enough 
+
+
+## Check that TDMs before first dose works
+obs <- data.frame(t = c(-12, -1, 12, 24), y = c(20, 5, 25, 30))
+fit1 <- get_map_estimates(model = model,
+                          data = obs,
+                          parameters = list(CL = 11, V = 90),
+                          regimen = reg,
+                          omega = c(0.1, 0.05, 0.1),
+                          error = list(prop = 0.1, add = 10),
+                          weights = c(1, 1),
+                          A_init = c(obs$y * par$V/1000),
+                          residuals = T)
+assert("observations before first dose are also returned in fit object", all(round(fit1$ipred,5) == c(29.31226, 0.74833, 31.8271, 32.39943)))

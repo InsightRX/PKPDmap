@@ -132,16 +132,16 @@ get_map_estimates <- function(
   if("evid" %in% colnames(data)) {
     data <- data[data$evid == 0,]
   }
-  zero_offset <- NULL
+  data_before_init <- NULL
   y_orig <- data$y
   if(!allow_obs_before_dose) {
-    if(any(data$t < min(regimen$dose_times))) { # protection against solving ODE from t < 0
-      zero_offset <- rep(0, sum(data$t < min(regimen$dose_times)))
-      filt <- data$t >= min(regimen$dose_times)
+    filt_before_init <- data$t < min(regimen$dose_times)
+    data_before_init <- data[filt_before_init,]
+    if(any(filt_before_init)) { # protection against solving ODE from t < 0
       if(!is.null(weights) && length(weights) == length(data$t) ) {
-        weights <- weights[filt]
+        weights <- weights[!filt_before_init]
       }
-      data <- data[filt,]
+      data <- data[!filt_before_init,]
     }
   }
   t_obs <- data$t
@@ -445,8 +445,8 @@ get_map_estimates <- function(
                            n_ind = 1,
                            int_step_size = int_step_size,
                            regimen = regimen,
-                           t_obs = t_obs,
-                           obs_type = data$obs_type,
+                           t_obs = c(data_before_init$t, t_obs),
+                           obs_type = c(data_before_init$obs_type, data$obs_type),
                            only_obs = TRUE,
                            checks = FALSE,
                            A_init = A_init_ipred,
@@ -463,8 +463,8 @@ get_map_estimates <- function(
                           n_ind = 1,
                           int_step_size = int_step_size,
                           regimen = regimen,
-                          t_obs = t_obs,
-                          obs_type = data$obs_type,
+                          t_obs = c(data_before_init$t, t_obs),
+                          obs_type = c(data_before_init$obs_type, data$obs_type),
                           only_obs = TRUE,
                           checks = FALSE,
                           iov_bins = iov_bins,
@@ -480,24 +480,17 @@ get_map_estimates <- function(
     prob <- list(par = c(mvtnorm::pmvnorm(cf, mean=rep(0, length(cf)),
                          sigma = omega_full[1:length(cf), 1:length(cf)])),
                  data = stats::pnorm(transf(y) - transf(ipred), mean = 0, sd = w_ipred))
-    res <- (transf(y) - transf(pred))
-    wres <- (res / w_pred) * weights
-    cwres <- res / sqrt(abs(cov(transf(pred), transf(y)))) * weights
+    obj$res <- (transf(y) - transf(pred))
+    obj$weights <- c(rep(0, length(data_before_init$t)), weights)
+    obj$wres <- (obj$res / w_pred) * obj$weights
+    obj$cwres <- obj$res / sqrt(abs(cov(transf(pred), transf(y_orig)))) * c(rep(0, nrow(data_before_init), obj$weights))
     # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
-    ires <- (transf(y) - transf(ipred))
-    iwres <- (ires / w_ipred)
-    iwres_weighted <- iwres * weights
+    obj$ires <- (transf(y_orig) - transf(ipred))
+    obj$iwres <- (obj$ires / w_ipred)
+    obj$iwres_weighted <- obj$iwres * obj$weights
+    obj$pred <- pred
+    obj$ipred <- ipred
     obj$prob <- prob
-    obj$mahalanobis <- get_mahalanobis(y, ipred, w_ipred, ltbs)
-    obj$res <- c(zero_offset, res)
-    obj$wres <- c(zero_offset, cwres)
-    obj$cwres <- c(zero_offset, cwres)
-    obj$ires <- c(zero_offset, ires)
-    obj$iwres <- c(zero_offset, iwres)
-    obj$iwres_weighted <- c(zero_offset, iwres_weighted)
-    obj$ipred <- c(zero_offset, ipred)
-    obj$pred <- c(zero_offset, pred)
-    obj$weights <- c(zero_offset, weights)
     obj$dv <- y_orig
     if(output_include$covariates && !is.null(covariates)) {
       obj$covariates_time <- sim_ipred[!duplicated(sim_ipred$t), names(covariates)]
