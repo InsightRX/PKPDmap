@@ -13,8 +13,8 @@ pipeline {
       steps {
         echo 'Pulling PKPDsim'
         sh """
-        sudo rm -rf PKPDsim2
-        git clone git@github.com:InsightRX/PKPDsim2.git
+        sudo rm -rf PKPDsim
+        git clone git@github.com:InsightRX/PKPDsim.git
         """
       }
     }
