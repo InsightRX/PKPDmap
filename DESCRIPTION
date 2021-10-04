@@ -11,6 +11,6 @@ License: MIT + file LICENSE
 Depends: utils, stats
 Imports: PKPDsim, numDeriv, mvtnorm
 Suggests: testit, testthat (>= 3.0.0)
-Remotes: InsightRX/PKPDmap
+Remotes: InsightRX/PKPDsim
 RoxygenNote: 7.1.1
 Config/testthat/edition: 3
