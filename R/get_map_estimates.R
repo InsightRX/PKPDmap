@@ -483,7 +483,7 @@ get_map_estimates <- function(
     obj$res <- (transf(y) - transf(pred))
     obj$weights <- c(rep(0, length(data_before_init$t)), weights)
     obj$wres <- (obj$res / w_pred) * obj$weights
-    obj$cwres <- obj$res / sqrt(abs(cov(transf(pred), transf(y_orig)))) * c(rep(0, nrow(data_before_init), obj$weights))
+    obj$cwres <- obj$res / sqrt(abs(cov(transf(pred), transf(y_orig)))) * c(rep(0, nrow(data_before_init)), obj$weights)
     # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
     obj$ires <- (transf(y_orig) - transf(ipred))
     obj$iwres <- (obj$ires / w_ipred)
