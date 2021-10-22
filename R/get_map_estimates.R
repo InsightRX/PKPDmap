@@ -505,6 +505,7 @@ get_map_estimates <- function(
     warning("Var-cov matrix of MAP estimate not positive-definite, returning original `omega` instead.")
   }
   obj$vcov <- obj$vcov_full[t(!upper.tri(obj$vcov_full))]
+  obj$mahalanobis <- get_mahalanobis(y, ipred, w_ipred, ltbs)
   class(obj) <- c(class(obj), "map_estimates")
   return(obj)
 }
