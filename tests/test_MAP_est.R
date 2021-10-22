@@ -95,6 +95,7 @@ assert("check fixing parameters #2",
 
 assert("check fixing parameters #2",
        tmp3$parameters$V2 == 50 && tmp3$parameters$Q == 3)
+assert("mahalanobis distance returned", !is.null(tmp3$mahalanobis))
 
 tmp4 <- get_map_estimates(parameters = par2,
                           model = model2,
@@ -195,3 +196,4 @@ fit1 <- get_map_estimates(model = model,
                           A_init = c(obs$y * par$V/1000),
                           residuals = T)
 assert("observations before first dose are also returned in fit object", all(round(fit1$ipred,5) == c(29.31226, 0.74833, 31.8271, 32.39943)))
+
