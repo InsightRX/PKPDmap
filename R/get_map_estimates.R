@@ -103,6 +103,7 @@ get_map_estimates <- function(
   } else {
     data$obs_type <- data[[obs_type_label]]
   }
+  data <- data[order(data$t, data$obs_type),]
   if(!is.null(error)) { ## safety checks
     if(is.null(error$prop)) error$prop <- 0
     if(is.null(error$add)) error$add <- 0
@@ -492,6 +493,7 @@ get_map_estimates <- function(
     obj$ipred <- ipred
     obj$prob <- prob
     obj$dv <- y_orig
+    obj$obs_type <- sim_ipred$obs_type
     if(output_include$covariates && !is.null(covariates)) {
       obj$covariates_time <- sim_ipred[!duplicated(sim_ipred$t), names(covariates)]
     }
