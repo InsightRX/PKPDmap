@@ -12,6 +12,7 @@ omega <- PKPDsim::cv_to_omega(list("CL" = 0.2, "V" = 0.2), parameters[1:2])
 
 ruv_single <- list(prop = 0.1, add = 1)
 ruv_multi <- list(prop = c(0.1, 1), add = c(0.1, 20))
+ruv_multi2 <- list(prop = c(0.1, 1, 2), add = c(0.1, 1, 20))
 
 ## simulate single individual in population
 # some observations with much higher residual error, should affect fit that much
@@ -78,7 +79,6 @@ data_multi3 <- sim_ode(ode = pk1,
                        res_var = ruv_multi2)
 
 # PKPDsim is expected to re-order. Testing here to make sure this is still the case
-ruv_multi2 <- list(prop = c(0.1, 1, 2), add = c(0.1, 1, 20))
 testit::assert(
   "PKPDsim re-orders as expected", 
   all(data_multi2$obs_type == c(1, 2, 1, 2, 1, 2))
