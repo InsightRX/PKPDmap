@@ -133,6 +133,7 @@ get_map_estimates <- function(
     data <- data[data$evid == 0,]
   }
   data_before_init <- NULL
+  data <- data[order(data$t, data$obs_type),]
   y_orig <- data$y
   if(!allow_obs_before_dose) {
     filt_before_init <- data$t < min(regimen$dose_times)
@@ -476,8 +477,7 @@ get_map_estimates <- function(
     pred <- sim_pred$y
     w_ipred <- sqrt(error$prop[data$obs_type]^2 * transf(ipred)^2 + error$add[data$obs_type]^2)
     w_pred <- sqrt(error$prop[data$obs_type]^2 * transf(pred)^2 + error$add[data$obs_type]^2)
-    data <- data[order(data$t, data$obs_type),]
-    if(!all(paste(data$t, data$obs_type, sep="_") == paste(sim_ipred$t, sim_ipred$obs_type, sep = "_"))) {
+    if(!(all(data$t == sim_ipred$t) && all(data$obs_type == sim_ipred$obs_type)) {
       warning("Mismatch in times and observation typese between input data and predictions. Be careful interpreting results from fit.")
     }
     y <- data$y
