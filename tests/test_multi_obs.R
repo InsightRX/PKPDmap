@@ -24,6 +24,7 @@ data_multi <- sim_ode(ode = pk1,
                 obs_type =  c(1,2,1,2), 
                 t_obs = c(2, 4, 6, 8),
                 res_var = ruv_multi)
+
 data_noruv <- sim_ode(ode = pk1, 
                       parameters = list(CL = 20, V = 200), 
                       regimen = regimen,
@@ -57,3 +58,43 @@ fit3 <- get_map_estimates(model = pk1,
                           error = ruv_single) 
 testit::assert("Much more bias when high res.error points not weighted down", 
        (abs(fit3$parameters$CL - fit1$parameters$CL) / abs(fit3$parameters$CL - fit2$parameters$CL)) > 5)
+
+## Test ordering of data
+data_multi2 <- sim_ode(ode = pk1, 
+                       parameters = list(CL = 20, V = 200), 
+                       regimen = regimen,
+                       int_step_size = 0.1,
+                       only_obs = TRUE,
+                       obs_type =  c(1, 2, 2, 1, 1, 2), 
+                       t_obs = c(2, 4, 6, 6, 8, 8),
+                       res_var = ruv_multi)
+data_multi3 <- sim_ode(ode = pk1, 
+                       parameters = list(CL = 20, V = 200), 
+                       regimen = regimen,
+                       int_step_size = 0.1,
+                       only_obs = TRUE,
+                       obs_type =  c(1, 2, 3, 2, 1, 1, 2), 
+                       t_obs = c(2, 2, 2, 4, 4, 8, 8),
+                       res_var = ruv_multi2)
+
+# PKPDsim is expected to re-order. Testing here to make sure this is still the case
+ruv_multi2 <- list(prop = c(0.1, 1, 2), add = c(0.1, 1, 20))
+testit::assert(
+  "PKPDsim re-orders as expected", 
+  all(data_multi2$obs_type == c(1, 2, 1, 2, 1, 2))
+)
+testit::assert(
+  "PKPDsim re-orders as expected", 
+  all(data_multi3$obs_type == c(1, 2, 3, 1, 2, 1, 2))
+)
+fit4 <- get_map_estimates(model = pk1, 
+                          data = data_multi3, 
+                          parameters = parameters,
+                          omega = omega,
+                          regimen = regimen,
+                          obs_type_label = "obs_type",
+                          error = ruv_multi2)
+testit::assert(
+  "order is same for input vs output", 
+  fit4$obs_type == data_multi3$obs_type
+)

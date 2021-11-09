@@ -146,7 +146,7 @@ get_map_estimates <- function(
     }
   }
   t_obs <- data$t
-  if(any(duplicated(t_obs))) message("Duplicate times were detected in data. Estimation will proceed but please check that data is correct. For putting more weight on certain measurements, please use the `weights` argument.")
+  if(any(duplicated(paste(t_obs, data$obs_type, sep = "_")))) message("Duplicate times were detected in data. Estimation will proceed but please check that data is correct. For putting more weight on certain measurements, please use the `weights` argument.")
   if(!is.null(weights)) {
     if(length(weights) != length(t_obs)) {
       stop("Vector of weights of different size than observation vector!")
