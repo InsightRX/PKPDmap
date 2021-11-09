@@ -103,7 +103,6 @@ get_map_estimates <- function(
   } else {
     data$obs_type <- data[[obs_type_label]]
   }
-  data <- data[order(data$t, data$obs_type),]
   if(!is.null(error)) { ## safety checks
     if(is.null(error$prop)) error$prop <- 0
     if(is.null(error$add)) error$add <- 0
@@ -477,6 +476,10 @@ get_map_estimates <- function(
     pred <- sim_pred$y
     w_ipred <- sqrt(error$prop[data$obs_type]^2 * transf(ipred)^2 + error$add[data$obs_type]^2)
     w_pred <- sqrt(error$prop[data$obs_type]^2 * transf(pred)^2 + error$add[data$obs_type]^2)
+    data <- data[order(data$t, data$obs_type),]
+    if(!all(paste(data$t, data$obs_type, sep="_") == paste(sim_ipred$t, sim_ipred$obs_type, sep = "_"))) {
+      warning("Mismatch in times and observation typese between input data and predictions. Be careful interpreting results from fit.")
+    }
     y <- data$y
     prob <- list(par = c(mvtnorm::pmvnorm(cf, mean=rep(0, length(cf)),
                          sigma = omega_full[1:length(cf), 1:length(cf)])),
