@@ -88,7 +88,7 @@ testit::assert(
   all(data_multi3$obs_type == c(1, 2, 3, 1, 2, 1, 2))
 )
 fit4 <- get_map_estimates(model = pk1, 
-                          data = data_multi3, 
+                          data = data_multi3[rev(seq_len(nrow(data_multi3))), ], 
                           parameters = parameters,
                           omega = omega,
                           regimen = regimen,
@@ -96,5 +96,5 @@ fit4 <- get_map_estimates(model = pk1,
                           error = ruv_multi2)
 testit::assert(
   "order is same for input vs output", 
-  fit4$obs_type == data_multi3$obs_type
+  all(fit4$obs_type == data_multi3$obs_type)
 )
