@@ -133,6 +133,7 @@ get_map_estimates <- function(
     data <- data[data$evid == 0,]
   }
   data_before_init <- NULL
+  data <- data[order(data$t, data$obs_type),]
   y_orig <- data$y
   if(!allow_obs_before_dose) {
     filt_before_init <- data$t < min(regimen$dose_times)
@@ -145,7 +146,7 @@ get_map_estimates <- function(
     }
   }
   t_obs <- data$t
-  if(any(duplicated(t_obs))) message("Duplicate times were detected in data. Estimation will proceed but please check that data is correct. For putting more weight on certain measurements, please use the `weights` argument.")
+  if(any(duplicated(paste(t_obs, data$obs_type, sep = "_")))) message("Duplicate times were detected in data. Estimation will proceed but please check that data is correct. For putting more weight on certain measurements, please use the `weights` argument.")
   if(!is.null(weights)) {
     if(length(weights) != length(t_obs)) {
       stop("Vector of weights of different size than observation vector!")
@@ -476,6 +477,9 @@ get_map_estimates <- function(
     pred <- sim_pred$y
     w_ipred <- sqrt(error$prop[data$obs_type]^2 * transf(ipred)^2 + error$add[data$obs_type]^2)
     w_pred <- sqrt(error$prop[data$obs_type]^2 * transf(pred)^2 + error$add[data$obs_type]^2)
+    if(!(all(data$t == sim_ipred$t) && all(data$obs_type == sim_ipred$obs_type))) {
+      warning("Mismatch in times and observation typese between input data and predictions. Be careful interpreting results from fit.")
+    }
     y <- data$y
     prob <- list(par = c(mvtnorm::pmvnorm(cf, mean=rep(0, length(cf)),
                          sigma = omega_full[1:length(cf), 1:length(cf)])),
@@ -492,6 +496,7 @@ get_map_estimates <- function(
     obj$ipred <- ipred
     obj$prob <- prob
     obj$dv <- y_orig
+    obj$obs_type <- sim_ipred$obs_type
     if(output_include$covariates && !is.null(covariates)) {
       obj$covariates_time <- sim_ipred[!duplicated(sim_ipred$t), names(covariates)]
     }
