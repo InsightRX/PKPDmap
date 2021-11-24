@@ -4,12 +4,15 @@
 #' @param ... etc
 #' @export
 print.map_estimates <- function(x, ...) {
-  print(data.frame(
+  eta <- x$fit$coef
+  om <- sqrt(diag(triangle_to_full(x$prior$omega)))
+  res_table <- data.frame(
     individual = unlist(x$parameters), 
-    population = unlist(x$prior$parameters),
-    eta = x$fit$coef,
-    location = unlist(lapply(x$fit$coef, plot_eta))
-  ))
+    population = unlist(x$prior$parameters)
+  )
+  res_table$eta[! names(x$parameters) %in% x$prior$fixed] <- eta / om[1:length(eta)]
+  res_table$relative[! names(x$parameters) %in% x$prior$fixed] <- unlist(lapply(eta / om[1:length(eta)], plot_eta))
+  print(res_table)
   gof <- data.frame(
     dv = fit$dv,
     ipred = fit$ipred,
@@ -31,11 +34,11 @@ print.map_estimates <- function(x, ...) {
 #' @export
 plot_eta <- function(x) {
   dummy <- "-----"
-  position <- min(round(abs(x) * 4), 5)
+  position <- min(round(abs(x)) * 2, 5) # the factor 2 is arbitrary to have a nice scale.
   scale <- paste0(
     paste0(rep("-", position), collapse=""), 
     "o", 
-    paste0(rep("-", 4-position), collapse=""), 
+    paste0(rep("-", max(4-position, 0)), collapse=""), 
     collapse = "")
   out <- paste0(
     dummy, 
