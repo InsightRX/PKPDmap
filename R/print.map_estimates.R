@@ -5,23 +5,23 @@
 #' @export
 print.map_estimates <- function(x, ...) {
   eta <- x$fit$coef
-  om <- sqrt(diag(triangle_to_full(x$prior$omega)))
+  om <- sqrt(diag(PKPDsim::triangle_to_full(x$prior$omega)))
   res_table <- data.frame(
     individual = unlist(x$parameters), 
     population = unlist(x$prior$parameters)
   )
   res_table$eta[! names(x$parameters) %in% x$prior$fixed] <- eta / om[1:length(eta)]
-  res_table$relative[! names(x$parameters) %in% x$prior$fixed] <- unlist(lapply(eta / om[1:length(eta)], plot_eta))
+  res_table$relative[! names(x$parameters) %in% x$prior$fixed] <- plot_eta(eta / om[1:length(eta)])
   print(res_table)
   gof <- data.frame(
-    dv = fit$dv,
-    ipred = fit$ipred,
-    pred = fit$pred,
-    res = fit$res,
-    iwres = fit$iwres
+    dv = x$dv,
+    ipred = x$ipred,
+    pred = x$pred,
+    res = x$res,
+    iwres = x$iwres
   )
-  if(length(unique(fit$obs_type)) > 1) {
-    gof$obs_type <- fit$obs_type
+  if(length(unique(x$obs_type)) > 1) {
+    gof$obs_type <- x$obs_type
   }
   cat("\n")
   print(gof)
@@ -33,7 +33,13 @@ print.map_estimates <- function(x, ...) {
 #' @param x estimated individual coefficient for parameter (=eta in NONMEM) 
 #' @export
 plot_eta <- function(x) {
+  if(length(x) > 1) {
+    return(unlist(lapply(x, "plot_eta")))
+  }
   dummy <- "-----"
+  if(x == 0) {
+    return(paste0(dummy, "o", dummy))
+  }
   position <- min(round(abs(x)) * 2, 5) # the factor 2 is arbitrary to have a nice scale.
   scale <- paste0(
     paste0(rep("-", position), collapse=""), 
