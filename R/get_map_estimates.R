@@ -511,6 +511,11 @@ get_map_estimates <- function(
   }
   obj$vcov <- obj$vcov_full[t(!upper.tri(obj$vcov_full))]
   obj$mahalanobis <- get_mahalanobis(y, ipred, w_ipred, ltbs)
+  obj$prior <- list(
+    parameters = parameters,
+    omega = omega,
+    fixed = fixed
+  )
   class(obj) <- c(class(obj), "map_estimates")
   return(obj)
 }

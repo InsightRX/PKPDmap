@@ -96,6 +96,7 @@ assert("check fixing parameters #2",
 assert("check fixing parameters #2",
        tmp3$parameters$V2 == 50 && tmp3$parameters$Q == 3)
 assert("mahalanobis distance returned", !is.null(tmp3$mahalanobis))
+assert("prior information returned", !is.null(tmp3$prior) && c("parameters", "omega", "fixed") %in% names(tmp3$prior))
 
 tmp4 <- get_map_estimates(parameters = par2,
                           model = model2,
