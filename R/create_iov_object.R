@@ -91,8 +91,12 @@ create_iov_object <- function(cv = list(CL = 0.1),
   names(iov_list) <- kappa
 
   non_iov <- parameters[!iov_par]
-  non_iov <- c(non_iov[! names(non_iov) %in% fixed], non_iov[fixed]) # reorder to make sure nonfixed come first
-  new_par <- c(non_iov[1:n_om], iov_list, non_iov[(n_om+1):length(non_iov)])
+  if(!is.null(fixed) && length(fixed) > 0) {
+    non_iov <- c(non_iov[! names(non_iov) %in% fixed], non_iov[fixed]) # reorder to make sure nonfixed come first
+    new_par <- c(non_iov[1:n_om], iov_list, non_iov[(n_om):length(non_iov)])
+  } else {
+    new_par <- c(non_iov, iov_list)
+  }
 
   if(!is.null(om_init)) om_new <- join_blocks(om_new, om_init, as_triangle = ifelse(class(omega) == "matrix", TRUE, FALSE))
 
