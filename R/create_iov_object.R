@@ -81,20 +81,34 @@ create_iov_object <- function(cv = list(CL = 0.1),
     om_new <- join_blocks(om_new, om2)
   }
   n_om <- lower_triangle_mat_size(omega)
-
-  ## reshuffle parameters
+  
   iov_par <- grepl("^kappa_", names(parameters))
   if(! any(iov_par)) {
     stop("No `kappa` parameters seem to be defined for this model.")
   }
   iov_list <- as.list(rep(0, length(kappa)))
   names(iov_list) <- kappa
-
+  
   non_iov <- parameters[!iov_par]
-  non_iov <- c(non_iov[! names(non_iov) %in% fixed], non_iov[fixed]) # reorder to make sure nonfixed come first
-  new_par <- c(non_iov[1:n_om], iov_list, non_iov[(n_om+1):length(non_iov)])
+  
+  ## 2. if omega length is mismatched, assume parameters are in the right order,
+  ##    and that parameters provided at the end are 'fixed'
+  if(n_om < (length(non_iov) - length(fixed))) {
+    new_fixed <- tail(setdiff(names(non_iov), fixed), length(non_iov) - n_om)
+    fixed <- c(fixed, new_fixed)
+  }
+    
+  ## 3. reshuffle parameters to make sure nonfixed come first
+  iiv_only <- setdiff(names(non_iov), fixed)
+  new_par <- c(non_iov[iiv_only], iov_list, non_iov[fixed])
 
-  if(!is.null(om_init)) om_new <- join_blocks(om_new, om_init, as_triangle = ifelse(class(omega) == "matrix", TRUE, FALSE))
+  if(!is.null(om_init)) {
+    om_new <- join_blocks(
+      om_new, 
+      om_init, 
+      as_triangle = ifelse(class(omega) == "matrix", TRUE, FALSE)
+    )
+  }
 
   return(list(
     parameters = new_par,
