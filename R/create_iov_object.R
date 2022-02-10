@@ -91,14 +91,14 @@ create_iov_object <- function(cv = list(CL = 0.1),
   
   non_iov <- parameters[!iov_par]
   
-  ## 3. if omega length is mismatched, assume parameters are in the right order,
+  ## 2. if omega length is mismatched, assume parameters are in the right order,
   ##    and that parameters provided at the end are 'fixed'
   if(n_om < (length(non_iov) - length(fixed))) {
     new_fixed <- tail(setdiff(names(non_iov), fixed), length(non_iov) - n_om)
     fixed <- c(fixed, new_fixed)
   }
     
-  ## 4. reshuffle parameters to make sure nonfixed come first
+  ## 3. reshuffle parameters to make sure nonfixed come first
   iiv_only <- setdiff(names(non_iov), fixed)
   new_par <- c(non_iov[iiv_only], iov_list, non_iov[fixed])
 
