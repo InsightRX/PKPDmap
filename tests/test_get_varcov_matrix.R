@@ -11,14 +11,17 @@ test_that("get_varcov_matrix returns matrix if present and OK", {
         0.01, 0.1
       ), ncol = 2)
     ), fallback = fallback),
-    c(0.1, 0.01, 0.1)
+    matrix(
+      c(0.1, 0.01, 0.01, 0.1),
+      ncol = 2
+    )
   )
 })
 
 test_that("get_varcov_matrix returns fallback if not present", {
   expect_equal(
     get_varcov_matrix(NULL, fallback = fallback),
-    fallback[!upper.tri(fallback)]
+    fallback
   )
 })
 
@@ -31,7 +34,7 @@ test_that("get_varcov_matrix returns fallback if not pos-def", {
           0.2, 0.1
         ), ncol = 2)
       ), fallback = fallback),
-      fallback[!upper.tri(fallback)]
+      fallback
     )
   )
 })
@@ -45,7 +48,8 @@ test_that("get_varcov_matrix returns fallback if has NAs", {
           NA, 0.1
         ), ncol = 2)
       ), fallback = fallback),
-      fallback[!upper.tri(fallback)]
+      fallback
     )
   )
 })
+

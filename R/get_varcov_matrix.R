@@ -23,5 +23,5 @@ get_varcov_matrix <- function(
       warning("Var-cov matrix of MAP estimate not positive-definite, returning original `omega` instead.")
     }
   }
-  return(obj$vcov_full[t(!upper.tri(obj$vcov_full))])
+  return(obj$vcov_full)
 }

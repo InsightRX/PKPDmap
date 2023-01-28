@@ -504,7 +504,13 @@ get_map_estimates <- function(
       obj$parameters_time <- sim_ipred[!duplicated(sim_ipred$t), names(parameters)]
     }
   }
-  obj$vcov_full <- get_varcov_matrix(obj, fallback = omega_full)
+  obj$vcov_full <- get_varcov_matrix(
+    obj, 
+    fallback = omega_full
+  )
+  if(inherits(obj$vcov_full, "matrix")) {
+    obj$vcov <- obj$vcov_full[t(!upper.tri(obj$vcov_full))]
+  }
   obj$mahalanobis <- get_mahalanobis(y, ipred, w_ipred, ltbs)
   obj$prior <- list(
     parameters = parameters,
