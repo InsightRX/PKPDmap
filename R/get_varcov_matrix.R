@@ -7,21 +7,25 @@
 #' definite).
 #' 
 get_varcov_matrix <- function(
-    obj, 
+    vcov, 
     fallback = NULL
 ) {
-  if(is.null(obj$vcov_full)) {
+  vcov_full <- vcov
+  if(is.null(vcov_full)) {
     if(!is.null(fallback)) {
-      obj$vcov_full <- fallback
+      vcov_full <- fallback
     } else {
       return(NULL)
     }
   } 
-  if(any(is.na(obj$vcov_full)) || !PKPDsim::is_positive_definite(obj$vcov_full)) {
+  if(any(is.na(vcov_full)) || !PKPDsim::is_positive_definite(vcov_full)) {
     if(!is.null(fallback)) {
-      obj$vcov_full <- fallback
+      vcov_full <- fallback
       warning("Var-cov matrix of MAP estimate not positive-definite, returning original `omega` instead.")
+    } else {
+      warning("Var-cov matrix of MAP estimate not positive-definite, no fallback specified.")
+      return(NULL)
     }
   }
-  return(obj$vcov_full)
+  return(vcov_full)
 }

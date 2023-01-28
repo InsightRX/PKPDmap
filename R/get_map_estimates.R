@@ -505,7 +505,7 @@ get_map_estimates <- function(
     }
   }
   obj$vcov_full <- get_varcov_matrix(
-    obj, 
+    obj$fit$vcov, 
     fallback = omega_full
   )
   if(inherits(obj$vcov_full, "matrix")) {
