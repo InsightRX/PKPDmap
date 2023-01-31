@@ -504,12 +504,13 @@ get_map_estimates <- function(
       obj$parameters_time <- sim_ipred[!duplicated(sim_ipred$t), names(parameters)]
     }
   }
-  obj$vcov_full <- fit$vcov
-  if(any(is.na(obj$vcov_full)) || !PKPDsim::is_positive_definite(obj$vcov_full)) {
-    obj$vcov_full <- omega_full
-    warning("Var-cov matrix of MAP estimate not positive-definite, returning original `omega` instead.")
+  obj$vcov_full <- get_varcov_matrix(
+    obj$fit$vcov, 
+    fallback = omega_full
+  )
+  if(inherits(obj$vcov_full, "matrix")) {
+    obj$vcov <- obj$vcov_full[t(!upper.tri(obj$vcov_full))]
   }
-  obj$vcov <- obj$vcov_full[t(!upper.tri(obj$vcov_full))]
   obj$mahalanobis <- get_mahalanobis(y, ipred, w_ipred, ltbs)
   obj$prior <- list(
     parameters = parameters,

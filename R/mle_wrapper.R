@@ -51,10 +51,13 @@ mle_wrapper <- function(minuslogl,
   if (!skip_hessian) {
     ## optimization libraries are commonly also able to calculate the Hessian, 
     ## but re-implementing here wrapped in try() to make it safer.
-    try({
-      fit$hessian <- numDeriv::hessian(objective_function, fit$par)
-      fit$vcov <- solve(fit$hessian, silent = TRUE)
-    })
+    try(
+      {
+        fit$hessian <- numDeriv::hessian(objective_function, fit$par)
+        fit$vcov <- solve(fit$hessian)
+      }, 
+      silent = FALSE
+    )
   }
   fit$coef <- fit$par
   fit$log_likelihood <- -fit$value
