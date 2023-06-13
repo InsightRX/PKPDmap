@@ -132,7 +132,7 @@ get_map_estimates <- function(
   if("evid" %in% colnames(data)) {
     data <- data[data$evid == 0,]
   }
-  data_before_init <- NULL
+  data_before_init <- data.frame()
   data <- data[order(data$t, data$obs_type),]
   y_orig <- data$y
   if(!allow_obs_before_dose) {
