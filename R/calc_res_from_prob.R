@@ -1,17 +1,18 @@
 #' Calculate residuals from probabilities for datapoints
 #' 
-#' calculates the residual associated with a certain probability
+#' Calculates the residual associated with a certain probability
 #' It's basically the inverse of what we do in the likelihood function. There
 #' we calculate the probability of a certain point, by calculating
 #' 
-#'   dnorm(obs - ipred, mean, sd) / dnorm(0, mean, sd).
+#'   p = dnorm(obs - ipred, mean, sd) / dnorm(0, mean, sd).
 #' 
 #' Here, we want to do the reverse, i.e. we have a probability but want to get
-#' the residual. This is useful for censored observations, where we don't 
-#' actually have the "observed", but we can still calculate a residual-
+#' the residual. Reshuffling the above equation and taking the inverse of dnorm
+#' gives us that. This is useful for censored observations, where we don't 
+#' actually have the "observed" value, but we can still calculate a residual-
 #' equivalent using this function.
 #'
-#' Note: we actually get back an abs(residual), since from only the probability
+#' Note: we actually get back the abs(residual), since from only the probability
 #' we cannot infer the direction of the residual.
 #' 
 #' @param p probability, e.g. from fit object likelihood info
