@@ -493,6 +493,13 @@ get_map_estimates <- function(
     obj$iwres <- (obj$ires / w_ipred)
     if(any(censoring_idx)) { # turn probabilities into "IWRES"-equivalent for censored data
       obj$iwres[censoring_idx] <- calc_res_from_prob(prob$data[censoring_idx])
+      obj$ires[censoring_idx] <- obj$iwres[censoring_idx] * w_ipred[censoring_idx]
+      ## if we would calculate the likelihood for the data population parameters given the data, 
+      ## we could also calculate the the equivalents for cwres, wres, and res. However we 
+      ## currently don't have a need to calculate. So setting to NA to avoid wrong interpretation.
+      obj$cwres[censoring_idx] <- NA_real_
+      obj$wres[censoring_idx] <- NA_real_
+      obj$res[censoring_idx] <- NA_real_
     }
     obj$iwres_weighted <- obj$iwres * obj$weights
     obj$pred <- pred
