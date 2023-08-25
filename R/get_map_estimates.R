@@ -491,6 +491,9 @@ get_map_estimates <- function(
     # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
     obj$ires <- (transf(y_orig) - transf(ipred))
     obj$iwres <- (obj$ires / w_ipred)
+    if(any(censoring_idx)) { # turn probabilities into "IWRES"-equivalent for censored data
+      obj$iwres[censoring_idx] <- calc_res_from_prob(prob$data[censoring_idx])
+    }
     obj$iwres_weighted <- obj$iwres * obj$weights
     obj$pred <- pred
     obj$ipred <- ipred
