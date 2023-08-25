@@ -27,6 +27,10 @@ fit <- get_map_estimates(parameters = par,
                          censoring = "loq")
 assert("correct CL", round(fit$parameters$CL,3) == 7.469)
 assert("correct V", round(fit$parameters$V,3) == 92.382)
+assert("IWRES calculated correctly, also for LOQ points", 
+  all(round(fit$iwres,3) == c(0.443, 1.656, -0.624, -0.91, -0.873,
+                                   -0.579, 0.108, 0.754, 0.095, 1.05, 0.122))
+)
 
 ## Test ULOQ
 uloq <- 1000
@@ -42,4 +46,8 @@ fit <- get_map_estimates(parameters = par,
                          censoring = "loq")
 assert("correct CL", round(fit$parameters$CL,2) == 7.54)
 assert("correct V", round(fit$parameters$V,1) == 95.6)
+assert("IWRES calculated correctly, also for LOQ points", 
+       all(round(fit$iwres,3) == c(1.31, 1.204, -0.379, -0.698, -0.716, -0.465, 
+                                   0.188, 0.735, 0.097, 1.068, 0.126))
+)
 

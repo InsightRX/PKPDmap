@@ -11,6 +11,9 @@
 #' actually have the "observed", but we can still calculate a residual-
 #' equivalent using this function.
 #'
+#' Note: we actually get back an abs(residual), since from only the probability
+#' we cannot infer the direction of the residual.
+#' 
 #' @param p probability, e.g. from fit object likelihood info
 calc_res_from_prob <- function(p) {
   p <- unlist(lapply(p, "min", 0.999))  # avoid Inf at 1
