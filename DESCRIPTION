@@ -12,5 +12,5 @@ Depends: utils, stats
 Imports: PKPDsim, numDeriv, mvtnorm
 Suggests: testit, testthat (>= 3.0.0)
 Remotes: InsightRX/PKPDsim
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Config/testthat/edition: 3

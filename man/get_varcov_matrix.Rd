@@ -5,14 +5,14 @@
 \title{Get the variance-covariance matrix from the fit object.
 Includes some safety checks.}
 \usage{
-get_varcov_matrix(obj, fallback = NULL)
+get_varcov_matrix(vcov, fallback = NULL)
 }
 \arguments{
-\item{obj}{fit object from get_map_estimates}
-
 \item{fallback}{a fallback variance-covariance matrix, if the varcov-matrix
 from the fit object does not satisfy safety checks (e.g. not postive-
 definite).}
+
+\item{obj}{fit object from get_map_estimates}
 }
 \description{
 Get the variance-covariance matrix from the fit object.
