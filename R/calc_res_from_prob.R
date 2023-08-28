@@ -17,8 +17,8 @@
 #' 
 #' @param p probability, e.g. from fit object likelihood info
 calc_res_from_prob <- function(p) {
-  p <- unlist(lapply(p, "min", 0.999))  # avoid Inf at 1
-  p <- unlist(lapply(p, "max", 0.0001)) # avoid Inf at 0
+  p <- pmin(p, 0.9999) # avoid Inf at 1
+  p <- pmax(p, 0.0001) # avoid Inf at 0
   dnorminv(
     p * dnorm(0, mean = 0, sd = 1)
   )
