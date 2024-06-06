@@ -146,7 +146,7 @@ get_map_estimates <- function(
     warning("No residual error specified, using: 10% proportional + 0.1 additive error.")
     list(prop = 0.1, add = 0.1, exp = 0)
   }
-  if(!is.null(censoring) && class(censoring) != "character") {
+  if(!is.null(censoring) && !inherits(censoring, "character")) {
     stop("Censoring argument requires label specifying column in dataset with censoring info.")
   }
   if(!("function" %in% class(model))) {

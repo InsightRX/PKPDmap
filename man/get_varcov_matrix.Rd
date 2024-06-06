@@ -2,19 +2,19 @@
 % Please edit documentation in R/get_varcov_matrix.R
 \name{get_varcov_matrix}
 \alias{get_varcov_matrix}
-\title{Get the variance-covariance matrix from the fit object.
-Includes some safety checks.}
+\title{Performs some safety checks on the varcov matrix and returns fallback if 
+not positive definite matrix or if NULL.}
 \usage{
 get_varcov_matrix(vcov, fallback = NULL)
 }
 \arguments{
+\item{vcov}{variance covariance matrix (e.g. from fit)}
+
 \item{fallback}{a fallback variance-covariance matrix, if the varcov-matrix
 from the fit object does not satisfy safety checks (e.g. not postive-
 definite).}
-
-\item{obj}{fit object from get_map_estimates}
 }
 \description{
-Get the variance-covariance matrix from the fit object.
-Includes some safety checks.
+Performs some safety checks on the varcov matrix and returns fallback if 
+not positive definite matrix or if NULL.
 }
