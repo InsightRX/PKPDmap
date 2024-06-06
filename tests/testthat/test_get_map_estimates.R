@@ -1,5 +1,213 @@
 mod <- PKPDsim::new_ode_model("pk_1cmt_iv")
 
+test_that("Default MAP fits work and are equal to NONMEM", {
+  ## Basic precision and accuracy of MAP estimation (compared to NONMEM)
+  dat   <- read.table(file=test_path("nm", "pktab1"), skip=1, header=TRUE)
+  ebe   <- read.table(file=test_path("nm", "patab1"), skip=1, header=TRUE)
+  sdtab <- read.table(file=test_path("nm", "sdtab1"), skip=1, header=TRUE)
+  colnames(dat)[1:3] <- c("id", "t", "y")
+  dat   <- dat[dat$id <= 20,] # not necessary to do all 100 id's, if bug will be clear from 20 ids too.
+  ebe$id <- dat$id
+  ebe   <- ebe[ebe$id <= 20 & !duplicated(ebe$id),]
+  par   <- list(CL = 7.67, V = 97.7) 
+  reg   <- PKPDsim::new_regimen(amt = 100000, times=c(0, 24), type="bolus")
+  fits <- c()
+  for(i in seq(unique(dat$id))) {
+    tmp <- get_map_estimates(
+      parameters = par,
+      model = mod,
+      regimen = reg,
+      omega = c(0.0406, 
+                0.0623, 0.117),
+      weights = rep(1, length(dat[dat$id == i & dat$EVID == 0,1])),
+      error = list(prop = 0, add = sqrt(1.73E+04)),
+      data = dat[dat$id == i & dat$EVID == 0,]
+                             #residuals = TRUE, verbose = TRUE
+    )
+    fits <- rbind(fits, cbind(tmp$parameters$CL, tmp$parameters$V))
+  }
+  
+  ## allow max deviation of 0.5% with NONMEM
+  expect_true(
+    max(fits[,1] - ebe$CL) / mean(ebe$CL) < 0.005
+  )
+  expect_true(
+    max(fits[,2] - ebe$V) / mean(ebe$V) < 0.005
+  )
+  
+  ## Test 2cmt model (just check if it runs, no asserts)
+  model2 <- PKPDsim::new_ode_model("pk_2cmt_iv")
+  fits <- c()
+  par2 <- list(CL = 7.67, V = 97.7, Q = 3, V2 = 50)
+  for(i in seq(unique(dat$id))) {
+    tmp <- get_map_estimates(
+      parameters = par2,
+      model = model2,
+      regimen = reg,
+      omega = c(0.0406,
+                0.0623, 0.117,
+                0.001, 0.01, 0.1,
+                0.001, 0.001, 0.01, 0.1),
+      error = list(prop = 0, add = sqrt(1.73E+04)),
+      int_step_size = 0.1,
+      data = dat[dat$id == i,]
+    )
+    fits <- rbind(fits, cbind(tmp$parameters$CL, tmp$parameters$V))
+  }
+  
+  ## Test 2cmt model but fix V2
+  par2 <- list(CL = 7.67, V = 97.7, Q = 3, V2 = 50)
+  tmp1 <- get_map_estimates(
+    parameters = par2,
+    model = model2,
+    regimen = reg,
+    omega = c(0.0406,
+              0.0623, 0.117,
+              0.001, 0.01, 0.1,
+              0.001, 0.01, 0.01, 0.1),
+    fixed = c("V2"),
+    error = list(prop = 0, add = sqrt(1.73E+04)),
+    int_step_size = 0.1,
+    data = dat[dat$id == 1,]
+  )
+  tmp2 <- get_map_estimates(
+    parameters = par2,
+    model = model2,
+    regimen = reg,
+    omega = c(0.0406,
+              0.0623, 0.117,
+              0.001, 0.01, 0.1),
+    fixed = c("V2"),
+    error = list(prop = 0, add = sqrt(1.73E+04)),
+    int_step_size = 0.1,
+    data = dat[dat$id == 1,]
+  )
+  tmp3 <- get_map_estimates(
+    parameters = par2,
+    model = model2,
+    regimen = reg,
+    omega = c(0.0406,
+              0.0623, 0.117),
+    fixed = c("Q", "V2"),
+    error = list(prop = 0, add = sqrt(1.73E+04)),
+    int_step_size = 0.1,
+    data = dat[dat$id == 1,]
+  )
+  expect_equal(tmp1$parameters$V2, 50)
+  expect_equal(tmp2$parameters$V2, 50)
+  expect_true(tmp2$parameters$Q != 3)
+  expect_equal(tmp3$parameters$V2, 50)
+  expect_equal(tmp3$parameters$Q, 3)
+  expect_equal(tmp3$parameters$V2, 50)
+  expect_equal(tmp3$parameters$Q, 3)
+  expect_true(!is.null(tmp3$mahalanobis))
+  expect_true(!is.null(tmp3$prior) && all(c("parameters", "omega", "fixed") %in% names(tmp3$prior)))
+
+  ## weighting gives different result  
+  tmp4 <- get_map_estimates(
+    parameters = par2,
+    model = model2,
+    regimen = reg,
+    omega = c(0.0406,
+              0.0623, 0.117),
+    fixed = c("Q", "V2"),
+    weights = weight_by_time(
+      dat[dat$id == i & dat$EVID == 0,]$t,
+      t_end_gradient = 12
+    ),
+    error = list(prop = 0, add = sqrt(1.73E+04)),
+    int_step_size = 0.1,
+    data = dat[dat$id == 1,]
+  )
+  expect_true(tmp3$parameters$CL != tmp4$parameters$CL)
+
+  ## weighting with all weight=1 gives same results
+  tmp5 <- get_map_estimates(
+    parameters = par2,
+    model = model2,
+    regimen = reg,
+    omega = c(0.0406,
+              0.0623, 0.117),
+   fixed = c("Q", "V2"),
+   weights = weight_by_time(
+     dat[dat$id == i & dat$EVID == 0,]$t,
+     t_end_gradient = 0
+    ),
+    error = list(prop = 0, add = sqrt(1.73E+04)),
+    int_step_size = 0.1,
+    data = dat[dat$id == 1,]
+  )
+  expect_equal(tmp5$parameters$CL, tmp3$parameters$CL)
+  
+  grad <- weight_by_time(
+    time = c(0:24), 
+    t_start_gradient = 5,
+    t_end_gradient = 23
+  )
+  expect_equal(sum(grad[1:6]), 0)
+  expect_equal(sum(tail(grad,2)), 2)
+  expect_equal(sum(weight_by_time(0:9)), 5)
+
+  ## check individual residuals
+  id <- 1
+  tmp <- get_map_estimates(
+    parameters = par,
+    model = mod,
+    regimen = reg,
+    omega = c(0.0406, 
+              0.0623, 0.117),
+    weights = rep(1, length(dat[dat$id == id & dat$EVID == 0,1])),
+    error = list(prop = 0, add = sqrt(1.73e04)),
+    data = dat[dat$id == id,], 
+    residuals = TRUE
+  )
+  ires1 <- sdtab[sdtab$ID == 1 & sdtab$EVID == 0,]$IRES
+  iwres1 <- sdtab[sdtab$ID == 1 & sdtab$EVID == 0,]$IWRES
+  expect_true(all((tmp$residuals - ires1) / ires1 < 0.01))
+  expect_true(all(abs(tmp$weighted_residuals - iwres1) < 0.01))
+  
+  ## Check that weighting works
+  model <- PKPDsim::new_ode_model(
+    code = "
+      dAdt[1] = -(CL/V) * A[1];
+    ", 
+    obs = list(cmt = 1, scale = "V/1000")
+  )
+  par <- list(CL = 10, V = 100)
+  reg <- PKPDsim::new_regimen(amt = 100, n = 12, interval = 12, type="infusion", t_inf = 1)
+  obs <- PKPDsim::sim(
+    ode = model, 
+    parameters = par, 
+    regimen = reg, 
+    only_obs = TRUE, 
+    t_obs = c(11.5, 143.5)
+  )
+  
+  obs$evid <- 0
+  obs$y[1] <- 600
+  fit1 <- get_map_estimates(
+    model = model, 
+    data = obs, 
+    parameters = list(CL = 11, V = 90),
+    regimen = reg, omega = c(0.1, 0.05, 0.1),
+    error = list(prop = 0.1, add = 10), weights = c(1, 1), 
+    residuals = T
+  )
+  expect_equal(round(fit1$parameters$CL,1), 6.4)
+  
+  fit2 <- get_map_estimates(
+    model = model, 
+    data = obs,
+    parameters = list(CL = 11, V = 90),
+    regimen = reg, 
+    omega = c(0.1, 0.05, 0.1),
+    error = list(prop = 0.1, add = 10), weights = c(0.25, 1), 
+    residuals = T
+  )
+  expect_equal(round(fit2$parameters$CL,1), 7.7)
+  expect_true(diff(abs(fit2$iwres)) < 0.1) # should be small difference. Scaling of residuals is not 100% correct, but seems close enough 
+})
+
 test_that("allow_obs_before_first_dose works", {
   data <- data.frame(
     t = c(-0.45, 35.55),
@@ -424,12 +632,14 @@ test_that("Can estimate mixture model", {
   par   <- list(CL = 7.67, V = 97.7) 
   omega <- c(0.0406, 
              0.0623, 0.117)
-  fit <- get_map_estimates(parameters = par,
-                           model = model,
-                           regimen = PKPDsim::new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
-                           omega = omega,
-                           error = list(prop = 0, add = sqrt(1.73E+04)),
-                           data = data1)
+  fit <- get_map_estimates(
+    parameters = par,
+    model = model,
+    regimen = PKPDsim::new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
+    omega = omega,
+    error = list(prop = 0, add = sqrt(1.73E+04)),
+    data = data1
+  )
   
   expect_equal(round(fit$parameters$CL,3), 5.368)
   expect_equal(round(fit$parameters$V,3), 99.762)
@@ -607,4 +817,25 @@ test_that("MAP works for multiple observation types", {
   expect_equal(fit4$obs_type, data_multi3$obs_type)
 })
 
+test_that("Precision / uncertainty of MAP estimates is calculated", {
+  dat   <- read.table(file=test_path("nm", "pktab1"), skip=1, header=TRUE)
+  colnames(dat)[1:3] <- c("id", "t", "y")
+  dat   <- dat[dat$id <= 20,] # not necessary to do all 100 id's, if bug will be clear from 20 ids too.
+  par   <- list(CL = 7.67, V = 97.7) 
+  fits <- c()
+  omega <- c(0.0406, 
+             0.0623, 0.117)
+  reg <- PKPDsim::new_regimen(amt = 100000, times=c(0, 24), type="bolus")
+  fit <- get_map_estimates(
+    parameters = par,
+    model = mod,
+    regimen = reg,
+    omega = omega,
+    weights = rep(1, length(dat[dat$id == 1 & dat$EVID == 0,1])),
+    error = list(prop = 0, add = sqrt(1.73E+04)),
+    data = dat[dat$id == 1 & dat$EVID == 0,]
+  )
+  expect_true(all(fit$vcov < omega))
+  expect_true(all(fit$vcov != 0))
+})
 
