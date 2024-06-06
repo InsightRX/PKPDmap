@@ -302,3 +302,43 @@ test_that("MAP works for models with IOV", {
   expect_equal(round(fit$parameters$CL_occ1,2), -0.15)
   expect_equal(round(fit$parameters$CL_occ2,2), 0.01)
 })
+
+test_that("Test if datasets with duplicate measurements work.", {
+  ## Rationale:
+  ## - users might want to use this to put more weight on samples (preferrable is to use weighting functionality, obviously)
+  ## - data (e.g. from EMR) might have duplicates 
+  ## We should show a warning that there are duplicates, but the estimation should not fail.
+  dat <- read.table(
+    file = test_path("nm", "pktab1"),
+    skip = 1,
+    header = TRUE
+  )
+  colnames(dat)[1:3] <- c("id", "t", "y")
+  tmp   <- dat[dat$id == 1 & dat$EVID == 0,]
+  par   <- list(CL = 7.67, V = 97.7) 
+  fits <- c()
+  omega <- c(0.0406, 
+             0.0623, 0.117)
+  reg <- PKPDsim::new_regimen(amt = 100000, times=c(0, 24), type="bolus")
+  
+  ## add duplicates at t=4 and t=24
+  ## make it difficult, becasue we'll put t=24 exactly at same timepoint as new dose
+  ##
+  tmp[tmp$t == 23.9,]$t <- 24 
+  tmp <- rbind(tmp, tmp[tmp$t %in% c(4, 24),])
+  tmp <- tmp[order(tmp$t),]
+  
+  expect_message(
+    fit <- get_map_estimates(
+      parameters = par,
+      model = mod,
+      regimen = reg,
+      omega = omega,
+      weights = rep(1, length(tmp$t)),
+      error = list(prop = 0, add = sqrt(1.73E+04)),
+      data = tmp
+    )
+  )
+  expect_true("map_estimates" %in% class(fit))  
+})
+
