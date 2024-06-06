@@ -113,3 +113,38 @@ get_map_estimates(
 \description{
 Get MAP estimates
 }
+\examples{
+\dontrun{
+## define parameters
+pk1 <- new_ode_model(
+  code = "dAdt[1] = -(CL/V)*A[1]", 
+  obs = list(scale = "V", cmt=1)
+)
+regimen <- new_regimen(
+  amt = 100, interval = 12, times=c(0,24), 
+  type="infusion"
+)
+parameters <- list("CL" = 3, "V" = 10) 
+omega <- c(0.1, 
+           0.02, 0.1)
+
+## simulate single individual
+data <- sim_ode(
+  ode = pk1, 
+  parameters = list(CL = 6, V = 14), 
+  regimen = regimen,
+  omega = omega,
+  t_obs = c(23, 25, 27, 32, 36)
+)
+
+## Fit
+get_map_estimates(
+  model = pk1, 
+  data = data, 
+  parameters = parameters,
+  omega = omega,
+  regimen = regimen,
+  error = list(prop = 0.1, add = 0.1)
+)
+}
+}
