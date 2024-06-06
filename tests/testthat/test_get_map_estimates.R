@@ -342,3 +342,269 @@ test_that("Test if datasets with duplicate measurements work.", {
   expect_true("map_estimates" %in% class(fit))  
 })
 
+test_that("When vcov matrix is not postitive definite, don't crash but return original omega matrix and throw warning", {
+  ## Sometimes the Hessian can't be inverted and the vcov matrix is then not positive definite.
+  ## In that case get_map_estimates() should just return the original omega matrix,
+  ## and throw a warning.
+  
+  ## The below code creates a TDM scenario that will result in such a situation,
+  ## this is with the vancomycin Carreno model and a single TDM.
+  par <- list(
+    V = 25.76,
+    SCLSlope = 0.036,
+    K12 = 2.29,
+    K21 = 1.44,
+    SCLInter = 0.18,
+    TDM_INIT = 0
+  )
+  omega <- c(0.205590,
+             0.000000, 0.308640,
+             0.000000, 0.000000, 1.116760,
+             0.000000, 0.000000, 0.000000, 1.443300,
+             0.000000, 0.000000, 0.000000, 0.000000, 0.057068)
+  
+  ## Set up model and regimen
+  # egfr <- clinPK::calc_egfr(age = 65, weight = 156, height = 180, scr = 1.49, sex = "male", method = "cockcroft_gault_adjusted")$value
+  egfr <- 75.080589758495
+  covs <- list(CRCL = PKPDsim::new_covariate(value = egfr))
+  model <- PKPDsim::new_ode_model(
+    code = "
+    CLi = SCLInter + SCLSlope * (CRCL*16.667) \
+    Vi = V \
+    Qi = K12 * Vi \
+    V2i = Qi / K21 \
+    dAdt[0] = -(CLi/V)*A[0] - K12*A[0] + K21*A[1] \
+    dAdt[1] = K12*A[0] - K21*A[1] \
+    dAdt[2] = A[0]/V
+  ",
+    pk_code = "",
+    parameters = par,
+    omega_matrix = omega,
+    obs = list(cmt = 1, scale="V"),
+    dose = list(cmt = 1, bioav = 1),
+    declare_variables = c("CLi", "Vi", "Qi", "V2i"),
+    covariates = covs
+  )
+  reg <- PKPDsim::new_regimen(
+    amt = c(1000, 1000),
+    times = c(0, 19.75),
+    t_inf = 1.5,
+    type = "infusion")
+  t_tdm <- 19.75 + 13.75
+  data <- data.frame(t = t_tdm, y = 8.8)
+  
+  expect_warning(
+    fit <- get_map_estimates(
+      model = model,
+      parameters = par,
+      covariates = covs,
+      regimen = reg,
+      data = data,
+      omega = omega,
+      error = list(prop = 0.1, add = 0.1),
+      fixed = "TDM_INIT"
+    )
+  )
+  expect_equal(fit$vcov, omega)
+})
+
+test_that("Can estimate mixture model", {
+  model <- PKPDsim::new_ode_model(
+    code = "
+      dAdt[0] = -(CL/V)*A[0];
+    ",
+    pk_code = " ",
+    obs = list(cmt = 1, scale = "V"),
+    mixture = list(CL = list(values = c(5, 9), probability = 0.3))
+  )
+  
+  dat   <- read.table(file=test_path("nm", "pktab1"), skip=1, header=TRUE)
+  colnames(dat)[1:3] <- c("id", "t", "y")
+  data1 <- dat[dat$id == 1 & dat$EVID == 0,]
+  par   <- list(CL = 7.67, V = 97.7) 
+  omega <- c(0.0406, 
+             0.0623, 0.117)
+  fit <- get_map_estimates(parameters = par,
+                           model = model,
+                           regimen = PKPDsim::new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
+                           omega = omega,
+                           error = list(prop = 0, add = sqrt(1.73E+04)),
+                           data = data1)
+  
+  expect_equal(round(fit$parameters$CL,3), 5.368)
+  expect_equal(round(fit$parameters$V,3), 99.762)
+  expect_true(!is.null(fit$mixture$probabilities))
+  expect_equal(round(fit$mixture$probabilities, 2), c(0.66, 0.34))
+  expect_equal(fit$mixture$mixture_group, 1)
+  expect_equal(fit$mixture$selected, 5)  
+})
+
+test_that("MAP fit works with TDM before first dose", {
+  ## TDM before first dose:
+  ## at t=-8, conc=10000
+  ## Use this as true value in the simulations
+  
+  dat   <- read.table(file=test_path("nm", "pktab1"), skip=1, header=TRUE)
+  colnames(dat)[1:3] <- c("id", "t", "y")
+  dat   <- dat[dat$id == 1 & dat$EVID == 0,]
+  par   <- list(CL = 7.67, V = 97.7, TDM_INIT = 500) 
+  reg   <- PKPDsim::new_regimen(amt = 100000, times=c(0, 24), type="bolus")
+  model <- PKPDsim::new_ode_model(
+    code = "
+      dAdt[1] = -(CL/V)*A[1];
+    ", 
+    state_init = "
+      A[1] = TDM_INIT * V
+    ",
+    parameters = par, 
+    obs = list(cmt = 1, scale = "V"), 
+    cpp_show_code = F
+  )
+  fits <- c()
+  omega <- c(0.0406, 
+             0.0623, 0.117)
+  fit4 <- get_map_estimates(parameters = par,
+                            model = model,
+                            fixed = c("TDM_INIT"),
+                            regimen = reg,
+                            omega = omega,
+                            weights = rep(1, length(dat$t)),
+                            error = list(prop = 0, add = sqrt(1.73E+04)),
+                            data = dat,
+                            t_init = 4,
+                            verbose = F
+  )
+  
+  fit2 <- get_map_estimates(parameters = par,
+                            model = model,
+                            fixed = c("TDM_INIT"),
+                            regimen = reg,
+                            omega = omega,
+                            weights = rep(1, length(dat$t)),
+                            error = list(prop = 0, add = sqrt(1.73E+04)),
+                            data = dat,
+                            t_init = 2,
+                            verbose = F
+  )
+  fit0 <- get_map_estimates(parameters = par,
+                            model = model,
+                            fixed = c("TDM_INIT"),
+                            regimen = reg,
+                            omega = omega,
+                            weights = rep(1, length(dat$t)),
+                            error = list(prop = 0, add = sqrt(1.73E+04)),
+                            data = dat,
+                            verbose = F
+  )
+  expect_true("map_estimates" %in% class(fit4))
+  expect_true("map_estimates" %in% class(fit2))
+  expect_true("map_estimates" %in% class(fit0))
+  expect_true(fit4$parameters$CL != fit2$parameters$CL)
+  expect_true(fit2$parameters$CL != fit0$parameters$CL)
+})
+
+
+test_that("MAP works for multiple observation types", {
+  ## define parameters
+  pk1 <- PKPDsim::new_ode_model(code = "dAdt[1] = -(CL/V)*A[1]", obs = list(scale="V/1000", cmt=1))
+  regimen  <- PKPDsim::new_regimen(amt = 100, interval = 12, n = 5, type="infusion", t_inf = 1)
+  parameters   <- list("CL" = 15, "V" = 150)
+  omega <- PKPDsim::cv_to_omega(list("CL" = 0.2, "V" = 0.2), parameters[1:2])
+  
+  ruv_single <- list(prop = 0.1, add = 1)
+  ruv_multi <- list(prop = c(0.1, 1), add = c(0.1, 20))
+  ruv_multi2 <- list(prop = c(0.1, 1, 2), add = c(0.1, 1, 20))
+  
+  ## simulate single individual in population
+  # some observations with much higher residual error, should affect fit that much
+  set.seed(83475)
+  data_multi <- PKPDsim::sim_ode(
+    ode = pk1, 
+    parameters = list(CL = 20, V = 200), 
+    regimen = regimen,
+    int_step_size = 0.1,
+    only_obs = TRUE,
+    obs_type =  c(1,2,1,2), 
+    t_obs = c(2, 4, 6, 8),
+    res_var = ruv_multi
+  )
+  
+  data_noruv <- PKPDsim::sim_ode(
+    ode = pk1, 
+    parameters = list(CL = 20, V = 200), 
+    regimen = regimen,
+    int_step_size = 0.1,
+    only_obs = TRUE,
+    t_obs = c(2, 4, 6, 8)
+  )
+  
+  ## Fit
+  # first fit with single low residual errror
+  fit1 <- get_map_estimates(
+    model = pk1, 
+    data = data_multi, 
+    parameters = parameters,
+    omega = omega,
+    regimen = regimen,
+    obs_type_label = NULL,
+    error = ruv_single
+  )
+  
+  # then fit with multiple residual error. Fit should be affected less by points with large error
+  fit2 <- get_map_estimates(
+    model = pk1, 
+    data = data_multi, 
+    parameters = parameters,
+    omega = omega,
+    regimen = regimen,
+    obs_type_label = "obs_type",
+    error = ruv_multi
+  )
+  fit3 <- get_map_estimates(
+    model = pk1, 
+    data = data_noruv, 
+    parameters = parameters,
+    omega = omega,
+    regimen = regimen,
+    error = ruv_single
+  )
+  expect_true((abs(fit3$parameters$CL - fit1$parameters$CL) / abs(fit3$parameters$CL - fit2$parameters$CL)) > 5)
+  
+  ## Test ordering of data
+  data_multi2 <- PKPDsim::sim_ode(
+    ode = pk1, 
+    parameters = list(CL = 20, V = 200), 
+    regimen = regimen,
+    int_step_size = 0.1,
+    only_obs = TRUE,
+    obs_type =  c(1, 2, 2, 1, 1, 2), 
+    t_obs = c(2, 4, 6, 6, 8, 8),
+    res_var = ruv_multi
+  )
+  data_multi3 <- PKPDsim::sim_ode(
+    ode = pk1, 
+    parameters = list(CL = 20, V = 200), 
+    regimen = regimen,
+    int_step_size = 0.1,
+    only_obs = TRUE,
+    obs_type =  c(1, 2, 3, 2, 1, 1, 2), 
+    t_obs = c(2, 2, 2, 4, 4, 8, 8),
+    res_var = ruv_multi2
+  )
+  
+  # PKPDsim is expected to re-order. Testing here to make sure this is still the case
+  expect_equal(data_multi2$obs_type, c(1, 2, 1, 2, 1, 2))
+  expect_equal(data_multi3$obs_type, c(1, 2, 3, 1, 2, 1, 2))
+  fit4 <- get_map_estimates(
+    model = pk1, 
+    data = data_multi3[rev(seq_len(nrow(data_multi3))), ], 
+    parameters = parameters,
+    omega = omega,
+    regimen = regimen,
+    obs_type_label = "obs_type",
+    error = ruv_multi2
+  )
+  expect_equal(fit4$obs_type, data_multi3$obs_type)
+})
+
+
