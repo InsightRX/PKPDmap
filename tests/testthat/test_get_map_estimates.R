@@ -1,5 +1,6 @@
+mod <- PKPDsim::new_ode_model("pk_1cmt_iv")
+
 test_that("allow_obs_before_first_dose works", {
-  mod <- PKPDsim::new_ode_model("pk_1cmt_iv")
   data <- data.frame(
     t = c(-0.45, 35.55),
     y = c(21.7, 17.8),
@@ -81,5 +82,223 @@ test_that("allow_obs_before_first_dose works", {
     ),
     NA
   )
+})
 
+test_that("MAP fit works with <LOQ data", {
+  dat <- read.table(
+    file = test_path("nm", "pktab1"),
+    skip = 1,
+    header = TRUE
+  )
+  colnames(dat)[1:3] <- c("id", "t", "y")
+  data1 <- dat[dat$id == 1 & dat$EVID == 0, ]
+  lloq <- 500
+  data1$loq <- 0
+  data1[data1$y < lloq, ]$loq <- -1
+  data1[data1$loq < 0, ]$y  <- lloq
+  reg <- PKPDsim::new_regimen(
+    amt = 100000,
+    times = c(0, 24),
+    type = "bolus"
+  )
+  fit <- get_map_estimates(
+    parameters = list(CL = 7.67, V = 97.7),
+    model = mod,
+    regimen = PKPDsim::new_regimen(
+      amt = 100000,
+      times = c(0, 24),
+      type = "bolus"
+    ),
+    omega = c(0.0406, 0.0623, 0.117),
+    error = list(prop = 0, add = sqrt(1.73E+04)),
+    data = data1,
+    censoring = "loq"
+  )
+  expect_equal(round(fit$parameters$CL, 3), 7.469)
+  expect_equal(round(fit$parameters$V, 3), 92.382)
+  expect_equal(
+    round(fit$iwres, 3), 
+    c(0.443, 1.656, -0.624, -0.91,
+      -0.873,-0.579, 0.108, 0.754,
+      0.095, 1.05, 0.122)
+  )
+  expect_equal(
+    is.na(fit$wres),
+    c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,
+      TRUE, FALSE, TRUE
+    )
+  )
+})
+
+test_that("MAP fit works with >ULOQ and <BLOQ data", {
+  dat <- read.table(
+    file = test_path("nm", "pktab1"),
+    skip = 1,
+    header = TRUE
+  )
+  colnames(dat)[1:3] <- c("id", "t", "y")
+  data1 <- dat[dat$id == 1 & dat$EVID == 0, ]
+  data1$loq <- 0
+  uloq <- 1000
+  lloq <- 500
+  data1[data1$y < lloq, ]$loq <- -1
+  data1[data1$loq < 0, ]$y  <- lloq
+  data1[data1$y > uloq, ]$loq <- 1
+  data1[data1$loq > 0, ]$y <- uloq
+  fit <- get_map_estimates(
+    parameters = list(CL = 7.67, V = 97.7),
+    model = mod,
+    regimen = PKPDsim::new_regimen(
+      amt = 100000,
+      times = c(0, 24),
+      type = "bolus"
+    ),
+    omega = c(0.0406, 0.0623, 0.117),
+    error = list(prop = 0, add = sqrt(1.73E+04)),
+    data = data1,
+    censoring = "loq"
+  )
+  expect_equal(round(fit$parameters$CL, 2), 7.54)
+  expect_equal(round(fit$parameters$V, 1), 95.6)
+  expect_equal(
+    round(fit$iwres, 3),
+    c(1.31, 1.204, -0.379, -0.698, -0.716,
+      -0.465,  0.188, 0.735, 0.097, 1.068,
+      0.126)
+  )
+  expect_equal(
+    is.na(fit$wres), 
+    c(TRUE, TRUE, FALSE, FALSE, FALSE, FALSE,
+      FALSE, TRUE, TRUE, FALSE, TRUE
+    )
+  )
+})
+
+test_that("MAP fit works with LTBS res.error model", {
+  dat <- read.table(
+    file = test_path("nm", "pktab1"),
+    skip = 1,
+    header = TRUE
+  )
+  colnames(dat)[1:3] <- c("id", "t", "y")
+  data1 <- dat[dat$id == 1 & dat$EVID == 0,]
+  par   <- list(CL = 7.67, V = 97.7) 
+  lloq <- 500
+  data1$lloq <- 0
+  data1[data1$y < lloq,]$lloq <- 1
+  data1[data1$y < lloq,]$y <- lloq
+  omega <- c(0.0406, 
+             0.0623, 0.117)
+  reg <- PKPDsim::new_regimen(amt = 100000, times=c(0, 24), type="bolus")
+  fit1 <- get_map_estimates(
+    parameters = par,
+    model = mod,
+    regimen = reg,
+    omega = omega,
+    error = list(prop = 0.15),
+    data = data1,
+    ltbs = FALSE
+  )
+  fit2 <- get_map_estimates(
+    parameters = par,
+    model = mod,
+    regimen = reg,
+    omega = omega,
+    error = list(add = 0.15),
+    data = data1,
+    ltbs = TRUE
+  )
+  expect_equal(round(fit2$parameters$CL,3), 5.408)
+  expect_equal(round(fit2$parameters$V,3), 98.954)  
+})
+
+test_that("MAP works for models with IOV", {
+  pars_iov   <- list(
+    CL = 25, V = 55, 
+    CL_occ1 = 0, CL_occ2 = 0, CL_occ3 = 0, CL_occ4 = 0
+  ) 
+  model <- PKPDsim::new_ode_model(
+    code = "
+      CL_I = CL;
+      if(t<24) { CL_I = CL_I * exp(CL_occ1); }
+      if(t>=24) { if (t < 48) { CL_I = CL_I * exp(CL_occ2); } }
+      if(t>=48) { if (t < 72) { CL_I = CL_I * exp(CL_occ3); } }
+      if(t>=72) { CL_I = CL_I * exp(CL_occ4); }
+      dAdt[1] = -(CL_I/V) * A[1];
+      ", 
+    dose_code = NULL,
+    declare_variables = c("CL_I"), 
+    parameters = pars_iov, 
+    obs = list(cmt = 1, scale = "V/1000")
+  )
+  reg <- PKPDsim::new_regimen(
+    amt = c(10.7, 10.7,10.7, 10.7, 10.7, 6.6,6.6,6.6),
+    n = 8, 
+    interval = 6, 
+    type = 'infusion', 
+    t_inf = 2
+  )
+  data <- data.frame(
+    t = c(11.75, 14, 14.25, 14.5, 16, 18, 35.75, 38.1, 38.25, 40, 42),
+    y = c(463, 1460, 1230, 1140, 714, 382, 284, 796, 544, 337, 222)/10,
+    evid = 0
+  )
+  omega <- c(
+    0.0531,
+    0.0268, 0.0261, 
+    0.0000, 0.0000, 0.1000, 
+    0.0000, 0.0000, 0.0000, 0.1000
+  )
+  fixed <- c("CL_occ3", "CL_occ4")
+  ruv <- list(prop = 0.115, add = 21)
+  # sim(ode = model, parameters = pars_iov, regimen = reg)
+  as_eta <- c("CL_occ1", "CL_occ2", "CL_occ3", "CL_occ4")
+  fit <- get_map_estimates(
+    model = model, 
+    data = data,
+    method = 'BFGS',
+    omega = omega,
+    parameters = pars_iov, 
+    regimen = reg, 
+    fixed = fixed,
+    error = ruv,
+    as_eta = as_eta
+  )
+  
+  ## check that IOV etas moved away from initial estimate
+  expect_equal(round(fit$parameters$CL_occ1,2), -0.15)
+  expect_equal(round(fit$parameters$CL_occ2,2), 0.01)
+  
+  ## Test IOV (in PK block)
+  pars_iov <- list(CL = 25, V = 55, CL_occ1 = 0, CL_occ2 = 0, CL_occ3 = 0, CL_occ4 = 0) 
+  model <- PKPDsim::new_ode_model(
+    code = "
+      dAdt[1] = -(CL_I/V) * A[1];
+    ", 
+    pk_code = "
+      CL_I = CL;
+      if(times[i]<24) { CL_I = CL_I * exp(CL_occ1); }
+      if(times[i]>=24) { if (times[i] < 48) { CL_I = CL_I * exp(CL_occ2); } }
+      if(times[i]>=48) { if (times[i] < 72) { CL_I = CL_I * exp(CL_occ3); } }
+       if(times[i]>=72) { CL_I = CL_I * exp(CL_occ4); }
+    ",
+    declare_variables = c("CL_I"), 
+    parameters = pars_iov, 
+    obs = list(cmt = 1, scale = "V/1000")
+  )
+  fit2 <- get_map_estimates(
+    model = model, 
+    data = data,
+    method = 'BFGS',
+    omega = omega,
+    parameters = pars_iov, 
+    regimen = reg, 
+    fixed = fixed,
+    error = ruv,
+    as_eta = as_eta
+  )
+  
+  ## check that IOV etas moved away from initial estimate
+  expect_equal(round(fit$parameters$CL_occ1,2), -0.15)
+  expect_equal(round(fit$parameters$CL_occ2,2), 0.01)
 })
