@@ -4,7 +4,7 @@
 #' @param ipred individualized predicted values
 #' @param w_ipred weighted individualized predicted values
 #' @param ltbs logical indicating whether both sides should be log transformed
-
+#'
 get_mahalanobis <- function(y, ipred, w_ipred, ltbs = FALSE){
   
   if (length(w_ipred) == 1) {

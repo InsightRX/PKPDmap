@@ -3,7 +3,9 @@
 #' @param om1 block 1
 #' @param om2 block 2
 #' @param as_triangle should output block be returned as triangle (vector) or not (matrix)?
+#' 
 #' @export
+#' 
 join_blocks <- function(om1, om2, as_triangle = TRUE) {
   n1 <- lower_triangle_mat_size(om1)
   n2 <- lower_triangle_mat_size(om2)

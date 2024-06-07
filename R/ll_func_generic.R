@@ -1,4 +1,7 @@
-## generic likelihood function
+#' Generic likelihood function
+#' 
+#' @inheritParams ll_func_PKPDsim
+#'
 ll_func_generic <- function(
   data,
   # unfortunately seems no other way to do this...
@@ -6,17 +9,15 @@ ll_func_generic <- function(
   eta11, eta12, eta13, eta14, eta15, eta16, eta17, eta18, eta19, eta20,
   eta21, eta22, eta23, eta24,
   parameters,
-  fixed = c(),
   covariates = NULL,
-  covariate_names = NULL,
   regimen = regimen,
   omega_full = omega_full,
   error = error,
   model,
-  t_obs,
   sig,
   verbose = FALSE,
-  ...) {
+  ...
+) {
   par <- parameters
   p <- as.list(match.call())
   for(i in seq(names(par))) {
@@ -36,5 +37,6 @@ ll_func_generic <- function(
   if(verbose) {
     print(ofv)
   }
-  return(-sum(ofv))
+
+  -sum(ofv)
 }

@@ -11,6 +11,7 @@
 #' @param data additional data required for `minuslogl` function to perform optimization.
 #' @param control additional parameters that control the optimization process.
 #' @param skip_hessian skip the calculation of the Hessian and variance-covariance matrix at the MAP estimates?
+#' 
 mle_wrapper <- function(minuslogl,
                         start,
                         method = "BFGS",

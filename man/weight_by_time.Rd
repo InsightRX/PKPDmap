@@ -16,10 +16,13 @@ weight_by_time(
 
 \item{min_weight}{minimum weight, default is 0.}
 
-\item{t_end_gradient}{time after which weight should be 1. Default is 0 (all weights are 1)}
+\item{t_end_gradient}{time after which weight should be 1. Default is 0
+(all weights are 1)}
 
-\item{t_start_gradient}{time after which gradient should increase from `min_weight`. Default is 0.}
+\item{t_start_gradient}{time after which gradient should increase from 
+`min_weight`. Default is 0.}
 }
 \description{
-Weighting increases from 0 to 1 by a linear gradient. At `t_end_gradient` the weighting is 1.
+Weighting increases from 0 to 1 by a linear gradient. At `t_end_gradient` 
+the weighting is 1.
 }

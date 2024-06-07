@@ -27,5 +27,5 @@ get_varcov_matrix <- function(
       return(NULL)
     }
   }
-  return(vcov_full)
+  vcov_full
 }

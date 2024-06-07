@@ -8,7 +8,9 @@
 #' @param data vector of observed data
 #' @param weights vector of weights passed to `get_map_estimates()`
 #' @param ... passed to `get_map_estimates()`
+#' 
 #' @export
+#' 
 get_np_estimates <- function(parameter_grid = NULL, 
                              error = list(prop = 0.1, add = 0.1), 
                              model = NULL,
@@ -38,5 +40,9 @@ get_np_estimates <- function(parameter_grid = NULL,
   tmp$V_tmp  <- tmp[,2] * tmp$like 
   CL_av <- sum(tmp$CL_tmp) / sum(tmp$like)
   V_av <- sum(tmp$V_tmp) / sum(tmp$like)
-  return(list(parameters = list(CL_av, V_av), prob = tmp))
+  
+  list(
+    parameters = list(CL_av, V_av), 
+    prob = tmp
+  )
 }

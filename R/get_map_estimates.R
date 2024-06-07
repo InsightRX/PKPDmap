@@ -6,31 +6,52 @@
 #' @param covariates list of covariates, each one created using `PKPDsim::new_coviarate()`
 #' @param fixed fix a specific parameters, supplied as vector of strings
 #' @param as_eta vector of parameters that are estimates as eta (e.g. IOV)
-#' @param weights vector of weights for error. Length of vector should be same as length of observation vector. If NULL (default), all weights are equal. Used in both MAP and NP methods. Note that `weights` argument will also affect residuals (residuals will be scaled too).
-#' @param omega between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects
-#' @param weight_prior weighting of priors in relationship to observed data, default = 1
-#' @param iov_bins bins for inter-occasion variability. Passed unchanged to PKPDsim.
-#' @param error residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts
-#' @param ltbs log-transform both sides? (`NULL` by default, meaning that it will be picked up from the PKPDsim model. Can be overridden with `TRUE`). Note: `error` should commonly only have additive part.
-#' @param obs_type_label column name in `data` referring to observation type. Can be used for specification of different residual error models for differing observation types (e.g. venous and capillary or parent and metabolite), Residual error should then be specified as list of vectors, e.g. `list(prop = c(0.2, 0.1), add = c(1, 2))`.
-#' @param censoring label for column specifying censoring. If value in dataset in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.
-#' @param steady_state_analytic list object with settings for steady state MAP estimation.
+#' @param weights vector of weights for error. Length of vector should be same 
+#' as length of observation vector. If NULL (default), all weights are equal. 
+#' Used in both MAP and NP methods. Note that `weights` argument will also 
+#' affect residuals (residuals will be scaled too).
+#' @param omega between subject variability, supplied as vector specifiying the
+#'  lower triangle of the covariance matrix of random effects
+#' @param weight_prior weighting of priors in relationship to observed data, 
+#' default = 1
+#' @param iov_bins bins for inter-occasion variability. Passed unchanged to 
+#' PKPDsim.
+#' @param error residual error, specified as list with arguments `add` and/or 
+#' `prop` specifying the additive and proportional parts
+#' @param ltbs log-transform both sides? (`NULL` by default, meaning that it 
+#' will be picked up from the PKPDsim model. Can be overridden with `TRUE`). 
+#' Note: `error` should commonly only have additive part.
+#' @param obs_type_label column name in `data` referring to observation type. 
+#' Can be used for specification of different residual error models for 
+#' differing observation types (e.g. venous and capillary or parent and 
+#' metabolite), Residual error should then be specified as list of vectors, 
+#' e.g. `list(prop = c(0.2, 0.1), add = c(1, 2))`.
+#' @param censoring label for column specifying censoring. If value in dataset 
+#' in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.
+#' @param steady_state_analytic list object with settings for steady state MAP 
+#' estimation.
 #' @param include_omega TRUE
 #' @param include_error TRUE
 #' @param regimen regimen
 #' @param t_init initialization time before first dose, default 0.
 #' @param A_init initial state vector
 #' @param int_step_size integrator step size passed to PKPDsim
-#' @param ll_func likelihood function, default is `ll_func_PKPDsim` as included in this package.
+#' @param ll_func likelihood function, default is `ll_func_PKPDsim` as included 
+#' in this package.
 #' @param optimizer optimization library to use, default is `optim`
 #' @param method optimization method, default `BFGS`
 #' @param control list of options passed to `optim()` function
 #' @param allow_obs_before_dose allow observation before first dose?
 #' @param type estimation type, options are `map`, `ls`, and `np_hybrid`
-#' @param np_settings list with settings for non-parametric estimation (if selected), containing any of the following: `error`, `grid_span`, grid_size`, `grid_exponential`
+#' @param np_settings list with settings for non-parametric estimation (if 
+#' selected), containing any of the following: `error`, `grid_span`, grid_size`,
+#'  `grid_exponential`
 #' @param cols column names
-#' @param residuals show residuals? This requires an additional simulation so will be slightly slower.
-#' @param output_include passed to PKPDsim::sim_ode(), returns covariates and parmeter values over time in return object. Only invoked if `residuals` option is `TRUE`.
+#' @param residuals show residuals? This requires an additional simulation so 
+#' will be slightly slower.
+#' @param output_include passed to PKPDsim::sim_ode(), returns covariates and
+#'parameter values over time in return object. Only invoked if `residuals` 
+#'option is `TRUE`.
 #' @param skip_hessian skip calculation of Hessian
 #' @param verbose show more output
 #' @param ... parameters passed on to `sim_ode()` function
@@ -69,7 +90,9 @@
 #'   error = list(prop = 0.1, add = 0.1)
 #' )
 #' }
+#' 
 #' @export
+#' 
 get_map_estimates <- function(
                       model = NULL,
                       data = NULL,
@@ -181,7 +204,9 @@ get_map_estimates <- function(
     }
   }
   t_obs <- data$t
-  if(any(duplicated(paste(t_obs, data$obs_type, sep = "_")))) message("Duplicate times were detected in data. Estimation will proceed but please check that data is correct. For putting more weight on certain measurements, please use the `weights` argument.")
+  if(any(duplicated(paste(t_obs, data$obs_type, sep = "_")))) {
+    message("Duplicate times were detected in data. Estimation will proceed but please check that data is correct. For putting more weight on certain measurements, please use the `weights` argument.")
+  }
   if(!is.null(weights)) {
     if(length(weights) != length(t_obs)) {
       stop("Vector of weights of different size than observation vector!")
@@ -257,24 +282,26 @@ get_map_estimates <- function(
   #################################################
   mixture_group <- 1
   suppressMessages({
-    sim_object <- PKPDsim::sim(ode = model,
-                               parameters = parameters,
-                               covariates = covariates,
-                               n_ind = 1,
-                               int_step_size = int_step_size,
-                               regimen = regimen,
-                               t_obs = t_obs,
-                               obs_type = data$obs_type,
-                               checks = FALSE,
-                               only_obs = TRUE,
-                               A_init = A_init,
-                               fixed = fixed,
-                               mixture_group = mixture_group, # dummy value
-                               t_max = tail(t_obs, 1) + t_init + 1,
-                               iov_bins = iov_bins,
-                               return_design = TRUE,
-                               t_init = t_init,
-                               ...)
+    sim_object <- PKPDsim::sim(
+      ode = model,
+      parameters = parameters,
+      covariates = covariates,
+      n_ind = 1,
+      int_step_size = int_step_size,
+      regimen = regimen,
+      t_obs = t_obs,
+      obs_type = data$obs_type,
+      checks = FALSE,
+      only_obs = TRUE,
+      A_init = A_init,
+      fixed = fixed,
+      mixture_group = mixture_group, # dummy value
+      t_max = tail(t_obs, 1) + t_init + 1,
+      iov_bins = iov_bins,
+      return_design = TRUE,
+      t_init = t_init,
+      ...
+    )
   })
 
   omega_full_est <- omega_full[1:n_nonfix, 1:n_nonfix]
@@ -410,14 +437,16 @@ get_map_estimates <- function(
         span = np_settings$grid_span_adaptive,
         exponential = np_settings$grid_exponential_adaptive,
         grid_size = np_settings$grid_size_adaptive)
-      np <- get_np_estimates(parameter_grid = pars_grid,
-                             error = np_settings$error,
-                             model = model,
-                             regimen = regimen,
-                             data = data$y,
-                             t_obs = data$t,
-                             covariates = covariates,
-                             weights = weights)
+      np <- get_np_estimates(
+        parameter_grid = pars_grid,
+        error = np_settings$error,
+        model = model,
+        regimen = regimen,
+        data = data$y,
+        t_obs = data$t,
+        covariates = covariates,
+        weights = weights
+      )
       # take the estimates with highest probability as starting point for next grid
       tmp <- np$prob[order(-np$prob$like),][1,]
       par <- as.list(tmp[1:length(np$parameters)])
@@ -427,14 +456,16 @@ get_map_estimates <- function(
       span = np_settings$grid_span,
       exponential = np_settings$grid_exponential,
       grid_size = np_settings$grid_size)
-    np <- get_np_estimates(parameter_grid = pars_grid,
-                           error = np_settings$error,
-                           model = model,
-                           regimen = regimen,
-                           data = data$y,
-                           t_obs = data$t,
-                           covariates = covariates,
-                           weights = weights)
+    np <- get_np_estimates(
+      parameter_grid = pars_grid,
+      error = np_settings$error,
+      model = model,
+      regimen = regimen,
+      data = data$y,
+      t_obs = data$t,
+      covariates = covariates,
+      weights = weights
+    )
     for(i in 1:length(par)) {
       par[[i]] <- np$parameters[[i]]
     }
@@ -474,39 +505,43 @@ get_map_estimates <- function(
       A_init_ipred <- A_init
     }
     suppressMessages({
-      sim_ipred <- PKPDsim::sim_ode(ode = model,
-                           parameters = par,
-                           mixture_group = mixture_group,
-                           covariates = covariates,
-                           n_ind = 1,
-                           int_step_size = int_step_size,
-                           regimen = regimen,
-                           t_obs = c(data_before_init$t, t_obs),
-                           obs_type = c(data_before_init$obs_type, data$obs_type),
-                           only_obs = TRUE,
-                           checks = FALSE,
-                           A_init = A_init_ipred,
-                           iov_bins = iov_bins,
-                           output_include = output_include,
-                           t_init = t_init,
-                           ...)
+      sim_ipred <- PKPDsim::sim_ode(
+        ode = model,
+        parameters = par,
+        mixture_group = mixture_group,
+        covariates = covariates,
+        n_ind = 1,
+        int_step_size = int_step_size,
+        regimen = regimen,
+        t_obs = c(data_before_init$t, t_obs),
+        obs_type = c(data_before_init$obs_type, data$obs_type),
+        only_obs = TRUE,
+        checks = FALSE,
+        A_init = A_init_ipred,
+        iov_bins = iov_bins,
+        output_include = output_include,
+        t_init = t_init,
+        ...
+      )
     })
     suppressMessages({
-      sim_pred <- PKPDsim::sim_ode(ode = model,
-                          parameters = parameters,
-                          mixture_group = mixture_group,
-                          covariates = covariates,
-                          n_ind = 1,
-                          int_step_size = int_step_size,
-                          regimen = regimen,
-                          t_obs = c(data_before_init$t, t_obs),
-                          obs_type = c(data_before_init$obs_type, data$obs_type),
-                          only_obs = TRUE,
-                          checks = FALSE,
-                          iov_bins = iov_bins,
-                          A_init = A_init_pred,
-                          t_init = t_init,
-                          ...)
+      sim_pred <- PKPDsim::sim_ode(
+        ode = model,
+        parameters = parameters,
+        mixture_group = mixture_group,
+        covariates = covariates,
+        n_ind = 1,
+        int_step_size = int_step_size,
+        regimen = regimen,
+        t_obs = c(data_before_init$t, t_obs),
+        obs_type = c(data_before_init$obs_type, data$obs_type),
+        only_obs = TRUE,
+        checks = FALSE,
+        iov_bins = iov_bins,
+        A_init = A_init_pred,
+        t_init = t_init,
+        ...
+      )
     })
     ipred <- sim_ipred$y
     pred <- sim_pred$y
@@ -563,5 +598,5 @@ get_map_estimates <- function(
     fixed = fixed
   )
   class(obj) <- c(class(obj), "map_estimates")
-  return(obj)
+  obj
 }

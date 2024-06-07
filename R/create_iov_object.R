@@ -13,7 +13,9 @@
 #' @param init_level_weight weight in MAP fit for init level
 #' @param ruv residual variability model. Required when estimate_init_level is `TRUE` to estimate error on init level.
 #' @param verbose verbosity (`TRUE` or `FALSE`)
+#' 
 #' @export
+#' 
 create_iov_object <- function(cv = list(CL = 0.1),
                               omega = c(0.1),
                               bins = c(0, 24, 48, 9999),
@@ -110,11 +112,11 @@ create_iov_object <- function(cv = list(CL = 0.1),
     )
   }
 
-  return(list(
+  list(
     parameters = new_par,
     kappa = kappa,
     omega = om_new,
     fixed = fixed,
     bins = bins
-  ))
+  )
 }

@@ -1,6 +1,7 @@
 #' Perform a sequential MAP Bayesian fit.
 #'
-#' This will allow "tracking" parameters over time, i.e. a form of between-occasion variability
+#' This will allow "tracking" parameters over time, i.e. a form of between-
+#' occasion variability.
 #'
 #' @param model PKPDsim model
 #' @param regimen PKPDsim regimen
@@ -20,7 +21,9 @@
 #' @param verbose verbose output?
 #' @param progress show progress bar, default is TRUE
 #' @param ... additional arguments passed to `get_map_estimates()` and `sim_ode()`.
+#' 
 #' @export
+#' 
 run_sequential_map <- function(
   model = NULL,
   regimen = NULL,
@@ -172,9 +175,9 @@ run_sequential_map <- function(
   
   ## Return object
   class(conc) <- c("PKPDsim_data", "data.frame")
-  return(list(
+  list(
     fit = fits,
     obs = conc,
     parameters = par_table
-  ))
+  )
 }
