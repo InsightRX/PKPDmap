@@ -10,7 +10,9 @@
 #' @param weights weights vector for the observed data
 #' @param include_omega Include deviation from population parameters in the likelihood?
 #' @param include_error Include residual error in the likelihood?
+#' 
 #' @export
+#' 
 calc_ofv_map <- function(
   eta, 
   omega,

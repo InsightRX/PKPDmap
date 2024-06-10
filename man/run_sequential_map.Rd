@@ -63,5 +63,6 @@ run_sequential_map(
 \item{...}{additional arguments passed to `get_map_estimates()` and `sim_ode()`.}
 }
 \description{
-This will allow "tracking" parameters over time, i.e. a form of between-occasion variability
+This will allow "tracking" parameters over time, i.e. a form of between-
+occasion variability.
 }

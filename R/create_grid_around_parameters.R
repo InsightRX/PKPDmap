@@ -8,7 +8,9 @@
 #' @param exponential use exponential grid?
 #' @param span width of the grid in either side
 #' @param fix vector of fixed parameter names
+#' 
 #' @export
+#' 
 create_grid_around_parameters <- function(parameters = list(),
                                           grid_size = 4,
                                           exponential = FALSE,
@@ -35,5 +37,6 @@ create_grid_around_parameters <- function(parameters = list(),
       lst[[i]] <- unlist(parameters)[i] * (1 + seq(from = -span, to = span, length.out = grid_size))
     }
   }
-  return(do.call("expand.grid", lst))
+  
+  do.call("expand.grid", lst)
 }

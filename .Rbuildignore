@@ -5,7 +5,4 @@
 .RData
 .Rhistory
 README.MD
-Dockerfile
-Jenkinsfile
-slack_notification.sh
-
+.github

@@ -16,6 +16,7 @@
 #' we cannot infer the direction of the residual.
 #' 
 #' @param p probability, e.g. from fit object likelihood info
+#' 
 calc_res_from_prob <- function(p) {
   p <- pmin(p, 0.9999) # avoid Inf at 1
   p <- pmax(p, 0.0001) # avoid Inf at 0

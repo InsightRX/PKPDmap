@@ -1,16 +1,17 @@
 Package: PKPDmap
 Type: Package
 Title: MAP Bayesian estimates
-Version: 0.85
-Date: 2022-07-05
-Author: Ron Keizer
+Version: 1.0.1
+Date: 2024-06-10
+Author: Ron Keizer, Jasmine Hughes, Kara Woo
 Maintainer: Ron Keizer <ron@insight-rx.com>
 Description: Obtain MAP Bayesian estimates based on individual data and
         PK/PD model.
 License: MIT + file LICENSE
 Depends: utils, stats
 Imports: PKPDsim, numDeriv, mvtnorm
-Suggests: testit, testthat (>= 3.0.0)
+Suggests: testthat (>= 3.0.0)
 Remotes: InsightRX/PKPDsim
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
+Encoding: UTF-8
 Config/testthat/edition: 3

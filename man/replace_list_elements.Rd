@@ -4,10 +4,10 @@
 \alias{replace_list_elements}
 \title{Replace list elements by name}
 \usage{
-replace_list_elements(list, replacement)
+replace_list_elements(lst, replacement)
 }
 \arguments{
-\item{list}{original list}
+\item{lst}{original list}
 
 \item{replacement}{replacement list}
 }
@@ -22,8 +22,9 @@ Finds and replaces list elements by name and throws an error if an
 }
 \examples{
 \dontrun{
-list <- list(ipred = "ipred", dv = "dv", idv = "idv", "pred" = "pred")
+lst <- list(ipred = "ipred", dv = "dv", idv = "idv", "pred" = "pred")
 replacement <- list(dv = "conc", idv = "time")
-list <- replace_list_elements(list, replacement)
+lst <- replace_list_elements(lst, replacement)
 }
+
 }

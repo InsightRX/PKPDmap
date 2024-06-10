@@ -2,7 +2,9 @@
 #' 
 #' @param x output object from get_map_estimates
 #' @param ... etc
+#' 
 #' @export
+#' 
 print.map_estimates <- function(x, ...) {
   eta <- x$fit$coef
   om <- sqrt(diag(PKPDsim::triangle_to_full(x$prior$omega)))

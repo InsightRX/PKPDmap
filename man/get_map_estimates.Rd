@@ -54,23 +54,38 @@ get_map_estimates(
 
 \item{as_eta}{vector of parameters that are estimates as eta (e.g. IOV)}
 
-\item{omega}{between subject variability, supplied as vector specifiying the lower triangle of the covariance matrix of random effects}
+\item{omega}{between subject variability, supplied as vector specifiying the
+lower triangle of the covariance matrix of random effects}
 
-\item{weight_prior}{weighting of priors in relationship to observed data, default = 1}
+\item{weight_prior}{weighting of priors in relationship to observed data, 
+default = 1}
 
-\item{iov_bins}{bins for inter-occasion variability. Passed unchanged to PKPDsim.}
+\item{iov_bins}{bins for inter-occasion variability. Passed unchanged to 
+PKPDsim.}
 
-\item{error}{residual error, specified as list with arguments `add` and/or `prop` specifying the additive and proportional parts}
+\item{error}{residual error, specified as list with arguments `add` and/or 
+`prop` specifying the additive and proportional parts}
 
-\item{ltbs}{log-transform both sides? (`NULL` by default, meaning that it will be picked up from the PKPDsim model. Can be overridden with `TRUE`). Note: `error` should commonly only have additive part.}
+\item{ltbs}{log-transform both sides? (`NULL` by default, meaning that it 
+will be picked up from the PKPDsim model. Can be overridden with `TRUE`). 
+Note: `error` should commonly only have additive part.}
 
-\item{obs_type_label}{column name in `data` referring to observation type. Can be used for specification of different residual error models for differing observation types (e.g. venous and capillary or parent and metabolite), Residual error should then be specified as list of vectors, e.g. `list(prop = c(0.2, 0.1), add = c(1, 2))`.}
+\item{obs_type_label}{column name in `data` referring to observation type. 
+Can be used for specification of different residual error models for 
+differing observation types (e.g. venous and capillary or parent and 
+metabolite), Residual error should then be specified as list of vectors, 
+e.g. `list(prop = c(0.2, 0.1), add = c(1, 2))`.}
 
-\item{censoring}{label for column specifying censoring. If value in dataset in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
+\item{censoring}{label for column specifying censoring. If value in dataset 
+in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
 
-\item{weights}{vector of weights for error. Length of vector should be same as length of observation vector. If NULL (default), all weights are equal. Used in both MAP and NP methods. Note that `weights` argument will also affect residuals (residuals will be scaled too).}
+\item{weights}{vector of weights for error. Length of vector should be same 
+as length of observation vector. If NULL (default), all weights are equal. 
+Used in both MAP and NP methods. Note that `weights` argument will also 
+affect residuals (residuals will be scaled too).}
 
-\item{steady_state_analytic}{list object with settings for steady state MAP estimation.}
+\item{steady_state_analytic}{list object with settings for steady state MAP 
+estimation.}
 
 \item{include_omega}{TRUE}
 
@@ -82,7 +97,8 @@ get_map_estimates(
 
 \item{int_step_size}{integrator step size passed to PKPDsim}
 
-\item{ll_func}{likelihood function, default is `ll_func_PKPDsim` as included in this package.}
+\item{ll_func}{likelihood function, default is `ll_func_PKPDsim` as included 
+in this package.}
 
 \item{optimizer}{optimization library to use, default is `optim`}
 
@@ -94,11 +110,14 @@ get_map_estimates(
 
 \item{type}{estimation type, options are `map`, `ls`, and `np_hybrid`}
 
-\item{np_settings}{list with settings for non-parametric estimation (if selected), containing any of the following: `error`, `grid_span`, grid_size`, `grid_exponential`}
+\item{np_settings}{list with settings for non-parametric estimation (if 
+selected), containing any of the following: `error`, `grid_span`, grid_size`,
+ `grid_exponential`}
 
 \item{cols}{column names}
 
-\item{residuals}{show residuals? This requires an additional simulation so will be slightly slower.}
+\item{residuals}{show residuals? This requires an additional simulation so 
+will be slightly slower.}
 
 \item{verbose}{show more output}
 
@@ -106,10 +125,48 @@ get_map_estimates(
 
 \item{skip_hessian}{skip calculation of Hessian}
 
-\item{output_include}{passed to PKPDsim::sim_ode(), returns covariates and parmeter values over time in return object. Only invoked if `residuals` option is `TRUE`.}
+\item{output_include}{passed to PKPDsim::sim_ode(), returns covariates and
+parameter values over time in return object. Only invoked if `residuals` 
+option is `TRUE`.}
 
 \item{...}{parameters passed on to `sim_ode()` function}
 }
 \description{
 Get MAP estimates
+}
+\examples{
+\dontrun{
+## define parameters
+pk1 <- new_ode_model(
+  code = "dAdt[1] = -(CL/V)*A[1]", 
+  obs = list(scale = "V", cmt=1)
+)
+regimen <- new_regimen(
+  amt = 100, interval = 12, times=c(0,24), 
+  type="infusion"
+)
+parameters <- list("CL" = 3, "V" = 10) 
+omega <- c(0.1, 
+           0.02, 0.1)
+
+## simulate single individual
+data <- sim_ode(
+  ode = pk1, 
+  parameters = list(CL = 6, V = 14), 
+  regimen = regimen,
+  omega = omega,
+  t_obs = c(23, 25, 27, 32, 36)
+)
+
+## Fit
+get_map_estimates(
+  model = pk1, 
+  data = data, 
+  parameters = parameters,
+  omega = omega,
+  regimen = regimen,
+  error = list(prop = 0.1, add = 0.1)
+)
+}
+
 }

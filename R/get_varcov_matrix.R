@@ -1,7 +1,7 @@
-#' Get the variance-covariance matrix from the fit object.
-#' Includes some safety checks.
+#' Performs some safety checks on the varcov matrix and returns fallback if 
+#' not positive definite matrix or if NULL.
 #' 
-#' @param obj fit object from get_map_estimates
+#' @param vcov variance covariance matrix (e.g. from fit)
 #' @param fallback a fallback variance-covariance matrix, if the varcov-matrix
 #' from the fit object does not satisfy safety checks (e.g. not postive-
 #' definite).
@@ -27,5 +27,5 @@ get_varcov_matrix <- function(
       return(NULL)
     }
   }
-  return(vcov_full)
+  vcov_full
 }
