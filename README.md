@@ -4,7 +4,7 @@ MAP Bayesian and non-parametric data fitting for PK(PD) models.
 
 ## Description
 
-This R library implements various methods for fitting of individual PK(PD) data. For simulation of PK(PD) profiles it uses the `PKPDsim` library. The following estimation methods are implemented and available in the `get_map_estimates` function:
+This R library implements various methods for fitting of individual PK(PD) data. For simulation of PK(PD) profiles it uses the `PKPDsim` [package](https://github.com/insightrx/pkpdsim). The following estimation methods are implemented and available in the `get_map_estimates` function:
 
 - `map`: MAP Bayesian: standard maximum a priori estimation of empirical Bayes estimates
 - `map_flat_prior`: MAP Bayesian with flat prior: reduced weight of prior distribution, i.e. will put more trust in the data and hence reduce shrinkage (user can control the weighting).
