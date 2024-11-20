@@ -194,6 +194,7 @@ test_that("Default MAP fits work and are equal to NONMEM", {
     residuals = T
   )
   expect_equal(round(fit1$parameters$CL,1), 6.4)
+  expect_equal(fit1$censoring, c(0, 0))
   
   fit2 <- get_map_estimates(
     model = model, 
@@ -336,6 +337,7 @@ test_that("MAP fit works with <LOQ data", {
       TRUE, FALSE, TRUE
     )
   )
+  expect_equal(fit$censoring, c(0, 0, 0, 0, 0, 0, 0, -1, -1, 0, -1))
 })
 
 test_that("MAP fit works with >ULOQ and <BLOQ data", {
@@ -380,6 +382,7 @@ test_that("MAP fit works with >ULOQ and <BLOQ data", {
       FALSE, TRUE, TRUE, FALSE, TRUE
     )
   )
+  expect_equal(fit$censoring, c(1, 1, 0, 0, 0, 0, 0, -1, -1, 0, -1))
 })
 
 test_that("MAP fit works with LTBS res.error model", {
