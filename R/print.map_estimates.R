@@ -14,7 +14,6 @@ print.map_estimates <- function(x, ...) {
   )
   res_table$eta[! names(x$parameters) %in% x$prior$fixed] <- eta / om[1:length(eta)]
   res_table$relative[! names(x$parameters) %in% x$prior$fixed] <- plot_eta(eta / om[1:length(eta)])
-  print(res_table)
   gof <- data.frame(
     dv = x$dv,
     ipred = x$ipred,

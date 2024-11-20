@@ -561,15 +561,20 @@ get_map_estimates <- function(
     # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
     obj$ires <- (transf(y_orig) - transf(ipred))
     obj$iwres <- (obj$ires / w_ipred)
-    if(any(censoring_idx)) { # turn probabilities into "IWRES"-equivalent for censored data
-      obj$iwres[censoring_idx] <- calc_res_from_prob(prob$data[censoring_idx])
-      obj$ires[censoring_idx] <- obj$iwres[censoring_idx] * w_ipred[censoring_idx]
-      ## if we would calculate the likelihood for the data population parameters given the data, 
-      ## we could also calculate the the equivalents for cwres, wres, and res. However we 
-      ## currently don't have a need to calculate. So setting to NA to avoid wrong interpretation.
-      obj$cwres[censoring_idx] <- NA_real_
-      obj$wres[censoring_idx] <- NA_real_
-      obj$res[censoring_idx] <- NA_real_
+    if(is.null(censoring)) {
+      obj$censoring <- rep(0, length(y))
+    } else {
+      obj$censoring <- data[[censoring]]
+      if(any(censoring_idx)) { # turn probabilities into "IWRES"-equivalent for censored data
+        obj$iwres[censoring_idx] <- calc_res_from_prob(prob$data[censoring_idx])
+        obj$ires[censoring_idx] <- obj$iwres[censoring_idx] * w_ipred[censoring_idx]
+        ## if we would calculate the likelihood for the data population parameters given the data, 
+        ## we could also calculate the the equivalents for cwres, wres, and res. However we 
+        ## currently don't have a need to calculate. So setting to NA to avoid wrong interpretation.
+        obj$cwres[censoring_idx] <- NA_real_
+        obj$wres[censoring_idx] <- NA_real_
+        obj$res[censoring_idx] <- NA_real_
+      }
     }
     obj$iwres_weighted <- obj$iwres * obj$weights
     obj$pred <- pred
