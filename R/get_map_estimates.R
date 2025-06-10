@@ -505,10 +505,13 @@ get_map_estimates <- function(
       A_init_ipred <- A_init
     }
     suppressMessages({
+      ## After fitting individual parameters, don't pass the mixture group to the simulator 
+      ## (so `mixture=NULL`), otherwise `sim()` will use the population value for the 
+      ## specified group, and not the individual fitted parameter.
       sim_ipred <- PKPDsim::sim_ode(
         ode = model,
         parameters = par,
-        mixture_group = mixture_group,
+        mixture_group = NULL,
         covariates = covariates,
         n_ind = 1,
         int_step_size = int_step_size,
@@ -528,7 +531,7 @@ get_map_estimates <- function(
       sim_pred <- PKPDsim::sim_ode(
         ode = model,
         parameters = parameters,
-        mixture_group = mixture_group,
+        mixture_group = NULL,
         covariates = covariates,
         n_ind = 1,
         int_step_size = int_step_size,

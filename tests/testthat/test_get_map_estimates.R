@@ -641,7 +641,8 @@ test_that("Can estimate mixture model", {
     regimen = PKPDsim::new_regimen(amt = 100000, times=c(0, 24), type="bolus"),
     omega = omega,
     error = list(prop = 0, add = sqrt(1.73E+04)),
-    data = data1
+    data = data1,
+    residuals = TRUE
   )
   
   expect_equal(round(fit$parameters$CL,3), 5.368)
@@ -649,7 +650,12 @@ test_that("Can estimate mixture model", {
   expect_true(!is.null(fit$mixture$probabilities))
   expect_equal(round(fit$mixture$probabilities, 2), c(0.66, 0.34))
   expect_equal(fit$mixture$mixture_group, 1)
-  expect_equal(fit$mixture$selected, 5)  
+  expect_equal(fit$mixture$selected, 5)
+  expect_equal(
+    round(fit$ipred, 2),
+    c(989, 975.78, 949.87, 900.11, 808.27, 725.79, 651.73, 525.52, 
+      277, 669.96, 353.13)
+  )
 })
 
 test_that("MAP fit works with TDM before first dose", {
