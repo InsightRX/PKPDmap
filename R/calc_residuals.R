@@ -2,6 +2,14 @@
 #' based on a fitted parameter set, and data object.
 #' 
 #' @inheritParams get_map_estimates
+#' @param obj temporary storage object in `get_map_estimates()`
+#' @param parameters_population parameters for population predictions
+#' @param omega_full full omega matrix
+#' @param transf transformation function
+#' @param A_init_population init vector for model state (population)
+#' @param A_init_individual init vector for model state (individual)
+#' @param censoring_idx vector with indices for censoring
+#' @param data_before_init data.frame with data before initial dose
 #' 
 calc_residuals <- function(
   obj,
@@ -14,8 +22,6 @@ calc_residuals <- function(
   error,
   weights,
   transf,
-  t_obs,
-  obs_type,
   A_init_population,
   A_init_individual,
   t_init = 0,
@@ -24,11 +30,15 @@ calc_residuals <- function(
   int_step_size = 0.01,
   censoring = NULL,
   censoring_idx = NULL,
-  data_before_init,
+  data_before_init = NULL,
   ltbs = FALSE,
   ...
 ) {
 
+  ## Observation vectors
+  t_obs <- c(data_before_init$t, data$t)
+  obs_type <- c(data_before_init$obs_type, data$obs_type)
+  
   ## Perform simulations for ipred and pred
   suppressMessages({
     ## After fitting individual parameters, don't pass the mixture group to the simulator 
@@ -95,14 +105,6 @@ calc_residuals <- function(
   if(output_include$parameters) {
     obj$parameters_time <- sim_ipred[!duplicated(sim_ipred$t), names(parameters)]
   }
-
-  ## Add Mahalanobis distance to obj
-  obj$mahalanobis <- get_mahalanobis(
-    data$y,
-    obj$ipred, 
-    obj$w_ipred, 
-    ltbs
-  )
 
   obj
 }

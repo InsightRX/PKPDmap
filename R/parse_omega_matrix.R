@@ -8,6 +8,12 @@ parse_omega_matrix <- function(
   parameters,
   fixed
 ) {
+  nonfixed <- names(parameters)[is.na(match(names(parameters), fixed))]
+  n_nonfix <- length(nonfixed)
+  eta <- list()
+  for(i in seq(nonfixed)) {
+    eta[[paste0("eta", sprintf("%02d", i))]] <- 0
+  }
   if(inherits(omega, "matrix")) {
     omega_full <- omega # dummy om matrix
   } else {
@@ -22,5 +28,15 @@ parse_omega_matrix <- function(
              paste0("Fixed: ", paste(fixed, collapse=","), "\n"))
     stop(msg)
   }
-  omega_full
+  omega_full_est <- omega_full[
+    1:n_nonfix, 
+    1:n_nonfix
+  ]
+  list(
+    full = omega_full,    # full omega block
+    est = omega_full_est, # full omega block but only for non-fixed parameters,
+    fixed = fixed,        # vector of fixed parameters
+    nonfixed = nonfixed,  # vector of non-fixed (estimaterd) parameters
+    eta = eta             # list of etas
+  )
 }

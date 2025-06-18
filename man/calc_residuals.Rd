@@ -16,8 +16,6 @@ calc_residuals(
   error,
   weights,
   transf,
-  t_obs,
-  obs_type,
   A_init_population,
   A_init_individual,
   t_init = 0,
@@ -26,19 +24,25 @@ calc_residuals(
   int_step_size = 0.01,
   censoring = NULL,
   censoring_idx = NULL,
-  data_before_init,
+  data_before_init = NULL,
   ltbs = FALSE,
   ...
 )
 }
 \arguments{
+\item{obj}{temporary storage object in `get_map_estimates()`}
+
 \item{data}{data data.frame with columns `t` and `y` (and possibly evid)}
 
 \item{model}{model, created using `PKPDsim::new_ode_model()`}
 
+\item{parameters_population}{parameters for population predictions}
+
 \item{covariates}{list of covariates, each one created using `PKPDsim::new_coviarate()`}
 
 \item{regimen}{regimen}
+
+\item{omega_full}{full omega matrix}
 
 \item{error}{residual error, specified as list with arguments `add` and/or 
 `prop` specifying the additive and proportional parts}
@@ -47,6 +51,12 @@ calc_residuals(
 as length of observation vector. If NULL (default), all weights are equal. 
 Used in both MAP and NP methods. Note that `weights` argument will also 
 affect residuals (residuals will be scaled too).}
+
+\item{transf}{transformation function}
+
+\item{A_init_population}{init vector for model state (population)}
+
+\item{A_init_individual}{init vector for model state (individual)}
 
 \item{t_init}{initialization time before first dose, default 0.}
 
@@ -61,6 +71,10 @@ option is `TRUE`.}
 
 \item{censoring}{label for column specifying censoring. If value in dataset 
 in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
+
+\item{censoring_idx}{vector with indices for censoring}
+
+\item{data_before_init}{data.frame with data before initial dose}
 
 \item{ltbs}{log-transform both sides? (`NULL` by default, meaning that it 
 will be picked up from the PKPDsim model. Can be overridden with `TRUE`). 

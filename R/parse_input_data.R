@@ -2,8 +2,15 @@
 #' 
 #' @inheritParams get_map_estimates
 #' 
-parse_input_data <- function(data, obs_type_label = NULL) {
+parse_input_data <- function(
+  data,
+  cols = list(x = "t", y = "y"),
+  obs_type_label = NULL
+) {
   colnames(data) <- tolower(colnames(data))
+  if(!all(tolower(unlist(cols)) %in% names(data))) {
+    stop("Expected column names were not found in data. Please use 'cols' argument to specify column names for independent and dependent variable.")
+  }
   if(inherits(data, "PKPDsim")) {
     # when fitting directly from PKPDsim-generated data:
     if("comp" %in% names(data)) {

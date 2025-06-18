@@ -7,7 +7,7 @@
 #' 
 print.map_estimates <- function(x, ...) {
   eta <- x$fit$coef
-  om <- sqrt(diag(PKPDsim::triangle_to_full(x$prior$omega)))
+  om <- sqrt(diag(PKPDsim::triangle_to_full(x$prior$omega$full)))
   res_table <- data.frame(
     individual = unlist(x$parameters), 
     population = unlist(x$prior$parameters)

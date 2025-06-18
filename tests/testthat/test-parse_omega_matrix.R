@@ -4,11 +4,15 @@ test_that("parse_omega_matrix handles matrix input", {
   parameters <- c("CL", "V")
   fixed <- character(0)
   
-  result <- parse_omega_matrix(omega, parameters, fixed)
+  result <- parse_omega_matrix(
+    omega, 
+    parameters, 
+    fixed
+  )
   
   # Check that matrix is returned unchanged
-  expect_equal(result, omega)
-  expect_equal(dim(result), c(2, 2))
+  expect_equal(result$full, omega)
+  expect_equal(dim(result$full), c(2, 2))
 })
 
 test_that("parse_omega_matrix handles triangle matrix input", {
@@ -20,11 +24,11 @@ test_that("parse_omega_matrix handles triangle matrix input", {
   result <- parse_omega_matrix(omega, parameters, fixed)
   
   # Check that triangle matrix is converted to full matrix
-  expect_equal(dim(result), c(2, 2))
-  expect_equal(result[1,1], 0.1)
-  expect_equal(result[2,1], 0.2)
-  expect_equal(result[1,2], 0.2)
-  expect_equal(result[2,2], 0.3)
+  expect_equal(dim(result$full), c(2, 2))
+  expect_equal(result$full[1,1], 0.1)
+  expect_equal(result$full[2,1], 0.2)
+  expect_equal(result$full[1,2], 0.2)
+  expect_equal(result$full[2,2], 0.3)
 })
 
 test_that("parse_omega_matrix validates matrix size correctly", {
@@ -34,7 +38,7 @@ test_that("parse_omega_matrix validates matrix size correctly", {
   fixed <- character(0)
   
   result <- parse_omega_matrix(omega, parameters, fixed)
-  expect_equal(dim(result), c(2, 2))
+  expect_equal(dim(result$full), c(2, 2))
   
   # Test with fixed parameters
   omega <- c(0.1, 0.2, 0.3)  # 2x2 matrix
@@ -42,7 +46,7 @@ test_that("parse_omega_matrix validates matrix size correctly", {
   fixed <- "KA"
   
   result <- parse_omega_matrix(omega, parameters, fixed)
-  expect_equal(dim(result), c(2, 2))
+  expect_equal(dim(result$full), c(2, 2))
 })
 
 test_that("parse_omega_matrix handles error cases", {
@@ -74,8 +78,8 @@ test_that("parse_omega_matrix handles edge cases", {
   fixed <- character(0)
   
   result <- parse_omega_matrix(omega, parameters, fixed)
-  expect_equal(dim(result), c(1, 1))
-  expect_equal(result[1,1], 0.1)
+  expect_equal(dim(result$full), c(1, 1))
+  expect_equal(result$full[1,1], 0.1)
   
   # Test with all parameters fixed
   omega <- c(0.1)  # 1x1 matrix
@@ -83,5 +87,5 @@ test_that("parse_omega_matrix handles edge cases", {
   fixed <- c("CL", "V")
   
   result <- parse_omega_matrix(omega, parameters, fixed)
-  expect_equal(dim(result), c(1, 1))
-}) 
+  expect_equal(dim(result$full), c(1, 1))
+})

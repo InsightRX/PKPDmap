@@ -4,10 +4,18 @@
 \alias{parse_input_data}
 \title{Parse input data for fit}
 \usage{
-parse_input_data(data)
+parse_input_data(data, cols = list(x = "t", y = "y"), obs_type_label = NULL)
 }
 \arguments{
 \item{data}{data data.frame with columns `t` and `y` (and possibly evid)}
+
+\item{cols}{column names}
+
+\item{obs_type_label}{column name in `data` referring to observation type. 
+Can be used for specification of different residual error models for 
+differing observation types (e.g. venous and capillary or parent and 
+metabolite), Residual error should then be specified as list of vectors, 
+e.g. `list(prop = c(0.2, 0.1), add = c(1, 2))`.}
 }
 \description{
 Parse input data for fit

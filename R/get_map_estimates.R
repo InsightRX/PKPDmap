@@ -137,6 +137,8 @@ get_map_estimates <- function(
   if(weight_prior_var == 0) {
     calc_ofv <- calc_ofv_ls
   }
+  
+  ## Checks for estimation type
   if(tolower(type) %in% c("map", "pls")) {
     if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
       stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
@@ -150,7 +152,7 @@ get_map_estimates <- function(
     error <- list(prop = 0, add = 1)
   }
     
-  ## Parsing and checks
+  ## More checks
   error <- parse_error(error)
   if(!is.null(censoring) && !inherits(censoring, "character")) {
     stop("Censoring argument requires label specifying column in dataset with censoring info.")
@@ -158,17 +160,17 @@ get_map_estimates <- function(
   if(!("function" %in% class(model))) {
     stop("The 'model' argument requires a function, e.g. a model defined using the new_ode_model() function from the PKPDsim package.")
   }
-  if(!all(unlist(cols) %in% names(data))) {
-    stop("Expected column names were not found in data. Please use 'cols' argument to specify column names for independent and dependent variable.")
-  }
   if(is.null(attr(model, "cpp")) || !attr(model, "cpp")) {
     warning("Provided model is not PKPDsim model, using generic likelihood function.")
     ll_func <- ll_func_generic
   }
-  sig <- round(-log10(int_step_size))
-  
+
   ## Parse input data
-  data <- parse_input_data(data, obs_type_label)
+  data <- parse_input_data(
+    data = data, 
+    cols = cols,
+    obs_type_label = obs_type_label
+  )
   data_before_init <- data.frame()
   if(!allow_obs_before_dose) {
     filt_before_init <- data$t < min(regimen$dose_times)
@@ -180,6 +182,8 @@ get_map_estimates <- function(
       data <- data[!filt_before_init,]
     }
   }
+  
+  ## Parse observation times and weights
   t_obs <- data$t
   if(any(duplicated(paste(t_obs, data$obs_type, sep = "_")))) {
     message("Duplicate times were detected in data. Estimation will proceed but please check that data is correct. For putting more weight on certain measurements, please use the `weights` argument.")
@@ -213,20 +217,18 @@ get_map_estimates <- function(
   }
 
   ## Omega matrix and etas
-  nonfixed <- names(parameters)[is.na(match(names(parameters), fixed))]
-  n_nonfix <- length(nonfixed)
-  eta <- list()
-  for(i in seq(nonfixed)) {
-    eta[[paste0("eta", sprintf("%02d", i))]] <- 0
-  }
-  omega_full <- parse_omega_matrix(
+  omega <- parse_omega_matrix(
     omega,
     parameters,
     fixed
   )
 
   ## Check if censoring code needs to be used
-  censoring_idx <- parse_censoring(censoring, data, verbose)
+  censoring_idx <- parse_censoring(
+    censoring = censoring, 
+    data = data, 
+    verbose = verbose
+  )
   
   #################################################
   ## create simulation design template
@@ -255,7 +257,6 @@ get_map_estimates <- function(
     )
   })
 
-  omega_full_est <- omega_full[1:n_nonfix, 1:n_nonfix]
   mixture_obj <- NULL
   if(!is.null(attr(model, "mixture"))) {
     mixture <- attr(model, "mixture")
@@ -268,7 +269,7 @@ get_map_estimates <- function(
       par_mix[[mix_par]] <- mix_par_values[i]
       fits[[i]] <- mle_wrapper(
         minuslogl = ll_func,
-        start = eta,
+        start = omega$eta,
         method = method,
         optimizer = optimizer,
         control = control,
@@ -281,14 +282,14 @@ get_map_estimates <- function(
           model = model,
           regimen = regimen,
           error = error,
-          omega_full = omega_full_est / weight_prior_var,
-          omega_inv = solve(omega_full_est / weight_prior_var),
-          omega_eigen = sum(log(eigen(omega_full_est / weight_prior_var)$values)),
-          nonfixed = nonfixed,
+          omega_full = omega$est / weight_prior_var,
+          omega_inv = solve(omega$est / weight_prior_var),
+          omega_eigen = sum(log(eigen(omega$est / weight_prior_var)$values)),
+          nonfixed = omega$nonfixed,
           transf = transf,
           weights = weights,
           weight_prior = weight_prior_var,
-          sig = sig,
+          sig = round(-log10(int_step_size)),
           as_eta = as_eta,
           censoring_idx = censoring_idx,
           censoring_label = censoring,
@@ -323,7 +324,7 @@ get_map_estimates <- function(
     output <- tryCatch({
       fit <- mle_wrapper(
         ll_func,
-        start = eta,
+        start = omega$eta,
         method = method,
         optimizer = optimizer,
         control = control,
@@ -336,14 +337,14 @@ get_map_estimates <- function(
           model = model,
           regimen = regimen,
           error = error,
-          nonfixed = nonfixed,
+          nonfixed = omega$nonfixed,
           transf = transf,
-          omega_full = omega_full_est / weight_prior_var,
-          omega_inv = solve(omega_full_est / weight_prior_var),
-          omega_eigen = sum(log(eigen(omega_full_est / weight_prior_var)$values)),
+          omega_full = omega$est / weight_prior_var,
+          omega_inv = solve(omega$est / weight_prior_var),
+          omega_eigen = sum(log(eigen(omega$est / weight_prior_var)$values)),
           weights = weights,
           weight_prior = weight_prior_var,
-          sig = sig,
+          sig = round(-log10(int_step_size)),
           as_eta = as_eta,
           censoring_idx = censoring_idx,
           censoring_label = censoring,
@@ -361,20 +362,17 @@ get_map_estimates <- function(
     })
     if("error" %in% class(output)) return(output)
   }
-  cf <- fit$coef
-  par <- parameters
-  for(i in seq(nonfixed)) {
-    key <- nonfixed[i]
-    if(key %in% as_eta) {
-      par[[key]] <- as.numeric(cf[i])
-    } else {
-      par[[key]] <- as.numeric(as.numeric(par[[key]]) * exp(as.numeric(cf[i])))
-    }
-  }
+  
+  ## Create output object with individual parameters
   obj <- list(
     fit = fit, 
     mixture = mixture_obj,
-    parameters = par
+    parameters = get_individual_parameters_from_fit(
+      fit, 
+      parameters,
+      omega$nonfixed,
+      as_eta
+    )
   )
 
   #################################################
@@ -403,7 +401,7 @@ get_map_estimates <- function(
           dose = regimen$dose_amts[1],
           interval = regimen$interval[1],
           model = model,
-          parameters = obj$parameters,
+          parameters = obj$parameters, # individual
           covariates = covariates,
           map = steady_state_analytic$map,
           n_transit_compartments = PKPDsim::ifelse0(steady_state_analytic$n_transit_compartments, FALSE),
@@ -414,7 +412,7 @@ get_map_estimates <- function(
           dose = regimen$dose_amts[1],
           interval = regimen$interval[1],
           model = model,
-          parameters = parameters,
+          parameters = parameters, # population
           covariates = covariates,
           map = steady_state_analytic$map,
           n_transit_compartments = PKPDsim::ifelse0(steady_state_analytic$n_transit_compartments, FALSE),
@@ -432,12 +430,10 @@ get_map_estimates <- function(
       covariates = covariates,
       int_step_size = int_step_size,
       regimen = regimen,
-      omega_full = omega_full,
+      omega_full = omega$full,
       error = error,
       weights = weights,
       transf = transf,
-      t_obs = c(data_before_init$t, t_obs),
-      obs_type = c(data_before_init$obs_type, data$obs_type),
       A_init_population = A_init_pred,
       A_init_individual = A_init_ipred,
       iov_bins = iov_bins,
@@ -450,18 +446,31 @@ get_map_estimates <- function(
       ...
     )
   }
+  
+  ## Add variance-covariance matrix to output object
   obj$vcov_full <- get_varcov_matrix(
     obj$fit$vcov, 
-    fallback = omega_full
+    fallback = omega$full
   )
   if(inherits(obj$vcov_full, "matrix")) {
     obj$vcov <- obj$vcov_full[t(!upper.tri(obj$vcov_full))]
   }
+  
+  ## Add Mahalanobis distance to output obj
+  obj$mahalanobis <- get_mahalanobis(
+    data$y,
+    obj$ipred, 
+    obj$w_ipred, 
+    ltbs
+  )
+  
+  ## Add prior to output obj
   obj$prior <- list(
     parameters = parameters,
     omega = omega,
     fixed = fixed
   )
+  
   class(obj) <- c(class(obj), "map_estimates")
   obj
 }

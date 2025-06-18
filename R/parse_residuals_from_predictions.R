@@ -1,6 +1,8 @@
 #' Parse simulated data and extract residuals 
 #' 
-#' @inheritParams get_map_estimates
+#' @inheritParams calc_residuals
+#' @param sim_ipred data frame with simulated individual predictions
+#' @param sim_pred data frame with simulated population predictions
 #' 
 parse_residuals_from_predictions <- function(
   obj,
