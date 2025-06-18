@@ -149,14 +149,7 @@ get_map_estimates <- function(
     calc_ofv <- calc_ofv_ls
     error <- list(prop = 0, add = 1)
   }
-  
-  ## Parse data to include label for obs_type
-  if(is.null(obs_type_label)) {
-    data$obs_type <- 1
-  } else {
-    data$obs_type <- data[[obs_type_label]]
-  }
-  
+    
   ## Parsing and checks
   error <- parse_error(error)
   if(!is.null(censoring) && !inherits(censoring, "character")) {
@@ -175,7 +168,7 @@ get_map_estimates <- function(
   sig <- round(-log10(int_step_size))
   
   ## Parse input data
-  data <- parse_input_data(data)
+  data <- parse_input_data(data, obs_type_label)
   data_before_init <- data.frame()
   if(!allow_obs_before_dose) {
     filt_before_init <- data$t < min(regimen$dose_times)
@@ -442,7 +435,7 @@ get_map_estimates <- function(
       omega_full = omega_full,
       error = error,
       weights = weights,
-      transf,
+      transf = transf,
       t_obs = c(data_before_init$t, t_obs),
       obs_type = c(data_before_init$obs_type, data$obs_type),
       A_init_population = A_init_pred,
@@ -450,8 +443,8 @@ get_map_estimates <- function(
       iov_bins = iov_bins,
       output_include = output_include,
       t_init = t_init,
-      censoring,
-      censoring_idx,
+      censoring = censoring,
+      censoring_idx = censoring_idx,
       data_before_init = data_before_init,
       ltbs = ltbs,
       ...
