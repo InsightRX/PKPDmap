@@ -129,25 +129,18 @@ get_map_estimates <- function(
                       output_include = list(covariates = FALSE, parameters = FALSE),
                       ...) {
 
-  ## Handle weighting of priors, allow for some presets but can
-  ## also be set manually using `weight_prior`
-  if(is.null(weight_prior) || is.na(weight_prior)) {
-    weight_prior <- 1
-  }
-  weight_prior <- weight_prior^2 # 3x larger IIV on SD scale
+  ## get prior weight for scaling of variance term
+  weight_prior_var <- parse_weight_prior(weight_prior, type)
+
+  ## pick likelihood function to use, and perform some checks
   calc_ofv <- calc_ofv_map
-  if(weight_prior == 0) {
+  if(weight_prior_var == 0) {
     calc_ofv <- calc_ofv_ls
   }
   if(tolower(type) %in% c("map", "pls")) {
     if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
       stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
     }
-  }
-  if(tolower(type) == "pls") {
-    weight_prior <- 0.001
-    ## RK: Empirically determined to be a good penalty.
-    ##     In principle, PLS is just MAP with very flat priors
   }
   if(tolower(type) %in% c("ls")) {
     if(is.null(model) || is.null(data) || is.null(regimen)) {
@@ -156,19 +149,16 @@ get_map_estimates <- function(
     calc_ofv <- calc_ofv_ls
     error <- list(prop = 0, add = 1)
   }
+  
+  ## Parse data to include label for obs_type
   if(is.null(obs_type_label)) {
     data$obs_type <- 1
   } else {
     data$obs_type <- data[[obs_type_label]]
   }
-  if(!is.null(error)) { ## safety checks
-    if(is.null(error$prop)) error$prop <- 0
-    if(is.null(error$add)) error$add <- 0
-    if(is.null(error$exp)) error$exp <- 0
-  } else {
-    warning("No residual error specified, using: 10% proportional + 0.1 additive error.")
-    list(prop = 0.1, add = 0.1, exp = 0)
-  }
+  
+  ## Parsing and checks
+  error <- parse_error(error)
   if(!is.null(censoring) && !inherits(censoring, "character")) {
     stop("Censoring argument requires label specifying column in dataset with censoring info.")
   }
@@ -178,21 +168,15 @@ get_map_estimates <- function(
   if(!all(unlist(cols) %in% names(data))) {
     stop("Expected column names were not found in data. Please use 'cols' argument to specify column names for independent and dependent variable.")
   }
-  if("PKPDsim" %in% class(data)) {
-    if("comp" %in% names(data)) {
-      data <- data[data$comp == "obs",]
-      # data <- data[!duplicated(data$t),]
-      data$evid <- 0
-    }
+  if(is.null(attr(model, "cpp")) || !attr(model, "cpp")) {
+    warning("Provided model is not PKPDsim model, using generic likelihood function.")
+    ll_func <- ll_func_generic
   }
-  colnames(data) <- tolower(colnames(data))
   sig <- round(-log10(int_step_size))
-  if("evid" %in% colnames(data)) {
-    data <- data[data$evid == 0,]
-  }
+  
+  ## Parse input data
+  data <- parse_input_data(data)
   data_before_init <- data.frame()
-  data <- data[order(data$t, data$obs_type),]
-  y_orig <- data$y
   if(!allow_obs_before_dose) {
     filt_before_init <- data$t < min(regimen$dose_times)
     data_before_init <- data[filt_before_init,]
@@ -214,9 +198,6 @@ get_map_estimates <- function(
   } else {
     weights <- rep(1, length(data$y))
   }
-  if(sum(unlist(error)) == 0) {
-    stop("No residual error model specified, or residual error is 0.")
-  }
 
   ## Log-transform both sides?
   if(is.null(ltbs)) {
@@ -229,10 +210,6 @@ get_map_estimates <- function(
     transf <- function(x) x
   }
 
-  if(is.null(attr(model, "cpp")) || !attr(model, "cpp")) {
-    ll_func <- ll_func_generic
-  }
-
   ## check if fixed parameter actually in parameter list
   if(length(intersect(fixed, names(parameters))) != length(fixed)) {
     warning("Warning: not all fixed parameters were found in parameter set!\n")
@@ -242,43 +219,24 @@ get_map_estimates <- function(
     fixed <- NULL
   }
 
-  ## fix etas
+  ## Omega matrix and etas
   nonfixed <- names(parameters)[is.na(match(names(parameters), fixed))]
   n_nonfix <- length(nonfixed)
   eta <- list()
   for(i in seq(nonfixed)) {
     eta[[paste0("eta", sprintf("%02d", i))]] <- 0
   }
-  fix <- NULL
+  omega_full <- parse_omega_matrix(
+    omega,
+    parameters,
+    fixed
+  )
 
-  if(inherits(omega, "matrix")) {
-    omega_full <- omega # dummy om matrix
-  } else {
-    omega_full <-  PKPDsim::triangle_to_full(omega) # dummy om matrix
-  }
-  om_nonfixed <-  PKPDsim::triangle_to_full(omega)
-  if(nrow(om_nonfixed) < (length(parameters) - length(fixed))) {
-    msg <- "Provided omega matrix is smaller than expected based on the number of model parameters. Either fix some parameters or increase the size of the omega matrix.\n"
-    msg <- c(msg,
-      paste0("Non-fixed omegas: ", paste(om_nonfixed, collapse=", "), "\n"),
-      paste0("Parameters: ", paste(parameters, collapse=", "), "\n"),
-      paste0("Fixed: ", paste(fix, collapse=","), "\n"))
-    stop(msg)
-  }
-
-  ## check if censoring code needs to be used
-  censoring_idx <- NULL
-  if(!is.null(censoring)) {
-    if(any(data[[tolower(censoring)]] != 0)) {
-      censoring_idx <- data[[tolower(censoring)]] != 0
-      if(verbose) message("One or more values in data are censored, including censoring in likelihood.")
-    } else {
-      if(verbose) message("Warning: censoring specified, but no censored values in data.")
-    }
-  }
-
+  ## Check if censoring code needs to be used
+  censoring_idx <- parse_censoring(censoring, data, verbose)
+  
   #################################################
-  ## create simulation design up-front:
+  ## create simulation design template
   #################################################
   mixture_group <- 1
   suppressMessages({
@@ -330,13 +288,13 @@ get_map_estimates <- function(
           model = model,
           regimen = regimen,
           error = error,
-          omega_full = omega_full_est / weight_prior,
-          omega_inv = solve(omega_full_est / weight_prior),
-          omega_eigen = sum(log(eigen(omega_full_est)$values)),
+          omega_full = omega_full_est / weight_prior_var,
+          omega_inv = solve(omega_full_est / weight_prior_var),
+          omega_eigen = sum(log(eigen(omega_full_est / weight_prior_var)$values)),
           nonfixed = nonfixed,
           transf = transf,
           weights = weights,
-          weight_prior = weight_prior,
+          weight_prior = weight_prior_var,
           sig = sig,
           as_eta = as_eta,
           censoring_idx = censoring_idx,
@@ -387,11 +345,11 @@ get_map_estimates <- function(
           error = error,
           nonfixed = nonfixed,
           transf = transf,
-          omega_full = omega_full_est / weight_prior,
-          omega_inv = solve(omega_full_est / weight_prior),
-          omega_eigen = sum(log(eigen(omega_full_est / weight_prior)$values)),
+          omega_full = omega_full_est / weight_prior_var,
+          omega_inv = solve(omega_full_est / weight_prior_var),
+          omega_eigen = sum(log(eigen(omega_full_est / weight_prior_var)$values)),
           weights = weights,
-          weight_prior = weight_prior,
+          weight_prior = weight_prior_var,
           sig = sig,
           as_eta = as_eta,
           censoring_idx = censoring_idx,
@@ -420,58 +378,27 @@ get_map_estimates <- function(
       par[[key]] <- as.numeric(as.numeric(par[[key]]) * exp(as.numeric(cf[i])))
     }
   }
-  obj <- list(fit = fit, mixture = mixture_obj)
+  obj <- list(
+    fit = fit, 
+    mixture = mixture_obj,
+    parameters = par
+  )
 
   #################################################
-  ## Non-parametric estimation
+  ## Non-parametric estimation (hybrid, based on
+  ## MAP fit as initial estimates)
   #################################################
   if(type == "np_hybrid") {
-    obj$parameters_map <- par ## keep MAP estimates
-    np_settings <- replace_list_elements(np_settings_default, np_settings)
-    if(is.null(np_settings$error)) { # if no specific error magnitude is specified for NP, just use same as used for MAP
-      np_settings$error <- error
-    }
-    if(np_settings$grid_adaptive) { # do a first pass with a broad grid
-      pars_grid <- create_grid_around_parameters(
-        parameters = par,
-        span = np_settings$grid_span_adaptive,
-        exponential = np_settings$grid_exponential_adaptive,
-        grid_size = np_settings$grid_size_adaptive)
-      np <- get_np_estimates(
-        parameter_grid = pars_grid,
-        error = np_settings$error,
-        model = model,
-        regimen = regimen,
-        data = data$y,
-        t_obs = data$t,
-        covariates = covariates,
-        weights = weights
-      )
-      # take the estimates with highest probability as starting point for next grid
-      tmp <- np$prob[order(-np$prob$like),][1,]
-      par <- as.list(tmp[1:length(np$parameters)])
-    }
-    pars_grid <- create_grid_around_parameters(
-      parameters = par,
-      span = np_settings$grid_span,
-      exponential = np_settings$grid_exponential,
-      grid_size = np_settings$grid_size)
-    np <- get_np_estimates(
-      parameter_grid = pars_grid,
-      error = np_settings$error,
+    obj <- np_fit_wrapper(
+      obj = obj,
       model = model,
       regimen = regimen,
-      data = data$y,
-      t_obs = data$t,
+      data = data,
       covariates = covariates,
-      weights = weights
+      weights = weights,
+      np_settings = np_settings
     )
-    for(i in 1:length(par)) {
-      par[[i]] <- np$parameters[[i]]
-    }
-    obj$np <- list(prob = np$prob)
   }
-  obj$parameters <- par
 
   #################################################
   ## Add g.o.f. info
@@ -504,93 +431,31 @@ get_map_estimates <- function(
       A_init_pred <- A_init
       A_init_ipred <- A_init
     }
-    suppressMessages({
-      ## After fitting individual parameters, don't pass the mixture group to the simulator 
-      ## (so `mixture=NULL`), otherwise `sim()` will use the population value for the 
-      ## specified group, and not the individual fitted parameter.
-      sim_ipred <- PKPDsim::sim_ode(
-        ode = model,
-        parameters = par,
-        mixture_group = NULL,
-        covariates = covariates,
-        n_ind = 1,
-        int_step_size = int_step_size,
-        regimen = regimen,
-        t_obs = c(data_before_init$t, t_obs),
-        obs_type = c(data_before_init$obs_type, data$obs_type),
-        only_obs = TRUE,
-        checks = FALSE,
-        A_init = A_init_ipred,
-        iov_bins = iov_bins,
-        output_include = output_include,
-        t_init = t_init,
-        ...
-      )
-    })
-    suppressMessages({
-      sim_pred <- PKPDsim::sim_ode(
-        ode = model,
-        parameters = parameters,
-        mixture_group = NULL,
-        covariates = covariates,
-        n_ind = 1,
-        int_step_size = int_step_size,
-        regimen = regimen,
-        t_obs = c(data_before_init$t, t_obs),
-        obs_type = c(data_before_init$obs_type, data$obs_type),
-        only_obs = TRUE,
-        checks = FALSE,
-        iov_bins = iov_bins,
-        A_init = A_init_pred,
-        t_init = t_init,
-        ...
-      )
-    })
-    ipred <- sim_ipred$y
-    pred <- sim_pred$y
-    w_ipred <- sqrt(error$prop[data$obs_type]^2 * transf(ipred)^2 + error$add[data$obs_type]^2)
-    w_pred <- sqrt(error$prop[data$obs_type]^2 * transf(pred)^2 + error$add[data$obs_type]^2)
-    if(!(all(data$t == sim_ipred$t) && all(data$obs_type == sim_ipred$obs_type))) {
-      warning("Mismatch in times and observation typese between input data and predictions. Be careful interpreting results from fit.")
-    }
-    y <- data$y
-    prob <- list(par = c(mvtnorm::pmvnorm(cf, mean=rep(0, length(cf)),
-                         sigma = omega_full[1:length(cf), 1:length(cf)])),
-                 data = stats::pnorm(transf(y) - transf(ipred), mean = 0, sd = w_ipred))
-    obj$res <- (transf(y) - transf(pred))
-    obj$weights <- c(rep(0, length(data_before_init$t)), weights)
-    obj$wres <- (obj$res / w_pred) * obj$weights
-    obj$cwres <- obj$res / sqrt(abs(cov(transf(pred), transf(y_orig)))) * c(rep(0, nrow(data_before_init)), obj$weights)
-    # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
-    obj$ires <- (transf(y_orig) - transf(ipred))
-    obj$iwres <- (obj$ires / w_ipred)
-    if(is.null(censoring)) {
-      obj$censoring <- rep(0, length(y))
-    } else {
-      obj$censoring <- data[[censoring]]
-      if(any(censoring_idx)) { # turn probabilities into "IWRES"-equivalent for censored data
-        obj$iwres[censoring_idx] <- calc_res_from_prob(prob$data[censoring_idx])
-        obj$ires[censoring_idx] <- obj$iwres[censoring_idx] * w_ipred[censoring_idx]
-        ## if we would calculate the likelihood for the data population parameters given the data, 
-        ## we could also calculate the the equivalents for cwres, wres, and res. However we 
-        ## currently don't have a need to calculate. So setting to NA to avoid wrong interpretation.
-        obj$cwres[censoring_idx] <- NA_real_
-        obj$wres[censoring_idx] <- NA_real_
-        obj$res[censoring_idx] <- NA_real_
-      }
-    }
-    obj$iwres_weighted <- obj$iwres * obj$weights
-    obj$pred <- pred
-    obj$ipred <- ipred
-    obj$prob <- prob
-    obj$dv <- y_orig
-    obj$obs_type <- sim_ipred$obs_type
-    if(output_include$covariates && !is.null(covariates)) {
-      obj$covariates_time <- sim_ipred[!duplicated(sim_ipred$t), names(covariates)]
-    }
-    if(output_include$parameters) {
-      obj$parameters_time <- sim_ipred[!duplicated(sim_ipred$t), names(parameters)]
-    }
+    obj <- calc_residuals(
+      obj = obj,
+      data = data,
+      model = model,
+      parameters_population = parameters,
+      covariates = covariates,
+      int_step_size = int_step_size,
+      regimen = regimen,
+      omega_full = omega_full,
+      error = error,
+      weights = weights,
+      transf,
+      t_obs = c(data_before_init$t, t_obs),
+      obs_type = c(data_before_init$obs_type, data$obs_type),
+      A_init_population = A_init_pred,
+      A_init_individual = A_init_ipred,
+      iov_bins = iov_bins,
+      output_include = output_include,
+      t_init = t_init,
+      censoring,
+      censoring_idx,
+      data_before_init = data_before_init,
+      ltbs = ltbs,
+      ...
+    )
   }
   obj$vcov_full <- get_varcov_matrix(
     obj$fit$vcov, 
@@ -599,7 +464,6 @@ get_map_estimates <- function(
   if(inherits(obj$vcov_full, "matrix")) {
     obj$vcov <- obj$vcov_full[t(!upper.tri(obj$vcov_full))]
   }
-  obj$mahalanobis <- get_mahalanobis(y, ipred, w_ipred, ltbs)
   obj$prior <- list(
     parameters = parameters,
     omega = omega,
