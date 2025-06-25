@@ -848,3 +848,75 @@ test_that("Precision / uncertainty of MAP estimates is calculated", {
   expect_true(all(fit$vcov != 0))
 })
 
+test_that("Floating point precision issues don't raise warning", {
+  # the output of PKPDsim::sim will have different floating point precision
+  # values for the time column relative to the tdms$t column due to how the 
+  # covariate times are recalculated for the non-zero t_init.
+  tdms <- data.frame(
+    t = c(-1.283, 69.883, 85.183, 134.683, 182.983),
+    y = c(1, 29, 18, 19, 16),
+    evid = numeric(5),
+    loq = rep(c(-1, 0), c(1L, 4L)),
+    obs_type = rep(1, 5L),
+    unit = rep("mcg_mL", 5L),
+    dv = c(1, 29, 18, 19, 16),
+    lastdose_time = as.POSIXct(rep("2025-06-14 19:07:00", 5L), tz = "UTC"),
+    id = c(
+      "684ec978a1d4791fd08464bb", "6851abd7a1d0e5f17b47c04b",
+      "6852bba7b383b715e5b70781", "6855643ba225de3f9b50b91a",
+      "68580eb7b383b715e5e0af88"
+    ),
+    ref_dose = rep(NA, 5L)
+  )
+  
+  covs <- list(
+    CR = list(
+      value = c(
+        0.7573770491803279, 0.71, 0.66, 0.7, 0.71, 0.67, 0.76, 0.72, 0.64, 0.68, 0.62,
+        0.57, 0.64, 0.64, 0.71, 0.71, 0.71, 0.8, 0.71, 0.71, 0.67
+      ),
+      times = c(
+        0, 4.817, 13.033, 38.517, 50.3, 63.367, 85.183, 111.933, 134.683, 146.333,
+        158.017, 176.8, 182.983, 189.517, 195.85, 201.2, 206.417, 215.867, 218.917,
+        224.217, 229.867
+      ),
+      implementation = "interpolate",
+      unit = rep("mg_dl", 21L),
+      comments = rep(NA, 31L)
+    ) |>
+      structure(class = c("covariate", "list"))
+  )
+  
+  reg <- PKPDsim::new_regimen(
+    type = rep("infusion", 10L),
+    t_inf = rep(c(2, 1.5), c(1L, 9L)),
+    times = c(
+      0, 20.0833333333333, 32.31666666666667, 45.63333333333333, 56.6,
+      93.18333333333334, 117.083333333333329, 141.85, 166.1, 212.7
+    ),
+    amt = rep(c(1750, 1500, 1250), c(1L, 3L, 6L)),
+  )
+  
+  # This should run without error or warning
+  expect_no_warning(
+    out <- PKPDmap::get_map_estimates(
+      model        = mod,
+      A_init       = c(44.2519241203778, 40.5928645092491, 0),
+      error        = list(prop = 0.1334, add = 0.001),
+      data         = tdms,
+      weights      = c(0, 0.4575, 0.585, 0.9975, 1),
+      censoring    = "loq",
+      parameters   = list(CL = 5, V = 50),
+      omega        = c(0.0406, 0.0623, 0.117),
+      obs_type_label = "obs_type",
+      covariates   = covs,
+      regimen      = reg,
+      t_init       = 1.283,
+      verbose      = FALSE,
+      int_step_size = 0.01,
+      control      = list(reltol = 1e-05),
+      allow_obs_before_dose = TRUE
+    )
+  )
+  expect_equal(round(out$parameters$CL, 3), 2.320)
+})

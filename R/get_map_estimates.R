@@ -550,7 +550,7 @@ get_map_estimates <- function(
     pred <- sim_pred$y
     w_ipred <- sqrt(error$prop[data$obs_type]^2 * transf(ipred)^2 + error$add[data$obs_type]^2)
     w_pred <- sqrt(error$prop[data$obs_type]^2 * transf(pred)^2 + error$add[data$obs_type]^2)
-    if(!(all(data$t == sim_ipred$t) && all(data$obs_type == sim_ipred$obs_type))) {
+    if(!isTRUE(all.equal(data$t, sim_ipred$t)) && all(data$obs_type == sim_ipred$obs_type)) {
       warning("Mismatch in times and observation typese between input data and predictions. Be careful interpreting results from fit.")
     }
     y <- data$y
