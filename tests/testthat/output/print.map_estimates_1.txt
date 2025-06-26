@@ -1,9 +1,9 @@
 > PKPDmap:::print.map_estimates(tmp1)
-   individual population        eta    relative
-CL   6.699894       7.67 -0.6711100 --o--|-----
-V   87.000059      97.70 -0.3391079 ----o|-----
-Q    3.421152       3.00  0.4154129 -----|o----
-V2  50.000000      50.00         NA        <NA>
+   individual population       eta     relative
+CL   6.699894       7.67 -0.671110  --o--|-----
+V   87.000059      97.70 -3.668013 o-----|-----
+Q    3.421152       3.00  1.313651  -----|--o--
+V2  50.000000      50.00        NA         <NA>
 
         dv     ipred     pred        res       iwres
 1  1119.10 1116.5710 996.0314 123.068635  0.01922780
