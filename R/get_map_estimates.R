@@ -138,12 +138,8 @@ get_map_estimates <- function(
     calc_ofv <- calc_ofv_ls
   }
   
-  ## Checks for estimation type
-  if(tolower(type) %in% c("map", "pls")) {
-    if(is.null(model) || is.null(data) || is.null(parameters) || is.null(omega) || is.null(regimen)) {
-      stop("The 'model', 'data', 'omega', 'regimen', and 'parameters' arguments are required.")
-    }
-  }
+  ## Misc checks:
+  check_inputs(model, data, parameters, omega, regimen, censoring, type)
   if(tolower(type) %in% c("ls")) {
     if(is.null(model) || is.null(data) || is.null(regimen)) {
       stop("The 'model', 'data', and 'parameters' arguments are required.")
@@ -151,20 +147,12 @@ get_map_estimates <- function(
     calc_ofv <- calc_ofv_ls
     error <- list(prop = 0, add = 1)
   }
-    
-  ## More checks
   error <- parse_error(error)
-  if(!is.null(censoring) && !inherits(censoring, "character")) {
-    stop("Censoring argument requires label specifying column in dataset with censoring info.")
-  }
-  if(!("function" %in% class(model))) {
-    stop("The 'model' argument requires a function, e.g. a model defined using the new_ode_model() function from the PKPDsim package.")
-  }
   if(is.null(attr(model, "cpp")) || !attr(model, "cpp")) {
     warning("Provided model is not PKPDsim model, using generic likelihood function.")
     ll_func <- ll_func_generic
   }
-
+  
   ## Parse input data
   data <- parse_input_data(
     data = data, 
@@ -184,37 +172,18 @@ get_map_estimates <- function(
   }
   
   ## Parse observation times and weights
-  t_obs <- data$t
-  if(any(duplicated(paste(t_obs, data$obs_type, sep = "_")))) {
-    message("Duplicate times were detected in data. Estimation will proceed but please check that data is correct. For putting more weight on certain measurements, please use the `weights` argument.")
-  }
-  if(!is.null(weights)) {
-    if(length(weights) != length(t_obs)) {
-      stop("Vector of weights of different size than observation vector!")
-    }
-  } else {
-    weights <- rep(1, length(data$y))
-  }
+  t_obs <- parse_t_obs(data)
+  weights <- parse_weights(weights, t_obs)
 
   ## Log-transform both sides?
   if(is.null(ltbs)) {
     ltbs <- FALSE
     if(!is.null(attr(model, "ltbs")) && attr(model, "ltbs")) ltbs <- TRUE
   }
-  if(ltbs) {
-    transf <- function(x) log(x)
-  } else {
-    transf <- function(x) x
-  }
+  transf <- ifelse(ltbs, function(x) log(x), function(x) x)
 
   ## check if fixed parameter actually in parameter list
-  if(length(intersect(fixed, names(parameters))) != length(fixed)) {
-    warning("Warning: not all fixed parameters were found in parameter set!\n")
-  }
-  fixed <- names(parameters)[names(parameters) %in% fixed]
-  if(length(fixed) == 0) {
-    fixed <- NULL
-  }
+  fixed <- parse_fixed(fixed, parameters)
 
   ## Omega matrix and etas
   omega <- parse_omega_matrix(
