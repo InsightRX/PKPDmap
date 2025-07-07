@@ -11,6 +11,7 @@ ll_func_generic <- function(
   parameters,
   covariates = NULL,
   regimen = regimen,
+  lagtime = NULL,
   omega_full = omega_full,
   error = error,
   model,

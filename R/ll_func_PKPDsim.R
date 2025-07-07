@@ -75,6 +75,7 @@ ll_func_PKPDsim <- function(
   t_init = 0,
   calc_ofv,
   regimen,
+  lagtime = c(0),
   steady_state_analytic,
   include_omega,
   include_error,
@@ -109,7 +110,9 @@ ll_func_PKPDsim <- function(
     sim_object,
     ode = model,
     duplicate_t_obs = TRUE,
-    t_init = t_init)$y)
+    t_init = t_init,
+    lagtime = lagtime
+  )$y)
   dv <- transf(data$y)
   obs_type <- data$obs_type
   ofv_cens <- NULL

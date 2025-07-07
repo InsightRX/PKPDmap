@@ -18,6 +18,7 @@ calc_residuals <- function(
   parameters_population,
   covariates,
   regimen,
+  lagtime,
   omega_full,
   error,
   weights,
@@ -60,6 +61,7 @@ calc_residuals <- function(
       iov_bins = iov_bins,
       output_include = output_include,
       t_init = t_init,
+      lagtime = lagtime,
       ...
     )
   })
@@ -79,6 +81,7 @@ calc_residuals <- function(
       iov_bins = iov_bins,
       A_init = A_init_population,
       t_init = t_init,
+      lagtime = lagtime,
       ...
     )
   })

@@ -112,6 +112,7 @@ get_map_estimates <- function(
                       include_omega = TRUE,
                       include_error = TRUE,
                       regimen = NULL,
+                      lagtime = NULL,
                       t_init = 0,
                       int_step_size = 0.1,
                       ll_func = ll_func_PKPDsim,
@@ -137,6 +138,9 @@ get_map_estimates <- function(
   if(weight_prior_var == 0) {
     calc_ofv <- calc_ofv_ls
   }
+
+  ## Make sure lagtime is properly formatted (potentially pulled from model)
+  lagtime <- PKPDsim:::parse_lagtime(lagtime, model)
   
   ## Misc checks:
   check_inputs(model, data, parameters, omega, regimen, censoring, type)
@@ -211,6 +215,7 @@ get_map_estimates <- function(
       n_ind = 1,
       int_step_size = int_step_size,
       regimen = regimen,
+      lagtime = lagtime,
       t_obs = t_obs,
       obs_type = data$obs_type,
       checks = FALSE,
@@ -250,6 +255,7 @@ get_map_estimates <- function(
           t_obs = t_obs,
           model = model,
           regimen = regimen,
+          lagtime = lagtime,
           error = error,
           omega_full = omega$est / weight_prior_var,
           omega_inv = solve(omega$est / weight_prior_var),
@@ -305,6 +311,7 @@ get_map_estimates <- function(
           t_obs = t_obs,
           model = model,
           regimen = regimen,
+          lagtime = lagtime,
           error = error,
           nonfixed = omega$nonfixed,
           transf = transf,
@@ -353,6 +360,7 @@ get_map_estimates <- function(
       obj = obj,
       model = model,
       regimen = regimen,
+      lagtime = lagtime,
       data = data,
       covariates = covariates,
       weights = weights,
@@ -399,6 +407,7 @@ get_map_estimates <- function(
       covariates = covariates,
       int_step_size = int_step_size,
       regimen = regimen,
+      lagtime = lagtime,
       omega_full = omega$full,
       error = error,
       weights = weights,
