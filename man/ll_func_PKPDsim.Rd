@@ -49,6 +49,7 @@ ll_func_PKPDsim(
   t_init = 0,
   calc_ofv,
   regimen,
+  lagtime = c(0),
   steady_state_analytic,
   include_omega,
   include_error,

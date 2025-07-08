@@ -23,6 +23,7 @@ get_map_estimates(
   include_omega = TRUE,
   include_error = TRUE,
   regimen = NULL,
+  lagtime = NULL,
   t_init = 0,
   int_step_size = 0.1,
   ll_func = ll_func_PKPDsim,
@@ -102,7 +103,12 @@ in this package.}
 
 \item{optimizer}{optimization library to use, default is `optim`}
 
-\item{method}{optimization method, default `BFGS`}
+\item{method}{optimization method, default `BFGS`. This method is a
+gradient-based method, in which the gradients are computed using finite-
+difference method. When the model contains a step-function where a
+estimated parameter is involved in the step-function (such as in the case of
+lagtime), it is advised to use a non-gradient-based estimation method
+such as `Nelder-Mead` to avoid estimation failures.}
 
 \item{control}{list of options passed to `optim()` function}
 

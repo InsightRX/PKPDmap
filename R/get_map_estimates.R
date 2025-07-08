@@ -39,7 +39,12 @@
 #' @param ll_func likelihood function, default is `ll_func_PKPDsim` as included 
 #' in this package.
 #' @param optimizer optimization library to use, default is `optim`
-#' @param method optimization method, default `BFGS`
+#' @param method optimization method, default `BFGS`. This method is a
+#' gradient-based method, in which the gradients are computed using finite-
+#' difference method. When the model contains a step-function where a
+#' estimated parameter is involved in the step-function (such as in the case of
+#' lagtime), it is advised to use a non-gradient-based estimation method
+#' such as `Nelder-Mead` to avoid estimation failures.
 #' @param control list of options passed to `optim()` function
 #' @param allow_obs_before_dose allow observation before first dose?
 #' @param type estimation type, options are `map`, `ls`, and `np_hybrid`

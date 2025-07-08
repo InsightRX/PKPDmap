@@ -12,6 +12,7 @@ calc_residuals(
   parameters_population,
   covariates,
   regimen,
+  lagtime,
   omega_full,
   error,
   weights,
