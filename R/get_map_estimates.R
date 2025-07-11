@@ -145,7 +145,7 @@ get_map_estimates <- function(
   }
 
   ## Make sure lagtime is properly formatted (potentially pulled from model)
-  lagtime <- PKPDsim:::parse_lagtime(lagtime, model)
+  lagtime <- PKPDsim:::parse_lagtime(lagtime, model, parameters)
   
   ## Misc checks:
   check_inputs(model, data, parameters, omega, regimen, censoring, type)
