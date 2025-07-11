@@ -43,6 +43,9 @@ calc_residuals(
 
 \item{regimen}{regimen}
 
+\item{lagtime}{vector of lagtimes for each compartment in the model, either
+numeric vector, or vector of parameters.}
+
 \item{omega_full}{full omega matrix}
 
 \item{error}{residual error, specified as list with arguments `add` and/or 

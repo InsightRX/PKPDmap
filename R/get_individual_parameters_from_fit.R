@@ -1,7 +1,8 @@
 #' Get the individual parameters from the fitted coefficients (etas)
 #' 
+#' @inheritParams get_map_estimates
 #' @param fit fit object
-#' @param parameters list of population parameters
+#' @param nonfixed vector of parameters that are not fixed (i.e. estimated)
 #'
 get_individual_parameters_from_fit <- function(
   fit,

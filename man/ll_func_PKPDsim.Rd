@@ -58,13 +58,13 @@ ll_func_PKPDsim(
 )
 }
 \arguments{
-\item{data}{vector of}
+\item{data}{data data.frame with columns `t` and `y` (and possibly evid)}
 
 \item{sim_object}{design (event-table) obtained from PKPDsim to be used in simulations/optimizations}
 
-\item{parameters}{parameter list}
+\item{parameters}{list of parameters}
 
-\item{covariates}{covariates list}
+\item{covariates}{list of covariates, each one created using `PKPDsim::new_coviarate()`}
 
 \item{nonfixed}{non-fixed (i.e. estimated) parameters}
 
@@ -116,11 +116,12 @@ ll_func_PKPDsim(
 
 \item{eta24}{eta24}
 
-\item{error}{error model to use, e.g. `list(add = .5, prop = .15)`}
+\item{error}{residual error, specified as list with arguments `add` and/or 
+`prop` specifying the additive and proportional parts}
 
 \item{transf}{transformation function for data, if needed. E.g. `log(x)`. Default is `function(x) = x`.}
 
-\item{model}{PKPDsim model}
+\item{model}{model, created using `PKPDsim::new_ode_model()`}
 
 \item{omega_full}{full omega matrix}
 
@@ -130,21 +131,28 @@ ll_func_PKPDsim(
 
 \item{sig}{signficance, used in optimization}
 
-\item{weights}{weights for data, generally a vector of weights between 0 and 1.}
+\item{weights}{vector of weights for error. Length of vector should be same 
+as length of observation vector. If NULL (default), all weights are equal. 
+Used in both MAP and NP methods. Note that `weights` argument will also 
+affect residuals (residuals will be scaled too).}
 
-\item{as_eta}{implement as regular eta instead of exponential eta, can be vector.}
+\item{as_eta}{vector of parameters that are estimates as eta (e.g. IOV)}
 
 \item{censoring_idx}{censoring indices, used for <LOQ data.}
 
 \item{censoring_label}{censoring label, used for <LOQ data}
 
-\item{iov_bins}{IOV bins object}
+\item{iov_bins}{bins for inter-occasion variability. Passed unchanged to 
+PKPDsim.}
 
-\item{t_init}{init time for simulations, default 0.}
+\item{t_init}{initialization time before first dose, default 0.}
 
 \item{calc_ofv}{function to calculate OFV based on simulated data and set of parameters and omega matrix}
 
-\item{regimen}{PKPDsim regimen}
+\item{regimen}{regimen}
+
+\item{lagtime}{vector of lagtimes for each compartment in the model, either
+numeric vector, or vector of parameters.}
 
 \item{steady_state_analytic}{list object with settings for steady state MAP estimation.}
 
@@ -152,7 +160,7 @@ ll_func_PKPDsim(
 
 \item{include_error}{include residual error in calculation of OFV?}
 
-\item{verbose}{verbose output?}
+\item{verbose}{show more output}
 
 \item{...}{passed on to PKPDsim}
 }

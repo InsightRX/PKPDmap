@@ -11,6 +11,8 @@ parse_weights(weights, t_obs)
 as length of observation vector. If NULL (default), all weights are equal. 
 Used in both MAP and NP methods. Note that `weights` argument will also 
 affect residuals (residuals will be scaled too).}
+
+\item{t_obs}{vector of observation times}
 }
 \description{
 Parse weights argument

@@ -1,29 +1,19 @@
 #' Likelihood function for MAP optimization using PKPDsim
 #' 
-#' @param data vector of
+#' @inheritParams get_map_estimates
 #' @param sim_object design (event-table) obtained from PKPDsim to be used in simulations/optimizations
-#' @param parameters parameter list
-#' @param covariates covariates list
 #' @param nonfixed non-fixed (i.e. estimated) parameters
-#' @param error error model to use, e.g. `list(add = .5, prop = .15)`
-#' @param model PKPDsim model
 #' @param omega_full full omega matrix
 #' @param omega_inv inverse of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.
 #' @param omega_eigen eigenvalue decomposation (logged) of omega matrix. Passed to this function to avoid doing computations in each iteration of the search.
 #' @param sig signficance, used in optimization
-#' @param weights weights for data, generally a vector of weights between 0 and 1.
 #' @param transf transformation function for data, if needed. E.g. `log(x)`. Default is `function(x) = x`.
-#' @param as_eta implement as regular eta instead of exponential eta, can be vector.
 #' @param censoring_idx censoring indices, used for <LOQ data.
 #' @param censoring_label censoring label, used for <LOQ data
-#' @param t_init init time for simulations, default 0.
-#' @param iov_bins IOV bins object
 #' @param calc_ofv function to calculate OFV based on simulated data and set of parameters and omega matrix
-#' @param regimen PKPDsim regimen
 #' @param steady_state_analytic list object with settings for steady state MAP estimation.
 #' @param include_omega include omega in calculation of OFV?
 #' @param include_error include residual error in calculation of OFV?
-#' @param verbose verbose output?
 #' @param eta01 eta1 
 #' @param eta02 eta2 
 #' @param eta03 eta3 

@@ -18,6 +18,8 @@
 #' PKPDsim.
 #' @param error residual error, specified as list with arguments `add` and/or 
 #' `prop` specifying the additive and proportional parts
+#' @param lagtime vector of lagtimes for each compartment in the model, either
+#' numeric vector, or vector of parameters.
 #' @param ltbs log-transform both sides? (`NULL` by default, meaning that it 
 #' will be picked up from the PKPDsim model. Can be overridden with `TRUE`). 
 #' Note: `error` should commonly only have additive part.

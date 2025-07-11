@@ -94,6 +94,9 @@ estimation.}
 
 \item{regimen}{regimen}
 
+\item{lagtime}{vector of lagtimes for each compartment in the model, either
+numeric vector, or vector of parameters.}
+
 \item{t_init}{initialization time before first dose, default 0.}
 
 \item{int_step_size}{integrator step size passed to PKPDsim}
