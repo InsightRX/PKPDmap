@@ -19,7 +19,7 @@ parse_input_data <- function(
     }
   }
   ## Parse data to include label for obs_type
-  if(is.null(obs_type_label)) {
+  if(is.null(obs_type_label) || is.null(data[[obs_type_label]])) {
     data$obs_type <- 1
   } else {
     data$obs_type <- data[[obs_type_label]]
