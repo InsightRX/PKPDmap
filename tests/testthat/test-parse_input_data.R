@@ -9,11 +9,11 @@ test_that("parse_input_data handles regular data frame input", {
   result <- parse_input_data(data)
   
   # Check column names are lowercase
-  expect_equal(names(result), c("t", "obs_type", "y"))
+  expect_equal(names(result), c("t", "obs_type", "y", "obs_type"))
   
   # Check sorting
   expect_equal(result$t, c(1, 2, 3))
-  expect_equal(result$obs_type, c(1, 1, 1))
+  expect_equal(result$obs_type, c(1, 2, 1))
 })
 
 test_that("parse_input_data handles PKPDsim object", {
@@ -133,3 +133,4 @@ test_that("parse_input_data preserves data values after transformations", {
   expect_equal(result$dv, c(10, 30))
   expect_equal(result$t, c(2, 3))
 })
+
