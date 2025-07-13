@@ -1,6 +1,7 @@
 #' Parse weights argument
 #' 
 #' @inheritParams get_map_estimates
+#' @param t_obs vector of observation times
 #' 
 parse_weights <- function(weights, t_obs) {
   if(!is.null(weights)) {

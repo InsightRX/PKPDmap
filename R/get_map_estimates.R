@@ -18,6 +18,8 @@
 #' PKPDsim.
 #' @param error residual error, specified as list with arguments `add` and/or 
 #' `prop` specifying the additive and proportional parts
+#' @param lagtime vector of lagtimes for each compartment in the model, either
+#' numeric vector, or vector of parameters.
 #' @param ltbs log-transform both sides? (`NULL` by default, meaning that it 
 #' will be picked up from the PKPDsim model. Can be overridden with `TRUE`). 
 #' Note: `error` should commonly only have additive part.
@@ -39,7 +41,12 @@
 #' @param ll_func likelihood function, default is `ll_func_PKPDsim` as included 
 #' in this package.
 #' @param optimizer optimization library to use, default is `optim`
-#' @param method optimization method, default `BFGS`
+#' @param method optimization method, default `BFGS`. This method is a
+#' gradient-based method, in which the gradients are computed using finite-
+#' difference method. When the model contains a step-function where a
+#' estimated parameter is involved in the step-function (such as in the case of
+#' lagtime), it is advised to use a non-gradient-based estimation method
+#' such as `Nelder-Mead` to avoid estimation failures.
 #' @param control list of options passed to `optim()` function
 #' @param allow_obs_before_dose allow observation before first dose?
 #' @param type estimation type, options are `map`, `ls`, and `np_hybrid`
@@ -112,6 +119,7 @@ get_map_estimates <- function(
                       include_omega = TRUE,
                       include_error = TRUE,
                       regimen = NULL,
+                      lagtime = NULL,
                       t_init = 0,
                       int_step_size = 0.1,
                       ll_func = ll_func_PKPDsim,
@@ -137,6 +145,9 @@ get_map_estimates <- function(
   if(weight_prior_var == 0) {
     calc_ofv <- calc_ofv_ls
   }
+
+  ## Make sure lagtime is properly formatted (potentially pulled from model)
+  lagtime <- PKPDsim:::parse_lagtime(lagtime, model, parameters)
   
   ## Misc checks:
   check_inputs(model, data, parameters, omega, regimen, censoring, type)
@@ -211,6 +222,7 @@ get_map_estimates <- function(
       n_ind = 1,
       int_step_size = int_step_size,
       regimen = regimen,
+      lagtime = lagtime,
       t_obs = t_obs,
       obs_type = data$obs_type,
       checks = FALSE,
@@ -250,6 +262,7 @@ get_map_estimates <- function(
           t_obs = t_obs,
           model = model,
           regimen = regimen,
+          lagtime = lagtime,
           error = error,
           omega_full = omega$est / weight_prior_var,
           omega_inv = solve(omega$est / weight_prior_var),
@@ -305,6 +318,7 @@ get_map_estimates <- function(
           t_obs = t_obs,
           model = model,
           regimen = regimen,
+          lagtime = lagtime,
           error = error,
           nonfixed = omega$nonfixed,
           transf = transf,
@@ -353,6 +367,7 @@ get_map_estimates <- function(
       obj = obj,
       model = model,
       regimen = regimen,
+      lagtime = lagtime,
       data = data,
       covariates = covariates,
       weights = weights,
@@ -399,6 +414,7 @@ get_map_estimates <- function(
       covariates = covariates,
       int_step_size = int_step_size,
       regimen = regimen,
+      lagtime = lagtime,
       omega_full = omega$full,
       error = error,
       weights = weights,
