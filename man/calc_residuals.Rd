@@ -12,6 +12,7 @@ calc_residuals(
   parameters_population,
   covariates,
   regimen,
+  lagtime,
   omega_full,
   error,
   weights,
@@ -41,6 +42,9 @@ calc_residuals(
 \item{covariates}{list of covariates, each one created using `PKPDsim::new_coviarate()`}
 
 \item{regimen}{regimen}
+
+\item{lagtime}{vector of lagtimes for each compartment in the model, either
+numeric vector, or vector of parameters.}
 
 \item{omega_full}{full omega matrix}
 

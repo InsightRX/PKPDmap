@@ -14,7 +14,11 @@ get_individual_parameters_from_fit(
 \arguments{
 \item{fit}{fit object}
 
-\item{parameters}{list of population parameters}
+\item{parameters}{list of parameters}
+
+\item{nonfixed}{vector of parameters that are not fixed (i.e. estimated)}
+
+\item{as_eta}{vector of parameters that are estimates as eta (e.g. IOV)}
 }
 \description{
 Get the individual parameters from the fitted coefficients (etas)

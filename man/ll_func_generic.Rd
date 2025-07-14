@@ -33,6 +33,7 @@ ll_func_generic(
   parameters,
   covariates = NULL,
   regimen = regimen,
+  lagtime = NULL,
   omega_full = omega_full,
   error = error,
   model,
@@ -42,7 +43,7 @@ ll_func_generic(
 )
 }
 \arguments{
-\item{data}{vector of}
+\item{data}{data data.frame with columns `t` and `y` (and possibly evid)}
 
 \item{eta01}{eta1}
 
@@ -92,21 +93,25 @@ ll_func_generic(
 
 \item{eta24}{eta24}
 
-\item{parameters}{parameter list}
+\item{parameters}{list of parameters}
 
-\item{covariates}{covariates list}
+\item{covariates}{list of covariates, each one created using `PKPDsim::new_coviarate()`}
 
-\item{regimen}{PKPDsim regimen}
+\item{regimen}{regimen}
+
+\item{lagtime}{vector of lagtimes for each compartment in the model, either
+numeric vector, or vector of parameters.}
 
 \item{omega_full}{full omega matrix}
 
-\item{error}{error model to use, e.g. `list(add = .5, prop = .15)`}
+\item{error}{residual error, specified as list with arguments `add` and/or 
+`prop` specifying the additive and proportional parts}
 
-\item{model}{PKPDsim model}
+\item{model}{model, created using `PKPDsim::new_ode_model()`}
 
 \item{sig}{signficance, used in optimization}
 
-\item{verbose}{verbose output?}
+\item{verbose}{show more output}
 
 \item{...}{passed on to PKPDsim}
 }
