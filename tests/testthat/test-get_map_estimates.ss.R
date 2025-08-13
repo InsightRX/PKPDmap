@@ -65,8 +65,6 @@ test_that("MAP works with linear steady state equations", {
   #############################
   
   ## Set up model and regimen
-  # covariates <- list(WT = new_covariate(c(70, 80), times = c(0, 120)))
-  covariates <- list(WT = PKPDsim::new_covariate(c(70, 120), times = c(0, 120)))
   model2 <- PKPDsim::new_ode_model(
     code = "
       CLi = CL * pow(WT/70.0, 0.75)
@@ -84,13 +82,25 @@ test_that("MAP works with linear steady state equations", {
   interval <- 24
   reg <- PKPDsim::new_regimen(amt = 1000, n = 30, interval = interval, type = "oral")
   t_tdm <- max(reg$dose_times) + c(1, 3, 6, 8, 12)
+  covariates <- list(
+    WT = PKPDsim::new_covariate(
+      value = c(70, 120), 
+      times = max(reg$dose_times) + c(0, 120)
+    )
+  )
+  covariates_ss <- list(
+    WT = PKPDsim::new_covariate(
+      value = c(70, 120), 
+      times = c(0, 120)
+    )
+  )
   tdm <- PKPDsim::sim(
     model2, 
     parameters = par_true, 
     covariates = covariates, 
     regimen = reg, 
     t_obs = t_tdm, 
-    only_obs=TRUE
+    only_obs = TRUE
   )
   
   ## plot
@@ -125,7 +135,7 @@ test_that("MAP works with linear steady state equations", {
     model = model2,
     data = tdm2,
     regimen = reg_ss,
-    covariates = covariates, 
+    covariates = covariates_ss, # time rezeroed
     fixed = c("KA"),
     omega = c(0.1, 0.05, 0.1),
     error = list(prop = 0.1, add = 0.1)
@@ -143,7 +153,7 @@ test_that("MAP works with linear steady state equations", {
     data = tdm2,
     regimen = reg_ss,
     fixed = c("KA"),
-    covariates = covariates, 
+    covariates = covariates_ss, 
     omega = c(0.1, 0.05, 0.1),
     error = list(prop = 0.1, add = 0.1),
     steady_state_analytic = list(
