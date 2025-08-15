@@ -65,18 +65,6 @@ test_that("MAP works with linear steady state equations", {
   #############################
   
   ## Set up model and regimen
-  model2 <- PKPDsim::new_ode_model(
-    code = "
-      CLi = CL * pow(WT/70.0, 0.75)
-      dAdt[1] = -KA*A[1]
-      dAdt[2] = KA*A[1] - (CLi/V)*A[2]
-    ", 
-    obs = list(cmt = 2, scale = "V"),
-    declare_variables = "CLi",
-    dose = list(cmt = 1), 
-    covariates = covariates
-  )
-  
   par_true <- list(CL=2.5, V=45, KA=0.5)
   par <- list(CL=2, V=30, KA=0.5)
   interval <- 24
@@ -93,6 +81,17 @@ test_that("MAP works with linear steady state equations", {
       value = c(70, 120), 
       times = c(0, 120)
     )
+  )
+  model2 <- PKPDsim::new_ode_model(
+    code = "
+      CLi = CL * pow(WT/70.0, 0.75)
+      dAdt[1] = -KA*A[1]
+      dAdt[2] = KA*A[1] - (CLi/V)*A[2]
+    ", 
+    obs = list(cmt = 2, scale = "V"),
+    declare_variables = "CLi",
+    dose = list(cmt = 1), 
+    covariates = covariates
   )
   tdm <- PKPDsim::sim(
     model2, 
