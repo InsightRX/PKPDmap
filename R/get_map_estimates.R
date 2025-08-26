@@ -228,7 +228,6 @@ get_map_estimates <- function(
       checks = FALSE,
       only_obs = TRUE,
       A_init = A_init,
-      fixed = fixed,
       mixture_group = mixture_group, # dummy value
       t_max = tail(t_obs, 1) + t_init + 1,
       iov_bins = iov_bins,
