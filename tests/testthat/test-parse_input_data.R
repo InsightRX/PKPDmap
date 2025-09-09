@@ -1,4 +1,4 @@
-test_that("parse_input_data handles regular data frame input", {
+test_that("parse_input_data handles regular data frame input, with OBS_TYPE label but not specified as `obs_type_label`", {
   # Create test data
   data <- data.frame(
     T = c(2, 1, 3),
@@ -6,15 +6,36 @@ test_that("parse_input_data handles regular data frame input", {
     Y = c(10, 20, 30)
   )
   
-  result <- parse_input_data(data)
+  result <- parse_input_data(data, obs_type_label = NULL)
   
   # Check column names are lowercase
-  expect_equal(names(result), c("t", "obs_type", "y", "obs_type"))
+  expect_equal(names(result), c("t", "y", "obs_type"))
+  
+  # Check sorting
+  expect_equal(result$t, c(1, 2, 3))
+  expect_equal(result$obs_type, c(1, 1, 1))
+
+})
+
+test_that("parse_input_data handles regular data frame input, with OBS_TYPE label, properly specified as `obs_type_label`", {
+  # Create test data
+  data <- data.frame(
+    T = c(2, 1, 3),
+    OBS_TYPE = c(2, 1, 1),
+    Y = c(10, 20, 30)
+  )
+  
+  result <- parse_input_data(data, obs_type_label = "OBS_TYPE")
+  
+  # Check column names are lowercase
+  expect_equal(names(result), c("t", "y", "obs_type"))
   
   # Check sorting
   expect_equal(result$t, c(1, 2, 3))
   expect_equal(result$obs_type, c(1, 2, 1))
+  
 })
+
 
 test_that("parse_input_data handles PKPDsim object", {
   # Create mock PKPDsim object
