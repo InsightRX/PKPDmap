@@ -13,6 +13,7 @@ parse_input_data <- function(
   } else {
     data$obs_type <- data[[obs_type_label]]
   }
+  data$OBS_TYPE <- NULL # ensure there is no duplicate `obs_type` column
   colnames(data) <- tolower(colnames(data))
   if(!all(tolower(unlist(cols)) %in% names(data))) {
     stop("Expected column names were not found in data. Please use 'cols' argument to specify column names for independent and dependent variable.")
