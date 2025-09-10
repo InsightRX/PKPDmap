@@ -17,6 +17,18 @@ test_that("parse_input_data handles regular data frame input, with OBS_TYPE labe
 
 })
 
+test_that("parse_input_data picks right column, even with lower/uppercase duplicates", {
+  data <- data.frame(
+    T = c(1, 2, 3),
+    obs_type = c(1, 0, 1),
+    OBS_TYPE = c(2, 1, 1),
+    Y = c(10, 20, 30)
+  )
+  result <- parse_input_data(data, obs_type_label = "OBS_TYPE")
+  expect_equal(result$obs_type, c(2, 1, 1))
+  expect_equal(sum(tolower(names(result)) == "obs_type"), 1)
+})
+
 test_that("parse_input_data handles regular data frame input, with OBS_TYPE label, properly specified as `obs_type_label`", {
   # Create test data
   data <- data.frame(
