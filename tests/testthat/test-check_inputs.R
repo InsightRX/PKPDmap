@@ -218,3 +218,23 @@ test_that("check_inputs works with different function types", {
   test_model <- function() {}
   expect_no_error(check_inputs(test_model, data, parameters, omega, regimen, NULL, "MAP"))
 }) 
+
+test_that("check_inputs fails when not all parameters are passed, and warning when too many are passed", {
+  model <- function() {}
+  attr(model, "parameters") <- list(CL = 5, V = 10)
+  data <- data.frame(time = 1:3, dv = c(1, 2, 3))
+  parameters <- list(CL = 1) # , V = 10)
+  omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
+  regimen <- list(dose = 100, interval = 12)
+  
+  # Should not throw any errors with NULL censoring
+  expect_error(
+    check_inputs(model, data, parameters, omega, regimen, NULL, "MAP"),
+    "One or more required parameters for the model have not been specified"
+  )
+  
+  parameters <- list(CL = 1, V = 10, V2 = 15)
+  expect_warning(
+    check_inputs(model, data, parameters, omega, regimen, NULL, "MAP"),
+  )
+})
