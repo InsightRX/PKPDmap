@@ -1,4 +1,4 @@
-mod <- PKPDsim::new_ode_model("pk_1cmt_iv")
+mod <- PKPDsim::new_ode_model("pk_1cmt_iv", parameters = c("CL", "V"))
 
 test_that("Default MAP fits work and are equal to NONMEM", {
   ## Basic precision and accuracy of MAP estimation (compared to NONMEM)
@@ -210,6 +210,7 @@ test_that("Default MAP fits work and are equal to NONMEM", {
 })
 
 test_that("allow_obs_before_first_dose works", {
+  mod_tdminit <- PKPDsim::new_ode_model("pk_1cmt_iv", parameters = c("CL", "V", "TDM_INIT"))
   data <- data.frame(
     t = c(-0.45, 35.55),
     y = c(21.7, 17.8),
@@ -226,34 +227,15 @@ test_that("allow_obs_before_first_dose works", {
     list(
       CL = 4.5,
       V = 58.4,
-      V2 = 38.4,
-      Q = 6.5,
-      TH_CRCL = 0.8,
-      TH_DIAL_CL = 0.7,
-      TH_DIAL_V = 0.5,
       TDM_INIT = 21.7
     ),
     units = list(
       CL = "L/hr",
-      V = "L/70kg",
-      Q = "L/hr",
-      V2 = "L",
-      CLi = "L/hr",
-      Vi = "L",
-      Qi = "L/hr",
-      V2i = "L"
+      V = "L/70kg"
     )
   )
-  covariates <- list(
-    WT = PKPDsim::new_covariate(value = 67.5, unit = "kg"),
-    SEX = PKPDsim::new_covariate(value = 0),
-    AGE = PKPDsim::new_covariate(value = 55.7, unit = "years"),
-    CR = PKPDsim::new_covariate(value = c(0.67, 0.65), times = c(0, 23.3), unit = "mg_dl"),
-    DIAL = PKPDsim::new_covariate(value = 0),
-    CL_HEMO = PKPDsim::new_covariate(value = 0)
-  )
-  fixed <- c("Q", "TH_CRCL", "TH_DIAL_CL", "TH_DIAL_V", "TDM_INIT")
-  omega <- c(0.1584, 0, 0.6659, 0, 0, 0.326)
+  fixed <- c("TDM_INIT")
+  omega <- c(0.1584, 0, 0.6659)
   error <- list(prop = 0.227, add = 3.4)
   regimen <- structure(
     list(
@@ -274,10 +256,9 @@ test_that("allow_obs_before_first_dose works", {
 
   expect_error(
     get_map_estimates(
-      model = mod,
+      model = mod_tdminit,
       data = data,
       parameters = parameters,
-      covariates = covariates,
       fixed = fixed,
       as_eta = NULL,
       omega = omega,

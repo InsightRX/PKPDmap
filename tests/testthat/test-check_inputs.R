@@ -1,6 +1,7 @@
 test_that("check_inputs passes with valid MAP inputs", {
   # Create mock objects
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -13,6 +14,7 @@ test_that("check_inputs passes with valid MAP inputs", {
 test_that("check_inputs passes with valid PLS inputs", {
   # Create mock objects
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -25,6 +27,7 @@ test_that("check_inputs passes with valid PLS inputs", {
 test_that("check_inputs passes with valid pls inputs (lowercase)", {
   # Create mock objects
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -37,6 +40,7 @@ test_that("check_inputs passes with valid pls inputs (lowercase)", {
 test_that("check_inputs passes with valid MAP inputs (lowercase)", {
   # Create mock objects
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -49,6 +53,7 @@ test_that("check_inputs passes with valid MAP inputs (lowercase)", {
 test_that("check_inputs passes with valid censoring argument", {
   # Create mock objects
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -61,6 +66,7 @@ test_that("check_inputs passes with valid censoring argument", {
 test_that("check_inputs passes with other type values", {
   # Create mock objects
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -84,6 +90,7 @@ test_that("check_inputs fails when model is NULL for MAP type", {
 
 test_that("check_inputs fails when data is NULL for MAP type", {
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
   regimen <- list(dose = 100, interval = 12)
@@ -96,6 +103,7 @@ test_that("check_inputs fails when data is NULL for MAP type", {
 
 test_that("check_inputs fails when parameters is NULL for MAP type", {
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
   regimen <- list(dose = 100, interval = 12)
@@ -108,6 +116,7 @@ test_that("check_inputs fails when parameters is NULL for MAP type", {
 
 test_that("check_inputs fails when omega is NULL for MAP type", {
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   regimen <- list(dose = 100, interval = 12)
@@ -120,6 +129,7 @@ test_that("check_inputs fails when omega is NULL for MAP type", {
 
 test_that("check_inputs fails when regimen is NULL for MAP type", {
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -132,6 +142,7 @@ test_that("check_inputs fails when regimen is NULL for MAP type", {
 
 test_that("check_inputs fails when model is not a function", {
   model <- "not_a_function"
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -145,6 +156,7 @@ test_that("check_inputs fails when model is not a function", {
 
 test_that("check_inputs fails when model is a list (not a function)", {
   model <- list(not_a_function = TRUE)
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -158,6 +170,7 @@ test_that("check_inputs fails when model is a list (not a function)", {
 
 test_that("check_inputs fails when censoring is not NULL and not character", {
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -184,6 +197,7 @@ test_that("check_inputs fails when censoring is not NULL and not character", {
 
 test_that("check_inputs allows NULL censoring", {
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -195,6 +209,7 @@ test_that("check_inputs allows NULL censoring", {
 
 test_that("check_inputs allows character censoring", {
   model <- function() {}
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -207,6 +222,7 @@ test_that("check_inputs allows character censoring", {
 test_that("check_inputs works with different function types", {
   # Test with anonymous function
   model <- function(x) x + 1
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1, V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -216,12 +232,13 @@ test_that("check_inputs works with different function types", {
   
   # Test with named function
   test_model <- function() {}
+  attr(test_model, "parameters") <- c("CL", "V")
   expect_no_error(check_inputs(test_model, data, parameters, omega, regimen, NULL, "MAP"))
 }) 
 
 test_that("check_inputs fails when not all parameters are passed, and warning when too many are passed", {
   model <- function() {}
-  attr(model, "parameters") <- list(CL = 5, V = 10)
+  attr(model, "parameters") <- c("CL", "V")
   data <- data.frame(time = 1:3, dv = c(1, 2, 3))
   parameters <- list(CL = 1) # , V = 10)
   omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
@@ -230,11 +247,12 @@ test_that("check_inputs fails when not all parameters are passed, and warning wh
   # Should not throw any errors with NULL censoring
   expect_error(
     check_inputs(model, data, parameters, omega, regimen, NULL, "MAP"),
-    "One or more required parameters for the model have not been specified"
+    "One or more required parameters for the model have not been specified. Missing: V"
   )
   
-  parameters <- list(CL = 1, V = 10, V2 = 15)
+  parameters <- list(CL = 1, V = 10, V2 = 15, Q = 23)
   expect_warning(
     check_inputs(model, data, parameters, omega, regimen, NULL, "MAP"),
+    "Some supplied `parameters` are not supported by the model and will be ignored: V2, Q."
   )
 })
