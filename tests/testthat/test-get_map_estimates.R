@@ -1,4 +1,4 @@
-mod <- PKPDsim::new_ode_model("pk_1cmt_iv", parameters = c("CL", "V"))
+mod <- PKPDsim::new_ode_model("pk_1cmt_iv")
 
 test_that("Default MAP fits work and are equal to NONMEM", {
   ## Basic precision and accuracy of MAP estimation (compared to NONMEM)
