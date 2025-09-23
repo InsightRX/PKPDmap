@@ -256,3 +256,15 @@ test_that("check_inputs fails when not all parameters are passed, and warning wh
     "Some supplied `parameters` are not supported by the model and will be ignored: V2, Q."
   )
 })
+
+test_that("check_inputs warns when no parameters are defined as model attribute", {
+  model <- function() {}
+  data <- data.frame(time = 1:3, dv = c(1, 2, 3))
+  parameters <- list(CL = 1) # , V = 10)
+  omega <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
+  regimen <- list(dose = 100, interval = 12)
+  expect_warning(
+    check_inputs(model, data, parameters, omega, regimen, NULL, "MAP"),
+    "Parameter information for model missing"
+  )
+})
