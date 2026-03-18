@@ -22,8 +22,6 @@ all parameters).}
 \item{fixed}{fix a specific parameters, supplied as vector of strings}
 
 \item{data}{data data.frame with columns `t` and `y` (and possibly evid)}
-
-\item{...}{parameters passed on to `sim_ode()` function}
 }
 \description{
 Limits the amount of individual shrinkage to a certain specified number

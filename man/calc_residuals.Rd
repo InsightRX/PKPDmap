@@ -26,8 +26,7 @@ calc_residuals(
   censoring = NULL,
   censoring_idx = NULL,
   data_before_init = NULL,
-  ltbs = FALSE,
-  ...
+  ltbs = FALSE
 )
 }
 \arguments{
@@ -83,8 +82,6 @@ in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
 \item{ltbs}{log-transform both sides? (`NULL` by default, meaning that it 
 will be picked up from the PKPDsim model. Can be overridden with `TRUE`). 
 Note: `error` should commonly only have additive part.}
-
-\item{...}{parameters passed on to `sim_ode()` function}
 }
 \description{
 Function to calculate residuals from a fit,
