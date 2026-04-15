@@ -114,6 +114,17 @@ calc_cwres <- function(
   sigma_diag <- error$prop[obs_type]^2 * ipred_transf^2 +
     error$add[obs_type]^2
 
+  if (any(!is.finite(sigma_diag) | sigma_diag <= 0)) {
+    bad <- which(!is.finite(sigma_diag) | sigma_diag <= 0)
+    warning(
+      "CWRES/vcov computation failed: residual error variance is zero, ",
+      "negative, or non-finite for observation(s) ",
+      paste(bad, collapse = ", "),
+      " (obs_type: ", paste(unique(obs_type[bad]), collapse = ", "), ")."
+    )
+    return(list(cwres = rep(NA_real_, n_obs), vcov = NULL))
+  }
+
   # Omega submatrix for estimated parameters
   omega_est <- omega_full[seq_len(n_eta), seq_len(n_eta), drop = FALSE]
 
