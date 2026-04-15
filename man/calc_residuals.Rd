@@ -27,6 +27,9 @@ calc_residuals(
   censoring_idx = NULL,
   data_before_init = NULL,
   ltbs = FALSE,
+  nonfixed = NULL,
+  as_eta = c(),
+  steady_state_analytic = NULL,
   ...
 )
 }
@@ -83,6 +86,12 @@ in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
 \item{ltbs}{log-transform both sides? (`NULL` by default, meaning that it 
 will be picked up from the PKPDsim model. Can be overridden with `TRUE`). 
 Note: `error` should commonly only have additive part.}
+
+\item{nonfixed}{character vector of non-fixed parameter names}
+
+\item{as_eta}{character vector of parameters estimated directly as eta}
+
+\item{steady_state_analytic}{steady state settings (or NULL)}
 
 \item{...}{parameters passed on to `sim_ode()` function}
 }

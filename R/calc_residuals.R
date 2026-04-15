@@ -10,7 +10,10 @@
 #' @param A_init_individual init vector for model state (individual)
 #' @param censoring_idx vector with indices for censoring
 #' @param data_before_init data.frame with data before initial dose
-#' 
+#' @param nonfixed character vector of non-fixed parameter names
+#' @param as_eta character vector of parameters estimated directly as eta
+#' @param steady_state_analytic steady state settings (or NULL)
+#'
 calc_residuals <- function(
   obj,
   data,
@@ -33,6 +36,9 @@ calc_residuals <- function(
   censoring_idx = NULL,
   data_before_init = NULL,
   ltbs = FALSE,
+  nonfixed = NULL,
+  as_eta = c(),
+  steady_state_analytic = NULL,
   ...
 ) {
 
@@ -100,7 +106,59 @@ calc_residuals <- function(
     data_before_init,
     weights
   )
-  
+
+  ## Compute proper CWRES and FOCE vcov using the Jacobian (Hooker et al. 2007).
+  ## The Jacobian F = df/deta is computed once via finite differences (2*n_eta
+  ## simulations). Both CWRES and the FOCE Hessian/vcov are derived from F,
+  ## instead of the more expensive numDeriv::hessian computation.
+  if (!is.null(nonfixed) && length(nonfixed) > 0) {
+    n_before <- nrow(data_before_init)
+    # Extract ipred for real observations only (excluding before-init)
+    ipred_real <- sim_ipred$y[(n_before + 1):length(sim_ipred$y)]
+
+    foce_result <- tryCatch(
+      calc_cwres(
+        eta_hat = obj$fit$coef,
+        ipred_raw = ipred_real,
+        y = data$y,
+        omega_full = omega_full,
+        error = error,
+        obs_type = data$obs_type,
+        transf = transf,
+        model = model,
+        parameters_population = parameters_population,
+        nonfixed = nonfixed,
+        as_eta = as_eta,
+        covariates = covariates,
+        regimen = regimen,
+        lagtime = lagtime,
+        t_obs = data$t,
+        obs_type_sim = data$obs_type,
+        int_step_size = int_step_size,
+        iov_bins = iov_bins,
+        A_init = A_init_individual,
+        t_init = t_init,
+        steady_state_analytic = steady_state_analytic,
+        ...
+      ),
+      error = function(e) {
+        warning("CWRES computation failed: ", e$message)
+        list(cwres = rep(NA_real_, length(data$y)), vcov = NULL)
+      }
+    )
+
+    # Pad with zeros for before-init observations and apply weights
+    obj$cwres <- c(rep(0, n_before), foce_result$cwres * weights)
+
+    # Set censored observations to NA
+    if (!is.null(censoring) && any(censoring_idx)) {
+      obj$cwres[censoring_idx] <- NA_real_
+    }
+
+    # Store FOCE vcov for use in get_map_estimates
+    obj$foce_vcov <- foce_result$vcov
+  }
+
   ## Add covariates and parameters to obj
   if(output_include$covariates && !is.null(covariates)) {
     obj$covariates_time <- sim_ipred[!duplicated(sim_ipred$t), names(covariates)]

@@ -39,8 +39,9 @@ parse_residuals_from_predictions <- function(
   obj$res <- (transf(y) - transf(pred))
   obj$weights <- c(rep(0, length(data_before_init$t)), weights)
   obj$wres <- (obj$res / w_pred) * obj$weights
-  obj$cwres <- obj$res / sqrt(abs(cov(transf(pred), transf(y)))) * c(rep(0, nrow(data_before_init)), obj$weights)
-  # Note: in NONMEM CWRES is on the population level, so can't really compare. NONMEM calls this CIWRES, it seems.
+  # CWRES is computed separately in calc_residuals() using the FOCE
+  # linearization method (Hooker et al. 2007). Initialize to NA here.
+  obj$cwres <- rep(NA_real_, length(y))
   obj$ires <- (transf(y) - transf(ipred))
   obj$iwres <- (obj$ires / w_ipred)
   obj$w_ipred  <- w_ipred

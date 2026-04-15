@@ -12,6 +12,6 @@ Depends: utils, stats
 Imports: PKPDsim, numDeriv, mvtnorm
 Suggests: testthat (>= 3.0.0)
 Remotes: InsightRX/PKPDsim
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Encoding: UTF-8
 Config/testthat/edition: 3
