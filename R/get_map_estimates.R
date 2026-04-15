@@ -434,6 +434,7 @@ get_map_estimates <- function(
       nonfixed = omega$nonfixed,
       as_eta = as_eta,
       steady_state_analytic = steady_state_analytic,
+      weight_prior_var = weight_prior_var,
       ...
     )
   }

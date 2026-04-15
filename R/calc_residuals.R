@@ -39,6 +39,7 @@ calc_residuals <- function(
   nonfixed = NULL,
   as_eta = c(),
   steady_state_analytic = NULL,
+  weight_prior_var = 1,
   ...
 ) {
 
@@ -139,6 +140,7 @@ calc_residuals <- function(
         A_init = A_init_individual,
         t_init = t_init,
         steady_state_analytic = steady_state_analytic,
+        weight_prior_var = weight_prior_var,
         ...
       ),
       error = function(e) {

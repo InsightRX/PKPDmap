@@ -38,6 +38,9 @@
 #' @param A_init initial state vector
 #' @param t_init initialization time
 #' @param steady_state_analytic steady state settings (or NULL)
+#' @param weight_prior_var prior weight variance scaling factor (default 1).
+#'   Used to scale omega in the FOCE Hessian computation to match the
+#'   estimation objective. CWRES uses the unscaled omega (model diagnostic).
 #' @param delta perturbation size for finite differences
 #' @param ... additional arguments passed to PKPDsim::sim_ode
 #'
@@ -69,6 +72,7 @@ calc_cwres <- function(
     A_init = NULL,
     t_init = 0,
     steady_state_analytic = NULL,
+    weight_prior_var = 1,
     delta = 1e-4,
     ...
 ) {
@@ -136,14 +140,16 @@ calc_cwres <- function(
     )
   }
 
-  # FOCE Hessian: H = Omega^{-1} + F' * Sigma^{-1} * F
-  # vcov of etas = H^{-1}
+  # FOCE Hessian: H = (Omega/w)^{-1} + F' * Sigma^{-1} * F
+  # where w = weight_prior_var, matching the scaled omega used during MAP
+  # estimation. vcov of etas = H^{-1}.
   # This reuses the Jacobian F already computed for CWRES, so no extra
   # simulations are needed (replaces the numDeriv::hessian computation).
-  omega_est_inv <- tryCatch(solve(omega_est), error = function(e) NULL)
+  omega_scaled <- omega_est / weight_prior_var
+  omega_scaled_inv <- tryCatch(solve(omega_scaled), error = function(e) NULL)
   vcov <- NULL
-  if (!is.null(omega_est_inv)) {
-    H_foce <- omega_est_inv +
+  if (!is.null(omega_scaled_inv)) {
+    H_foce <- omega_scaled_inv +
       t(F_matrix) %*% diag(1 / sigma_diag, nrow = n_obs) %*% F_matrix
     vcov <- tryCatch(solve(H_foce), error = function(e) {
       warning("FOCE variance-covariance computation failed.")

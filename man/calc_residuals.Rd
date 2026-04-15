@@ -30,6 +30,7 @@ calc_residuals(
   nonfixed = NULL,
   as_eta = c(),
   steady_state_analytic = NULL,
+  weight_prior_var = 1,
   ...
 )
 }

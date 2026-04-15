@@ -26,6 +26,7 @@ calc_cwres(
   A_init = NULL,
   t_init = 0,
   steady_state_analytic = NULL,
+  weight_prior_var = 1,
   delta = 1e-04,
   ...
 )
@@ -73,6 +74,10 @@ predictions at eta_hat}
 \item{t_init}{initialization time}
 
 \item{steady_state_analytic}{steady state settings (or NULL)}
+
+\item{weight_prior_var}{prior weight variance scaling factor (default 1).
+Used to scale omega in the FOCE Hessian computation to match the
+estimation objective. CWRES uses the unscaled omega (model diagnostic).}
 
 \item{delta}{perturbation size for finite differences}
 
