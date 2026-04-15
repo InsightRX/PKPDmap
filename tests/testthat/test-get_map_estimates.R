@@ -593,7 +593,10 @@ test_that("FOCE vcov is positive definite even when numDeriv Hessian would fail"
     error = list(prop = 0.1, add = 0.1),
     fixed = "TDM_INIT"
   )
+  expect_false(is.null(fit$foce_vcov))
+  expect_true(PKPDsim::is_positive_definite(fit$foce_vcov))
   expect_true(PKPDsim::is_positive_definite(fit$vcov_full))
+  expect_equal(fit$vcov_full, fit$foce_vcov)
 })
 
 test_that("When vcov from numDeriv is not positive definite, fallback to omega (residuals=FALSE)", {
