@@ -886,6 +886,42 @@ test_that("Precision / uncertainty of MAP estimates is calculated", {
   expect_true(all(fit$vcov != 0))
 })
 
+test_that("FOCE vcov matches numDeriv Hessian vcov", {
+  dat   <- read.table(file=test_path("nm", "pktab1"), skip=1, header=TRUE)
+  colnames(dat)[1:3] <- c("id", "t", "y")
+  dat   <- dat[dat$id <= 20,]
+  par   <- list(CL = 7.67, V = 97.7)
+  omega <- c(0.0406,
+             0.0623, 0.117)
+  reg <- PKPDsim::new_regimen(amt = 100000, times=c(0, 24), type="bolus")
+  data1 <- dat[dat$id == 1 & dat$EVID == 0,]
+
+  # FOCE vcov (residuals=TRUE, default)
+  fit_foce <- get_map_estimates(
+    parameters = par,
+    model = mod,
+    regimen = reg,
+    omega = omega,
+    weights = rep(1, nrow(data1)),
+    error = list(prop = 0, add = sqrt(1.73E+04)),
+    data = data1
+  )
+
+  # numDeriv vcov (residuals=FALSE)
+  fit_numderiv <- get_map_estimates(
+    parameters = par,
+    model = mod,
+    regimen = reg,
+    omega = omega,
+    weights = rep(1, nrow(data1)),
+    error = list(prop = 0, add = sqrt(1.73E+04)),
+    data = data1,
+    residuals = FALSE
+  )
+
+  expect_equal(fit_foce$vcov, fit_numderiv$vcov, tolerance = 0.01)
+})
+
 test_that("Floating point precision issues don't raise warning", {
   # the output of PKPDsim::sim will have different floating point precision
   # values for the time column relative to the tdms$t column due to how the 
