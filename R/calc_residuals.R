@@ -32,8 +32,7 @@ calc_residuals <- function(
   censoring = NULL,
   censoring_idx = NULL,
   data_before_init = NULL,
-  ltbs = FALSE,
-  ...
+  ltbs = FALSE
 ) {
 
   ## Observation vectors
@@ -61,8 +60,7 @@ calc_residuals <- function(
       iov_bins = iov_bins,
       output_include = output_include,
       t_init = t_init,
-      lagtime = lagtime,
-      ...
+      lagtime = lagtime
     )
   })
   suppressMessages({
@@ -81,8 +79,7 @@ calc_residuals <- function(
       iov_bins = iov_bins,
       A_init = A_init_population,
       t_init = t_init,
-      lagtime = lagtime,
-      ...
+      lagtime = lagtime
     )
   })
 

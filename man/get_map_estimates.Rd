@@ -38,8 +38,7 @@ get_map_estimates(
   verbose = FALSE,
   A_init = NULL,
   skip_hessian = FALSE,
-  output_include = list(covariates = FALSE, parameters = FALSE),
-  ...
+  output_include = list(covariates = FALSE, parameters = FALSE)
 )
 }
 \arguments{
@@ -137,8 +136,6 @@ will be slightly slower.}
 \item{output_include}{passed to PKPDsim::sim_ode(), returns covariates and
 parameter values over time in return object. Only invoked if `residuals` 
 option is `TRUE`.}
-
-\item{...}{parameters passed on to `sim_ode()` function}
 }
 \description{
 Get MAP estimates
