@@ -13,6 +13,8 @@
 #' @param nonfixed character vector of non-fixed parameter names
 #' @param as_eta character vector of parameters estimated directly as eta
 #' @param steady_state_analytic steady state settings (or NULL)
+#' @param weight_prior_var prior weight variance scaling factor (default 1).
+#'   Forwarded to `calc_cwres()` to scale omega in the FOCE Hessian.
 #'
 calc_residuals <- function(
   obj,
@@ -39,8 +41,7 @@ calc_residuals <- function(
   nonfixed = NULL,
   as_eta = c(),
   steady_state_analytic = NULL,
-  weight_prior_var = 1,
-  ...
+  weight_prior_var = 1
 ) {
 
   ## Observation vectors
@@ -68,8 +69,7 @@ calc_residuals <- function(
       iov_bins = iov_bins,
       output_include = output_include,
       t_init = t_init,
-      lagtime = lagtime,
-      ...
+      lagtime = lagtime
     )
   })
   suppressMessages({
@@ -88,8 +88,7 @@ calc_residuals <- function(
       iov_bins = iov_bins,
       A_init = A_init_population,
       t_init = t_init,
-      lagtime = lagtime,
-      ...
+      lagtime = lagtime
     )
   })
 
@@ -140,8 +139,7 @@ calc_residuals <- function(
         A_init = A_init_individual,
         t_init = t_init,
         steady_state_analytic = steady_state_analytic,
-        weight_prior_var = weight_prior_var,
-        ...
+        weight_prior_var = weight_prior_var
       ),
       error = function(e) {
         warning("CWRES computation failed: ", e$message)

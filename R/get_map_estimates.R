@@ -61,8 +61,7 @@
 #'option is `TRUE`.
 #' @param skip_hessian skip calculation of Hessian
 #' @param verbose show more output
-#' @param ... parameters passed on to `sim_ode()` function
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' ## define parameters
@@ -134,8 +133,7 @@ get_map_estimates <- function(
                       verbose = FALSE,
                       A_init = NULL,
                       skip_hessian = FALSE,
-                      output_include = list(covariates = FALSE, parameters = FALSE),
-                      ...) {
+                      output_include = list(covariates = FALSE, parameters = FALSE)) {
 
   ## get prior weight for scaling of variance term
   weight_prior_var <- parse_weight_prior(weight_prior, type)
@@ -232,8 +230,7 @@ get_map_estimates <- function(
       t_max = tail(t_obs, 1) + t_init + 1,
       iov_bins = iov_bins,
       return_design = TRUE,
-      t_init = t_init,
-      ...
+      t_init = t_init
     )
   })
 
@@ -434,8 +431,7 @@ get_map_estimates <- function(
       nonfixed = omega$nonfixed,
       as_eta = as_eta,
       steady_state_analytic = steady_state_analytic,
-      weight_prior_var = weight_prior_var,
-      ...
+      weight_prior_var = weight_prior_var
     )
   }
   

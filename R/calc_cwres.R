@@ -42,7 +42,6 @@
 #'   Used to scale omega in the FOCE Hessian computation to match the
 #'   estimation objective. CWRES uses the unscaled omega (model diagnostic).
 #' @param delta perturbation size for finite differences
-#' @param ... additional arguments passed to PKPDsim::sim_ode
 #'
 #' @return list with components:
 #'   \item{cwres}{numeric vector of CWRES values}
@@ -73,8 +72,7 @@ calc_cwres <- function(
     t_init = 0,
     steady_state_analytic = NULL,
     weight_prior_var = 1,
-    delta = 1e-4,
-    ...
+    delta = 1e-4
 ) {
   n_obs <- length(y)
   n_eta <- length(eta_hat)
@@ -98,13 +96,13 @@ calc_cwres <- function(
       eta_plus, parameters_population, nonfixed, as_eta,
       model, covariates, regimen, lagtime, t_obs, obs_type_sim,
       int_step_size, iov_bins, A_init, t_init,
-      steady_state_analytic, ...
+      steady_state_analytic
     )
     pred_minus <- simulate_with_etas(
       eta_minus, parameters_population, nonfixed, as_eta,
       model, covariates, regimen, lagtime, t_obs, obs_type_sim,
       int_step_size, iov_bins, A_init, t_init,
-      steady_state_analytic, ...
+      steady_state_analytic
     )
 
     F_matrix[, j] <- (transf(pred_plus) - transf(pred_minus)) / (2 * delta)
@@ -194,8 +192,7 @@ simulate_with_etas <- function(
     iov_bins,
     A_init,
     t_init,
-    steady_state_analytic,
-    ...
+    steady_state_analytic
 ) {
   # Compute individual parameters from etas
   par <- parameters_population
@@ -242,8 +239,7 @@ simulate_with_etas <- function(
       A_init = a_init,
       iov_bins = iov_bins,
       t_init = t_init,
-      lagtime = lagtime,
-      ...
+      lagtime = lagtime
     )
   })
 

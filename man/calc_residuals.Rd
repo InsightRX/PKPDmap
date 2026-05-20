@@ -30,8 +30,7 @@ calc_residuals(
   nonfixed = NULL,
   as_eta = c(),
   steady_state_analytic = NULL,
-  weight_prior_var = 1,
-  ...
+  weight_prior_var = 1
 )
 }
 \arguments{
@@ -94,7 +93,8 @@ Note: `error` should commonly only have additive part.}
 
 \item{steady_state_analytic}{steady state settings (or NULL)}
 
-\item{...}{parameters passed on to `sim_ode()` function}
+\item{weight_prior_var}{prior weight variance scaling factor (default 1).
+Forwarded to `calc_cwres()` to scale omega in the FOCE Hessian.}
 }
 \description{
 Function to calculate residuals from a fit,

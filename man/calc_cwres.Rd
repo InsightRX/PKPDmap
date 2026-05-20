@@ -27,8 +27,7 @@ calc_cwres(
   t_init = 0,
   steady_state_analytic = NULL,
   weight_prior_var = 1,
-  delta = 1e-04,
-  ...
+  delta = 1e-04
 )
 }
 \arguments{
@@ -80,8 +79,6 @@ Used to scale omega in the FOCE Hessian computation to match the
 estimation objective. CWRES uses the unscaled omega (model diagnostic).}
 
 \item{delta}{perturbation size for finite differences}
-
-\item{...}{additional arguments passed to PKPDsim::sim_ode}
 }
 \value{
 list with components:

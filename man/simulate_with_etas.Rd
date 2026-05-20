@@ -19,8 +19,7 @@ simulate_with_etas(
   iov_bins,
   A_init,
   t_init,
-  steady_state_analytic,
-  ...
+  steady_state_analytic
 )
 }
 \description{
