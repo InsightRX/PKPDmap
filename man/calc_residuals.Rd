@@ -26,7 +26,11 @@ calc_residuals(
   censoring = NULL,
   censoring_idx = NULL,
   data_before_init = NULL,
-  ltbs = FALSE
+  ltbs = FALSE,
+  nonfixed = NULL,
+  as_eta = c(),
+  steady_state_analytic = NULL,
+  weight_prior_var = 1
 )
 }
 \arguments{
@@ -82,6 +86,15 @@ in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
 \item{ltbs}{log-transform both sides? (`NULL` by default, meaning that it 
 will be picked up from the PKPDsim model. Can be overridden with `TRUE`). 
 Note: `error` should commonly only have additive part.}
+
+\item{nonfixed}{character vector of non-fixed parameter names}
+
+\item{as_eta}{character vector of parameters estimated directly as eta}
+
+\item{steady_state_analytic}{steady state settings (or NULL)}
+
+\item{weight_prior_var}{prior weight variance scaling factor (default 1).
+Forwarded to `calc_cwres()` to scale omega in the FOCE Hessian.}
 }
 \description{
 Function to calculate residuals from a fit,

@@ -299,6 +299,10 @@ get_map_estimates <- function(
       likelihood = like
     )
   } else {
+    # When residuals=TRUE, the FOCE Jacobian computed in calc_residuals
+    # provides both CWRES and the Hessian/vcov, so we can skip the more
+    # expensive numDeriv::hessian here.
+    skip_hessian_mle <- skip_hessian || residuals
     output <- tryCatch({
       fit <- mle_wrapper(
         ll_func,
@@ -306,7 +310,7 @@ get_map_estimates <- function(
         method = method,
         optimizer = optimizer,
         control = control,
-        skip_hessian = skip_hessian,
+        skip_hessian = skip_hessian_mle,
         data = list(
           data = data,
           sim_object = sim_object,
@@ -423,13 +427,23 @@ get_map_estimates <- function(
       censoring = censoring,
       censoring_idx = censoring_idx,
       data_before_init = data_before_init,
-      ltbs = ltbs
+      ltbs = ltbs,
+      nonfixed = omega$nonfixed,
+      as_eta = as_eta,
+      steady_state_analytic = steady_state_analytic,
+      weight_prior_var = weight_prior_var
     )
   }
   
-  ## Add variance-covariance matrix to output object
+  ## Add variance-covariance matrix to output object.
+  ## When residuals were computed, the FOCE vcov from the Jacobian is
+  ## preferred over numDeriv::hessian (faster, same FOCE approximation).
+  vcov_source <- obj$fit$vcov
+  if (!is.null(obj$foce_vcov)) {
+    vcov_source <- obj$foce_vcov
+  }
   obj$vcov_full <- get_varcov_matrix(
-    obj$fit$vcov, 
+    vcov_source,
     fallback = omega$full
   )
   if(inherits(obj$vcov_full, "matrix")) {
