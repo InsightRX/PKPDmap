@@ -154,16 +154,20 @@ calc_cwres <- function(
   # estimation. vcov of etas = H^{-1}.
   # This reuses the Jacobian F already computed for CWRES, so no extra
   # simulations are needed (replaces the numDeriv::hessian computation).
-  omega_scaled <- omega_est / weight_prior_var
-  omega_scaled_inv <- tryCatch(solve(omega_scaled), error = function(e) NULL)
+  # With weight_prior_var <= 0 the prior is effectively flat (LS fit), so
+  # the FOCE vcov is not meaningful; skip and let the caller fall back.
   vcov <- NULL
-  if (!is.null(omega_scaled_inv)) {
-    H_foce <- omega_scaled_inv +
-      t(F_matrix) %*% diag(1 / sigma_diag, nrow = n_obs) %*% F_matrix
-    vcov <- tryCatch(solve(H_foce), error = function(e) {
-      warning("FOCE variance-covariance computation failed.")
-      NULL
-    })
+  if (weight_prior_var > 0) {
+    omega_scaled <- omega_est / weight_prior_var
+    omega_scaled_inv <- tryCatch(solve(omega_scaled), error = function(e) NULL)
+    if (!is.null(omega_scaled_inv)) {
+      H_foce <- omega_scaled_inv +
+        t(F_matrix) %*% diag(1 / sigma_diag, nrow = n_obs) %*% F_matrix
+      vcov <- tryCatch(solve(H_foce), error = function(e) {
+        warning("FOCE variance-covariance computation failed.")
+        NULL
+      })
+    }
   }
 
   list(cwres = cwres, vcov = vcov)
