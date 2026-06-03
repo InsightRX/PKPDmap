@@ -54,10 +54,8 @@ numeric vector, or vector of parameters.}
 \item{error}{residual error, specified as list with arguments `add` and/or 
 `prop` specifying the additive and proportional parts}
 
-\item{weights}{vector of weights for error. Length of vector should be same 
-as length of observation vector. If NULL (default), all weights are equal. 
-Used in both MAP and NP methods. Note that `weights` argument will also 
-affect residuals (residuals will be scaled too).}
+\item{weights}{numeric vector of per-observation weights. Forwarded to
+`calc_cwres()` so the FOCE Hessian matches the MAP OFV curvature.}
 
 \item{transf}{transformation function}
 

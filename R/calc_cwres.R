@@ -41,13 +41,18 @@
 #' @param weight_prior_var prior weight variance scaling factor (default 1).
 #'   Used to scale omega in the FOCE Hessian computation to match the
 #'   estimation objective. CWRES uses the unscaled omega (model diagnostic).
+#' @param weights numeric vector of per-observation weights (length n_obs,
+#'   default all 1). Must match the weights used in MAP estimation so that
+#'   the FOCE Hessian matches the curvature of the actual OFV. CWRES (a model
+#'   diagnostic) always uses unit weights per Hooker et al. 2007.
 #' @param delta perturbation size for finite differences
 #'
 #' @return list with components:
 #'   \item{cwres}{numeric vector of CWRES values}
 #'   \item{vcov}{FOCE variance-covariance matrix of eta estimates
 #'     (n_eta x n_eta), or NULL if computation failed. Derived from the
-#'     same Jacobian F used for CWRES: vcov = (Omega^-1 + F' Sigma^-1 F)^-1}
+#'     same Jacobian F used for CWRES: vcov = (Omega^-1 + F' Sigma^-1 F)^-1,
+#'     with per-observation weights applied to the likelihood term.}
 #'
 calc_cwres <- function(
     eta_hat,
@@ -72,6 +77,7 @@ calc_cwres <- function(
     t_init = 0,
     steady_state_analytic = NULL,
     weight_prior_var = 1,
+    weights = NULL,
     delta = 1e-4
 ) {
   n_obs <- length(y)
@@ -80,6 +86,8 @@ calc_cwres <- function(
   if (n_obs == 0 || n_eta == 0) {
     return(list(cwres = numeric(0), vcov = NULL))
   }
+
+  if (is.null(weights)) weights <- rep(1, n_obs)
 
   # Transformed individual predictions at eta_hat
   ipred_transf <- transf(ipred_raw)
@@ -149,11 +157,13 @@ calc_cwres <- function(
     )
   }
 
-  # FOCE Hessian: H = (Omega/w)^{-1} + F' * Sigma^{-1} * F
-  # where w = weight_prior_var, matching the scaled omega used during MAP
-  # estimation. vcov of etas = H^{-1}.
-  # This reuses the Jacobian F already computed for CWRES, so no extra
-  # simulations are needed (replaces the numDeriv::hessian computation).
+  # FOCE Hessian: H = (Omega/w)^{-1} + F' * diag(wt/sigma^2) * F
+  # where w = weight_prior_var (scales the prior to match the MAP OFV) and
+  # wt = per-observation weights (must match those used during MAP estimation).
+  # vcov of etas = H^{-1}.
+  # CWRES above uses unit weights (model diagnostic per Hooker et al. 2007);
+  # vcov uses the actual estimation weights so that the Hessian matches the
+  # curvature of the OFV that was minimised.
   # With weight_prior_var <= 0 the prior is effectively flat (LS fit), so
   # the FOCE vcov is not meaningful; skip and let the caller fall back.
   vcov <- NULL
@@ -162,7 +172,7 @@ calc_cwres <- function(
     omega_scaled_inv <- tryCatch(solve(omega_scaled), error = function(e) NULL)
     if (!is.null(omega_scaled_inv)) {
       H_foce <- omega_scaled_inv +
-        t(F_matrix) %*% diag(1 / sigma_diag, nrow = n_obs) %*% F_matrix
+        t(F_matrix) %*% diag(weights / sigma_diag, nrow = n_obs) %*% F_matrix
       vcov <- tryCatch(solve(H_foce), error = function(e) {
         warning("FOCE variance-covariance computation failed.")
         NULL

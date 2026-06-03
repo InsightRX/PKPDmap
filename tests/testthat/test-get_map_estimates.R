@@ -596,8 +596,10 @@ test_that("FOCE vcov is positive definite even when numDeriv Hessian would fail"
   expect_false(is.null(fit$foce_vcov))
   expect_true(PKPDsim::is_positive_definite(fit$foce_vcov))
   expect_true(PKPDsim::is_positive_definite(fit$vcov_full))
-  skip("Skipping until weights are added to FOCE")
-  expect_equal(fit$vcov_full, fit$foce_vcov)
+  # foce_vcov uses the FOCE approximation (omits log(sigma^2) derivatives for
+  # proportional error), so it won't be identical to the numDeriv vcov_full,
+  # but should be in the same ballpark.
+  expect_equal(fit$vcov_full, fit$foce_vcov, tolerance = 0.3)
 })
 
 test_that("When vcov from numDeriv is not positive definite, fallback to omega (residuals=FALSE)", {
