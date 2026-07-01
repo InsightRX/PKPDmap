@@ -55,7 +55,10 @@ mle_wrapper <- function(minuslogl,
     try(
       {
         fit$hessian <- numDeriv::hessian(objective_function, fit$par)
-        fit$vcov <- solve(fit$hessian)
+        ## objective_function is on the -2*logLik (NONMEM OFV) scale, so its
+        ## Hessian is twice the observed Fisher information. The asymptotic
+        ## vcov is the inverse of the Fisher information, hence the factor 2.
+        fit$vcov <- 2 * solve(fit$hessian)
       }, 
       silent = FALSE
     )
