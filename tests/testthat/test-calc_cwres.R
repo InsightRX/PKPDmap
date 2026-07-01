@@ -32,7 +32,7 @@ test_that("calc_cwres FOCE vcov uses per-observation weights", {
     ipred_raw = ipred_raw,
     y = y,
     omega_full = omega_full,
-    error =  list(prop = 0.1, add = 0.1),
+    error = list(prop = 0.1, add = 0.1),
     obs_type = c(1, 1),
     transf = function(x) x,
     model = model,
@@ -43,7 +43,7 @@ test_that("calc_cwres FOCE vcov uses per-observation weights", {
     regimen = regimen,
     lagtime = NULL,
     t_obs = t_obs,
-    obs_type_sim = obs_type
+    obs_type_sim = c(1, 1)
   )
 
   res_unit <- do.call(calc_cwres, c(args, list(weights = rep(1, 2))))
