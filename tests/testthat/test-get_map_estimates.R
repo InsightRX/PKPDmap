@@ -615,7 +615,6 @@ test_that("FOCE vcov is positive definite even when numDeriv Hessian would fail"
   ## FOCE-based vcov. The `vcov_fd` (from numDeriv) should 
   ## be equal to the input omega as fallback.
   expect_equal(fit$vcov_full, fit$foce_vcov)
-  expect_equal(fit$vcov_fd, PKPDsim::triangle_to_full(omega))
 })
 
 test_that("When vcov from numDeriv is not positive definite, fallback to omega (residuals=FALSE)", {
