@@ -102,8 +102,8 @@ test_that("FOCE vcov matches NONMEM 7.5.1 (unit and per-observation weights)", {
   expect_equal(as.numeric(res_weighted$fit$par), nm_weighted$eta, tolerance = 1e-3)
 
   # FOCE vcov agrees to within ~2% (allow 4% headroom).
-  expect_equal(unname(res_unit$vcov_full), nm_unit$vcov, tolerance = 0.04)
-  expect_equal(unname(res_weighted$vcov_full), nm_weighted$vcov, tolerance = 0.04)
+  expect_equal(res_unit$vcov_full / nm_unit$vcov, matrix(1, nrow = 2, ncol = 2), tolerance = 0.02)
+  expect_equal(res_weighted$vcov_full / nm_weighted$vcov, matrix(1, nrow = 2, ncol = 2), tolerance = 0.02)
 
   # Weights must actually flow into the Hessian: higher weight -> tighter vcov.
   expect_true(det(res_weighted$vcov_full) < det(res_unit$vcov_full))

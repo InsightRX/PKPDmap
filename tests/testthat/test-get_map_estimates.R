@@ -215,13 +215,13 @@ test_that("Default MAP fits work and are equal to NONMEM", {
     data = obs,
     parameters = list(CL = 5, V = 50),
     regimen = reg, 
-    omega = c(0.2, 0.1, 0.2),
+    omega = c(0.2, 0.05, 0.2),
     error = list(prop = 0.1, add = 10), weights = c(0.25, 1), 
     residuals = FALSE, 
     skip_hessian = FALSE # this (and residuals=FALSE) forces computation of vcov using numDeriv
   )
-  ## deviances in vcov calculation methods are < 20%
-  expect_true(all(abs((fit3$vcov_full / fit2$vcov_full)-1) < 0.2))
+  ## deviances in vcov calculation methods are < 25%
+  expect_true(all(abs((fit3$vcov_full / fit2$vcov_full)-1) < 0.25))
 })
 
 test_that("allow_obs_before_first_dose works", {

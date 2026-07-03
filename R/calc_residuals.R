@@ -15,8 +15,9 @@
 #' @param steady_state_analytic steady state settings (or NULL)
 #' @param weight_prior_var prior weight variance scaling factor (default 1).
 #'   Forwarded to `calc_cwres()` to scale omega in the FOCE Hessian.
-#' @param weights numeric vector of per-observation weights. Forwarded to
-#'   `calc_cwres()` so the FOCE Hessian matches the MAP OFV curvature.
+#' @param weights numeric vector of per-observation weights (length equal to the
+#'   observation vector). Used to scale residual outputs (e.g. WRES/IWRES) and is
+#'   forwarded to `calc_cwres()` so the FOCE Hessian matches the MAP OFV curvature.
 #'
 calc_residuals <- function(
   obj,

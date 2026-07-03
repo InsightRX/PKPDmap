@@ -54,8 +54,9 @@ numeric vector, or vector of parameters.}
 \item{error}{residual error, specified as list with arguments `add` and/or 
 `prop` specifying the additive and proportional parts}
 
-\item{weights}{numeric vector of per-observation weights. Forwarded to
-`calc_cwres()` so the FOCE Hessian matches the MAP OFV curvature.}
+\item{weights}{numeric vector of per-observation weights (length equal to the
+observation vector). Used to scale residual outputs (e.g. WRES/IWRES) and is
+forwarded to `calc_cwres()` so the FOCE Hessian matches the MAP OFV curvature.}
 
 \item{transf}{transformation function}
 
