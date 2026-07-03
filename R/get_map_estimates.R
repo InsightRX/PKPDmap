@@ -442,9 +442,15 @@ get_map_estimates <- function(
   if (!is.null(obj$foce_vcov)) {
     vcov_source <- obj$foce_vcov
   }
-  ## foce_vcov (computed from the FOCE Jacobian) is stored for diagnostics
-  ## but not used as the primary vcov source — it has known issues with
-  ## observation weights and proportional error that need to be fixed first.
+  ## foce_vcov (computed from the FOCE Jacobian) is stored for diagnostics and,
+  ## when available, used as the primary vcov source (faster and matches the FOCE
+  ## approximation used for CWRES, including observation weights).
+  if (is.null(vcov_source) && residuals && !skip_hessian) {
+    warning(
+      "FOCE vcov computation failed; falling back to `omega` because the ",
+      "numDeriv Hessian was skipped when residuals=TRUE."
+    )
+  }
   obj$vcov_full <- get_varcov_matrix(
     vcov_source,
     fallback = omega$full

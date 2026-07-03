@@ -87,8 +87,15 @@ calc_cwres <- function(
     return(list(cwres = numeric(0), vcov = NULL))
   }
 
-  if (is.null(weights)) weights <- rep(1, n_obs)
-
+  if (is.null(weights)) {
+    weights <- rep(1, n_obs)
+  } else {
+    weights <- as.numeric(weights)
+    if (length(weights) != n_obs) stop("`weights` must have length n_obs.")
+    if (any(!is.finite(weights)) || any(weights < 0)) {
+      stop("`weights` must be finite and non-negative.")
+    }
+  }
   # Transformed individual predictions at eta_hat
   ipred_transf <- transf(ipred_raw)
 
