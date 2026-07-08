@@ -43,8 +43,8 @@ in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
 
 \item{weights}{vector of weights for error. Length of vector should be same 
 as length of observation vector. If NULL (default), all weights are equal. 
-Used in both MAP and NP methods. Note that `weights` argument will also 
-affect residuals (residuals will be scaled too).}
+Note that `weights` argument will also affect residuals (residuals will be 
+scaled too).}
 }
 \description{
 Parse simulated data and extract residuals
