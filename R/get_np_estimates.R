@@ -6,17 +6,19 @@
 #' @param covariates `PKPDsim` covariates object
 #' @param regimen `PKPDsim` regimen
 #' @param data vector of observed data
+#' @param t_obs vector of observation times, matching `data`
 #' @param weights vector of weights passed to `get_map_estimates()`
 #' @param ... passed to `get_map_estimates()`
-#' 
+#'
 #' @export
-#' 
-get_np_estimates <- function(parameter_grid = NULL, 
-                             error = list(prop = 0.1, add = 0.1), 
+#'
+get_np_estimates <- function(parameter_grid = NULL,
+                             error = list(prop = 0.1, add = 0.1),
                              model = NULL,
                              covariates = NULL,
-                             regimen = NULL, 
+                             regimen = NULL,
                              data = NULL,
+                             t_obs = NULL,
                              weights = NULL,
                              ...) {
   all <- c()
@@ -24,16 +26,16 @@ get_np_estimates <- function(parameter_grid = NULL,
   for(i in 1:length(parameter_grid[,1])) {
     par_tmp <- list(CL = parameter_grid[i, 1], V = parameter_grid[i, 2])
     tmp <- PKPDsim::sim(
-      ode = model, 
-      parameters = par_tmp, 
-      regimen = regimen, 
-      t_obs = data$t,
-      only_obs = TRUE, 
+      ode = model,
+      parameters = par_tmp,
+      regimen = regimen,
+      t_obs = t_obs,
+      only_obs = TRUE,
       covariates = covariates,
       checks = FALSE,
       ...)$y
     all <- rbind(all, tmp)
-    like <- c(like, get_likelihood_of_data(data = data$y, ipred = tmp, error = error, weights = weights))
+    like <- c(like, get_likelihood_of_data(data = data, ipred = tmp, error = error, weights = weights))
   }
   tmp <- data.frame(cbind(parameter_grid, like))
   tmp$CL_tmp <- tmp[,1] * tmp$like

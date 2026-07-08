@@ -42,3 +42,38 @@ test_that("MAP fit works with oral model with lagtime", {
     c(0.594, 0.757, 0.856, 1.043, 1.307)
   )
 })
+
+test_that("np_hybrid fit works with explicit lagtime argument", {
+  mod <- mod_1cmt_oral_lagtime
+  reg <- PKPDsim::new_regimen(
+    amt = 100,
+    times = c(0, 24),
+    type = "bolus"
+  )
+  lagtime <- 0.5
+  data <- PKPDsim::sim(
+    ode = mod,
+    parameters = list(CL = 5, V = 50, KA = 0.5, TLAG = 0.85),
+    regimen = reg,
+    lagtime = lagtime,
+    t_obs = c(1, 2, 4, 8, 12, 20, 25, 28, 32),
+    only_obs = TRUE
+  )
+  fit <- get_map_estimates(
+    model = mod,
+    parameters = list(CL = 7, V = 60, KA = 0.7, TLAG = 0.85),
+    regimen = reg,
+    omega = c(0.05,
+              0, 0.05,
+              0, 0, 0.1),
+    error = list(prop = 0.1, add = 0.1),
+    data = data,
+    lagtime = lagtime,
+    fixed = "TLAG",
+    type = "np_hybrid",
+    verbose = FALSE
+  )
+  expect_true(!is.null(fit$np))
+  expect_true(is.numeric(fit$parameters$CL))
+  expect_true(is.numeric(fit$parameters$V))
+})

@@ -11,7 +11,9 @@ np_fit_wrapper(
   data,
   covariates = NULL,
   weights = 1,
-  np_settings = list()
+  np_settings = list(),
+  lagtime = NULL,
+  error = NULL
 )
 }
 \arguments{
@@ -33,6 +35,12 @@ affect residuals (residuals will be scaled too).}
 \item{np_settings}{list with settings for non-parametric estimation (if 
 selected), containing any of the following: `error`, `grid_span`, grid_size`,
  `grid_exponential`}
+
+\item{lagtime}{vector of lagtimes for each compartment in the model, either
+numeric vector, or vector of parameters.}
+
+\item{error}{residual error, specified as list with arguments `add` and/or 
+`prop` specifying the additive and proportional parts}
 }
 \description{
 Wrapper for non-parametric fit

@@ -10,7 +10,9 @@ np_fit_wrapper <- function(
   data,
   covariates = NULL,
   weights = 1,
-  np_settings = list()
+  np_settings = list(),
+  lagtime = NULL,
+  error = NULL
 ) {
   par <- obj$parameters
   obj$parameters_map <- par ## keep copy of MAP estimates
@@ -36,7 +38,8 @@ np_fit_wrapper <- function(
       data = data$y,
       t_obs = data$t,
       covariates = covariates,
-      weights = weights
+      weights = weights,
+      lagtime = lagtime
     )
     # take the estimates with highest probability as starting point for next grid
     tmp <- np$prob[order(-np$prob$like),][1,]
@@ -56,7 +59,8 @@ np_fit_wrapper <- function(
     data = data$y,
     t_obs = data$t,
     covariates = covariates,
-    weights = weights
+    weights = weights,
+    lagtime = lagtime
   )
   for(i in 1:length(par)) {
     par[[i]] <- np$parameters[[i]]

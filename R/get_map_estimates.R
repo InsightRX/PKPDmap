@@ -367,7 +367,8 @@ get_map_estimates <- function(
       data = data,
       covariates = covariates,
       weights = weights,
-      np_settings = np_settings
+      np_settings = np_settings,
+      error = error
     )
   }
 

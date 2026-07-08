@@ -11,6 +11,7 @@ get_np_estimates(
   covariates = NULL,
   regimen = NULL,
   data = NULL,
+  t_obs = NULL,
   weights = NULL,
   ...
 )
@@ -27,6 +28,8 @@ get_np_estimates(
 \item{regimen}{`PKPDsim` regimen}
 
 \item{data}{vector of observed data}
+
+\item{t_obs}{vector of observation times, matching `data`}
 
 \item{weights}{vector of weights passed to `get_map_estimates()`}
 
