@@ -49,10 +49,7 @@
 #' such as `Nelder-Mead` to avoid estimation failures.
 #' @param control list of options passed to `optim()` function
 #' @param allow_obs_before_dose allow observation before first dose?
-#' @param type estimation type, options are `map`, `ls`, and `np_hybrid`
-#' @param np_settings list with settings for non-parametric estimation (if 
-#' selected), containing any of the following: `error`, `grid_span`, grid_size`,
-#'  `grid_exponential`
+#' @param type estimation type, options are `map` and `ls`
 #' @param cols column names
 #' @param residuals show residuals? This requires an additional simulation so 
 #' will be slightly slower.
@@ -127,7 +124,6 @@ get_map_estimates <- function(
                       control = list(reltol = 1e-5),
                       allow_obs_before_dose = FALSE,
                       type = "map",
-                      np_settings = list(),
                       cols = list(x = "t", y = "y"),
                       residuals = TRUE,
                       verbose = FALSE,

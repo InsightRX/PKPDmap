@@ -32,7 +32,6 @@ get_map_estimates(
   control = list(reltol = 1e-05),
   allow_obs_before_dose = FALSE,
   type = "map",
-  np_settings = list(),
   cols = list(x = "t", y = "y"),
   residuals = TRUE,
   verbose = FALSE,
@@ -116,11 +115,7 @@ such as `Nelder-Mead` to avoid estimation failures.}
 
 \item{allow_obs_before_dose}{allow observation before first dose?}
 
-\item{type}{estimation type, options are `map`, `ls`, and `np_hybrid`}
-
-\item{np_settings}{list with settings for non-parametric estimation (if 
-selected), containing any of the following: `error`, `grid_span`, grid_size`,
- `grid_exponential`}
+\item{type}{estimation type, options are `map` and `ls`}
 
 \item{cols}{column names}
 
