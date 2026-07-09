@@ -940,12 +940,8 @@ test_that("FOCE vcov matches numDeriv Hessian vcov", {
     residuals = FALSE
   )
 
-  # Compare on a *relative* scale (ratio ~ 1). The vcov elements (~1e-3) are
-  # smaller than any reasonable absolute tolerance, so expect_equal(a, b,
-  # tolerance = ...) silently degrades to an absolute check and passes even
-  # for a factor-2 scale error. Dividing first forces a true relative check.
   # The ~7% residual difference is the Gauss-Newton (FOCE) vs full-Hessian
-  # (numDeriv) approximation, not a scaling error.
+  # (numDeriv) approximation, not a scaling error. Allow tolerance of 0.1.
   expect_equal(
     fit_numderiv$vcov / fit_foce$vcov,
     rep(1, length(fit_foce$vcov)),
