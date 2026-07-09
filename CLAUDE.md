@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Package Overview
 
-PKPDmap is an R package implementing Maximum A Posteriori (MAP) Bayesian estimation and non-parametric fitting for pharmacokinetic/pharmacodynamic (PK/PD) data. It depends heavily on [PKPDsim](https://github.com/InsightRX/PKPDsim) (also an InsightRX package) for ODE-based PK/PD simulation.
+PKPDmap is an R package implementing Maximum A Posteriori (MAP) Bayesian estimation for pharmacokinetic/pharmacodynamic (PK/PD) data. It depends heavily on [PKPDsim](https://github.com/InsightRX/PKPDsim) (also an InsightRX package) for ODE-based PK/PD simulation.
 
 ## Common Commands
 

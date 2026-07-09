@@ -1,6 +1,6 @@
 # PKPDmap
 
-MAP Bayesian and non-parametric data fitting for PK(PD) models.
+MAP Bayesian fitting for PK(PD) models.
 
 ## Description
 
