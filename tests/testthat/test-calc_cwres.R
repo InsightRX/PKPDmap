@@ -11,9 +11,6 @@ test_that("calc_cwres FOCE vcov uses per-observation weights", {
   )
 
   parameters_population <- list(CL = 5, V = 50)
-  nonfixed <- c("CL", "V")
-  omega_full <- matrix(c(0.1, 0, 0, 0.1), nrow = 2)
-  eta_hat <- c(0, 0)
   t_obs <- c(2, 8)
 
   # Individual predictions at eta_hat (population params, since eta = 0).
@@ -28,16 +25,16 @@ test_that("calc_cwres FOCE vcov uses per-observation weights", {
   y <- ipred_raw  # observations equal to predictions (residuals irrelevant for vcov)
 
   args <- list(
-    eta_hat = eta_hat,
+    eta_hat = c(0, 0),
     ipred_raw = ipred_raw,
     y = y,
-    omega_full = omega_full,
+    omega_full = matrix(c(0.1, 0, 0, 0.1), nrow = 2),
     error = list(prop = 0.1, add = 0.1),
     obs_type = c(1, 1),
     transf = function(x) x,
     model = model,
     parameters_population = parameters_population,
-    nonfixed = nonfixed,
+    nonfixed = c("CL", "V"),
     as_eta = c(),
     covariates = NULL,
     regimen = regimen,
