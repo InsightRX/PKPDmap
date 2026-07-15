@@ -133,8 +133,8 @@ ll_func_PKPDsim(
 
 \item{weights}{vector of weights for error. Length of vector should be same 
 as length of observation vector. If NULL (default), all weights are equal. 
-Used in both MAP and NP methods. Note that `weights` argument will also 
-affect residuals (residuals will be scaled too).}
+Note that `weights` argument will also affect residuals (residuals will be 
+scaled too).}
 
 \item{as_eta}{vector of parameters that are estimates as eta (e.g. IOV)}
 
