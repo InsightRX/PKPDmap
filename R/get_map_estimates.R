@@ -8,8 +8,8 @@
 #' @param as_eta vector of parameters that are estimates as eta (e.g. IOV)
 #' @param weights vector of weights for error. Length of vector should be same 
 #' as length of observation vector. If NULL (default), all weights are equal. 
-#' Used in both MAP and NP methods. Note that `weights` argument will also 
-#' affect residuals (residuals will be scaled too).
+#' Note that `weights` argument will also affect residuals (residuals will be 
+#' scaled too).
 #' @param omega between subject variability, supplied as vector specifiying the
 #'  lower triangle of the covariance matrix of random effects
 #' @param weight_prior weighting of priors in relationship to observed data, 
@@ -49,10 +49,7 @@
 #' such as `Nelder-Mead` to avoid estimation failures.
 #' @param control list of options passed to `optim()` function
 #' @param allow_obs_before_dose allow observation before first dose?
-#' @param type estimation type, options are `map`, `ls`, and `np_hybrid`
-#' @param np_settings list with settings for non-parametric estimation (if 
-#' selected), containing any of the following: `error`, `grid_span`, grid_size`,
-#'  `grid_exponential`
+#' @param type estimation type, options are `map` and `ls`
 #' @param cols column names
 #' @param residuals show residuals? This requires an additional simulation so 
 #' will be slightly slower.
@@ -127,7 +124,6 @@ get_map_estimates <- function(
                       control = list(reltol = 1e-5),
                       allow_obs_before_dose = FALSE,
                       type = "map",
-                      np_settings = list(),
                       cols = list(x = "t", y = "y"),
                       residuals = TRUE,
                       verbose = FALSE,
@@ -357,23 +353,6 @@ get_map_estimates <- function(
       as_eta
     )
   )
-
-  #################################################
-  ## Non-parametric estimation (hybrid, based on
-  ## MAP fit as initial estimates)
-  #################################################
-  if(type == "np_hybrid") {
-    obj <- np_fit_wrapper(
-      obj = obj,
-      model = model,
-      regimen = regimen,
-      lagtime = lagtime,
-      data = data,
-      covariates = covariates,
-      weights = weights,
-      np_settings = np_settings
-    )
-  }
 
   #################################################
   ## Add g.o.f. info

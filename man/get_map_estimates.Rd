@@ -32,7 +32,6 @@ get_map_estimates(
   control = list(reltol = 1e-05),
   allow_obs_before_dose = FALSE,
   type = "map",
-  np_settings = list(),
   cols = list(x = "t", y = "y"),
   residuals = TRUE,
   verbose = FALSE,
@@ -81,8 +80,8 @@ in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
 
 \item{weights}{vector of weights for error. Length of vector should be same 
 as length of observation vector. If NULL (default), all weights are equal. 
-Used in both MAP and NP methods. Note that `weights` argument will also 
-affect residuals (residuals will be scaled too).}
+Note that `weights` argument will also affect residuals (residuals will be 
+scaled too).}
 
 \item{steady_state_analytic}{list object with settings for steady state MAP 
 estimation.}
@@ -116,11 +115,7 @@ such as `Nelder-Mead` to avoid estimation failures.}
 
 \item{allow_obs_before_dose}{allow observation before first dose?}
 
-\item{type}{estimation type, options are `map`, `ls`, and `np_hybrid`}
-
-\item{np_settings}{list with settings for non-parametric estimation (if 
-selected), containing any of the following: `error`, `grid_span`, grid_size`,
- `grid_exponential`}
+\item{type}{estimation type, options are `map` and `ls`}
 
 \item{cols}{column names}
 

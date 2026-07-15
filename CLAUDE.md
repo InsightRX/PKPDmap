@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Package Overview
 
-PKPDmap is an R package implementing Maximum A Posteriori (MAP) Bayesian estimation and non-parametric fitting for pharmacokinetic/pharmacodynamic (PK/PD) data. It depends heavily on [PKPDsim](https://github.com/InsightRX/PKPDsim) (also an InsightRX package) for ODE-based PK/PD simulation.
+PKPDmap is an R package implementing Maximum A Posteriori (MAP) Bayesian estimation for pharmacokinetic/pharmacodynamic (PK/PD) data. It depends heavily on [PKPDsim](https://github.com/InsightRX/PKPDsim) (also an InsightRX package) for ODE-based PK/PD simulation.
 
 ## Common Commands
 
@@ -39,8 +39,7 @@ The main entry point is `get_map_estimates()` (`R/get_map_estimates.R`), which s
 - `map` — standard MAP Bayesian with empirical Bayes (default)
 - `map_flat_prior` — MAP with flattened priors (reduced shrinkage)
 - `ls` — Least squares (nearly-flat MAP priors)
-- `np` — Non-parametric estimation on a user-supplied parameter matrix
-- `np_hybrid` — Hybrid MAP + non-parametric grid search
+
 
 ### Estimation Pipeline
 
@@ -52,9 +51,8 @@ get_map_estimates()
   │   ├── parse_omega_matrix()
   │   ├── parse_error()
   │   └── ...
-  ├── mle_wrapper()            # wraps optim() + Hessian calculation
-  │   └── ll_func_PKPDsim()   # likelihood: calls PKPDsim, applies error model + censoring
-  └── get_np_estimates()       # for np/np_hybrid methods
+  └── mle_wrapper()            # wraps optim() + Hessian calculation
+      └── ll_func_PKPDsim()   # likelihood: calls PKPDsim, applies error model + censoring
 ```
 
 ### Key Function Roles
@@ -66,7 +64,6 @@ get_map_estimates()
 | `R/ll_func_PKPDsim.R` | Computes log-likelihood by calling PKPDsim and applying residual error + censoring |
 | `R/calc_ofv_map.R` | Objective function value for MAP (includes prior penalty) |
 | `R/calc_ofv_ls.R` | OFV for least squares |
-| `R/get_np_estimates.R` | Non-parametric grid search fitting |
 | `R/parse_omega_matrix.R` | Converts various omega input formats to full covariance matrix |
 | `R/check_inputs.R` | Comprehensive upfront validation (throws descriptive errors) |
 | `R/run_sequential_map.R` | Batch MAP estimation across multiple individuals |
