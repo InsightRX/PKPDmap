@@ -41,10 +41,9 @@ in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
 
 \item{data_before_init}{data.frame with data before initial dose}
 
-\item{weights}{vector of weights for error. Length of vector should be same 
-as length of observation vector. If NULL (default), all weights are equal. 
-Note that `weights` argument will also affect residuals (residuals will be 
-scaled too).}
+\item{weights}{numeric vector of per-observation weights (length equal to the
+observation vector). Used to scale residual outputs (e.g. WRES/IWRES) and is
+forwarded to `calc_cwres()` so the FOCE Hessian matches the MAP OFV curvature.}
 }
 \description{
 Parse simulated data and extract residuals

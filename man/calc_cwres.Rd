@@ -27,6 +27,7 @@ calc_cwres(
   t_init = 0,
   steady_state_analytic = NULL,
   weight_prior_var = 1,
+  weights = NULL,
   delta = 1e-04
 )
 }
@@ -78,6 +79,11 @@ predictions at eta_hat}
 Used to scale omega in the FOCE Hessian computation to match the
 estimation objective. CWRES uses the unscaled omega (model diagnostic).}
 
+\item{weights}{numeric vector of per-observation weights (length n_obs,
+default all 1). Must match the weights used in MAP estimation so that
+the FOCE Hessian matches the curvature of the actual OFV. CWRES (a model
+diagnostic) always uses unit weights per Hooker et al. 2007.}
+
 \item{delta}{perturbation size for finite differences}
 }
 \value{
@@ -85,7 +91,8 @@ list with components:
   \item{cwres}{numeric vector of CWRES values}
   \item{vcov}{FOCE variance-covariance matrix of eta estimates
     (n_eta x n_eta), or NULL if computation failed. Derived from the
-    same Jacobian F used for CWRES: vcov = (Omega^-1 + F' Sigma^-1 F)^-1}
+    same Jacobian F used for CWRES: vcov = (Omega^-1 + F' Sigma^-1 F)^-1,
+    with per-observation weights applied to the likelihood term.}
 }
 \description{
 Computes CWRES following the FOCE approximation method described in
