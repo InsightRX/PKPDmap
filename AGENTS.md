@@ -29,10 +29,11 @@ devtools::test(filter = "get_map_estimates")
 # Regenerate documentation from roxygen2 comments
 devtools::document()
 
-# Full R CMD check (as done in CI)
-devtools::check("--no-manual --as-cran")
+# Full R CMD check (same flags as CI)
+devtools::check(args = c("--no-manual", "--as-cran"))
 
-# Install PKPDsim dependency from GitHub (requires PAT_TOKEN)
+# Install PKPDsim dependency from GitHub (public repo; no token needed, but
+# `GITHUB_PAT` can be set to avoid API rate limits)
 remotes::install_github("InsightRX/PKPDsim")
 ```
 
@@ -62,8 +63,10 @@ actually accepts `map` / `pls` / `ls` — treat the source as authoritative.
 Prior strength is controlled independently by **`weight_prior`**, which is
 given on the SD scale and squared into `weight_prior_var`. Throughout the
 pipeline the prior is applied as `omega$est / weight_prior_var`, so a larger
-`weight_prior` means a *tighter* prior. `weight_prior_var == 0` falls back to
-`calc_ofv_ls()`.
+`weight_prior` means a *tighter* prior. Do **not** use `weight_prior = 0` to
+drop the prior: although that selects `calc_ofv_ls()`, the optimizer data is
+still built from `omega$est / weight_prior_var`, which is non-finite at zero
+and fails in `solve()`. Use `type = "ls"` instead.
 
 ### Estimation Pipeline
 
@@ -126,23 +129,27 @@ The population parameter is overwritten with the selected value.
 - **ETA (η)**: Random effects (inter-individual variability), parameterized on
   log-normal or normal scale. The `as_eta` argument marks parameters estimated
   directly on the eta scale.
-- **Omega (Ω)**: Between-subject variability covariance matrix — can be
-  supplied as full matrix, CV%, or variance vector; `parse_omega_matrix()`
-  normalizes these and also returns `$nonfixed` and starting `$eta`.
+- **Omega (Ω)**: Between-subject variability covariance matrix.
+  `parse_omega_matrix()` accepts either a full matrix or a lower-triangle
+  vector of variances/covariances, and also returns `$nonfixed` and starting
+  `$eta`. CV% is not an accepted input: `create_block_from_cv()` is a separate
+  helper that builds a diagonal lower-triangle block from a CV fraction.
 - **IOV**: Inter-occasion variability, handled via `create_iov_object()` and
   the `iov_bins` argument.
 - **Fixed parameters**: Listed in `fixed` argument to exclude from optimization.
 
 ### Return object
 
-`get_map_estimates()` returns a list of class `map_estimates` containing at
-least `fit`, `parameters` (individual estimates), `mixture`, residual/g.o.f.
-columns added by `calc_residuals()`, `vcov_full` / `vcov`, `mahalanobis`, and
-`prior` (the population parameters, omega, and fixed list used).
+`get_map_estimates()` returns a list of class `map_estimates` containing
+`fit`, `parameters` (individual estimates), `mixture`, `vcov_full` / `vcov`,
+`mahalanobis`, and `prior` (the population parameters, omega, and fixed list
+used). The residual/g.o.f. fields are added by `calc_residuals()` only when
+`residuals = TRUE`; without them `mahalanobis` is `NULL`.
 
-On optimizer failure the function returns the caught **error object itself**
-rather than throwing, so callers that pass unusual inputs should check the
-returned class.
+Only the non-mixture `mle_wrapper()` call is wrapped in a `tryCatch` that
+returns the caught **error object itself** instead of throwing, so callers
+should check the returned class. Mixture fits and errors raised elsewhere in
+the pipeline propagate normally.
 
 ### Test Organization
 
