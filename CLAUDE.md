@@ -38,7 +38,7 @@ The main entry point is `get_map_estimates()` (`R/get_map_estimates.R`), which s
 
 - `map` — standard MAP Bayesian with empirical Bayes (default)
 - `pls` — MAP with a flattened prior fixed internally to a small value (reduced shrinkage, not controlled by `weight_prior`)
-- `ls` — least squares; has no prior/omega term in the objective at all (not a flat-prior MAP special case) and forces the error model to `add = 1, prop = 0`
+- `ls` — least squares; has no prior/omega term in the objective at all and forces the error model to `add = 1, prop = 0`
 
 
 ### Estimation Pipeline
