@@ -4,11 +4,11 @@ MAP Bayesian fitting for PK(PD) models.
 
 ## Description
 
-This R library implements various methods for fitting of individual PK(PD) data. For simulation of PK(PD) profiles it uses the `PKPDsim` [package](https://github.com/insightrx/pkpdsim). The following estimation methods are implemented and available in the `get_map_estimates` function:
+This R library implements various methods for fitting of individual PK(PD) data. For simulation of PK(PD) profiles it uses the `PKPDsim` [package](https://github.com/insightrx/pkpdsim). The following estimation methods are implemented and available in the `get_map_estimates` function via the `type` argument:
 
-- `map`: MAP Bayesian: standard maximum a priori estimation of empirical Bayes estimates
-- `map_flat_prior`: MAP Bayesian with flat prior: reduced weight of prior distribution, i.e. will put more trust in the data and hence reduce shrinkage (user can control the weighting).
-- `ls`: Least Squares: not *truly* least squares but rather special case of MAP Bayesian with flat priors, i.e. with (almost) fully flat prior.
+- `map`: MAP Bayesian: standard maximum a priori estimation of empirical Bayes estimates.
+- `pls`: MAP Bayesian with a flattened prior: the prior weight is fixed internally to a small value (regardless of the `weight_prior` argument), putting more trust in the data and reducing shrinkage relative to `map`.
+- `ls`: Least squares: unlike `pls`, this is *not* a flat-prior special case of MAP. The objective function has no prior/omega term at all, and the residual error model is forced to `add = 1, prop = 0` regardless of the `error` argument, so it minimizes unweighted squared residuals.
 
 ## Installation
 
