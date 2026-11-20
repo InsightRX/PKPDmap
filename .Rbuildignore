@@ -6,3 +6,4 @@
 .Rhistory
 README.MD
 .github
+^AGENTS\.md$
