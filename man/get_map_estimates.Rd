@@ -31,7 +31,7 @@ get_map_estimates(
   method = "BFGS",
   control = list(reltol = 1e-05),
   allow_obs_before_dose = FALSE,
-  type = "map",
+  type = c("map", "pls", "ls"),
   cols = list(x = "t", y = "y"),
   residuals = TRUE,
   verbose = FALSE,
@@ -115,7 +115,7 @@ such as `Nelder-Mead` to avoid estimation failures.}
 
 \item{allow_obs_before_dose}{allow observation before first dose?}
 
-\item{type}{estimation type, options are `map` and `ls`}
+\item{type}{estimation type, one of `"map"` (default), `"pls"`, or `"ls"`}
 
 \item{cols}{column names}
 

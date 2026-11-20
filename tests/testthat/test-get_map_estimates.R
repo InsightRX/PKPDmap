@@ -1021,3 +1021,34 @@ test_that("Floating point precision issues don't raise warning", {
   )
   expect_equal(round(out$parameters$CL, 3), 2.320)
 })
+
+test_that("unsupported `type` values are rejected", {
+  expect_error(get_map_estimates(type = "invalid"), "should be one of")
+  expect_error(get_map_estimates(type = "map_flat_prior"), "should be one of")
+})
+
+test_that("map, pls, and ls are all accepted as `type`", {
+  mod <- PKPDsim::new_ode_model("pk_1cmt_iv")
+  par <- list(CL = 5, V = 50)
+  reg <- PKPDsim::new_regimen(amt = 1000, times = 0, type = "bolus")
+  data <- PKPDsim::sim(
+    mod,
+    regimen = reg,
+    parameters = par,
+    t_obs = c(1, 4, 8, 16),
+    only_obs = TRUE
+  )
+  for(type in c("map", "pls", "ls")) {
+    fit <- get_map_estimates(
+      model = mod,
+      parameters = par,
+      omega = c(0.1, 0.02, 0.1),
+      regimen = reg,
+      error = list(prop = 0.1, add = 0.1),
+      data = data,
+      type = type,
+      verbose = FALSE
+    )
+    expect_true(!is.null(fit$parameters))
+  }
+})

@@ -45,9 +45,9 @@ remotes::install_github("InsightRX/PKPDsim")
 The main entry point is `get_map_estimates()` (`R/get_map_estimates.R`). Two
 separate arguments are easy to confuse:
 
-- **`type`** selects the *estimation approach*. It is **not validated**
-  anywhere: only these values are special-cased, and any other string falls
-  through to MAP-like behavior without an error.
+- **`type`** selects the *estimation approach*. It is validated via
+  `match.arg()` against exactly these three values (anything else, including
+  a different case such as `"MAP"`, errors):
   - `"map"` (default) — standard MAP Bayesian / empirical Bayes. Uses
     `calc_ofv_map()`, which adds the prior penalty term.
   - `"pls"` — penalized least squares: MAP with very flat priors.
@@ -60,9 +60,11 @@ separate arguments are easy to confuse:
   with finite-difference gradients; for models containing step functions (e.g.
   a lagtime) prefer a non-gradient method such as Nelder-Mead.
 
-Note: `README.md` documents these as `map` / `map_flat_prior` / `ls`. The
-special-cased values are `map` / `pls` / `ls` — treat the source as
-authoritative.
+`README.md` documents the same three values. A caller that previously passed
+anything else (e.g. `"map_flat_prior"`, `"no_fit"`) to get `"map"`-like
+behavior by fallthrough must now pass `"map"` explicitly — `match.arg()`
+rejects it instead. (insightrxr's `fit_wrapper.R` is one such caller; see its
+`resolve_map_estimates_type()`/inline equivalent.)
 
 Prior strength is controlled independently by **`weight_prior`**, which is
 given on the SD scale and squared into `weight_prior_var`. Throughout the

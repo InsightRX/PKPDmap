@@ -49,7 +49,7 @@
 #' such as `Nelder-Mead` to avoid estimation failures.
 #' @param control list of options passed to `optim()` function
 #' @param allow_obs_before_dose allow observation before first dose?
-#' @param type estimation type, options are `map` and `ls`
+#' @param type estimation type, one of `"map"` (default), `"pls"`, or `"ls"`
 #' @param cols column names
 #' @param residuals show residuals? This requires an additional simulation so 
 #' will be slightly slower.
@@ -123,13 +123,15 @@ get_map_estimates <- function(
                       method = "BFGS",
                       control = list(reltol = 1e-5),
                       allow_obs_before_dose = FALSE,
-                      type = "map",
+                      type = c("map", "pls", "ls"),
                       cols = list(x = "t", y = "y"),
                       residuals = TRUE,
                       verbose = FALSE,
                       A_init = NULL,
                       skip_hessian = FALSE,
                       output_include = list(covariates = FALSE, parameters = FALSE)) {
+
+  type <- match.arg(type)
 
   ## get prior weight for scaling of variance term
   weight_prior_var <- parse_weight_prior(weight_prior, type)
