@@ -49,7 +49,7 @@
 #' such as `Nelder-Mead` to avoid estimation failures.
 #' @param control list of options passed to `optim()` function
 #' @param allow_obs_before_dose allow observation before first dose?
-#' @param type estimation type, one of `map` (default), `pls`, or `ls`
+#' @param type estimation type, one of `"map"` (default), `"pls"`, or `"ls"`
 #' @param cols column names
 #' @param residuals show residuals? This requires an additional simulation so 
 #' will be slightly slower.
