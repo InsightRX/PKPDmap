@@ -21,7 +21,7 @@ lower triangle of the covariance matrix of random effects}
 \item{censoring}{label for column specifying censoring. If value in dataset 
 in this column is < 0 then censoring is assumed <LLOQ. If > 0 then  >ULOQ.}
 
-\item{type}{estimation type, options are `map` and `ls`}
+\item{type}{estimation type, one of `"map"` (default), `"pls"`, or `"ls"`}
 }
 \description{
 Some basic input checking
